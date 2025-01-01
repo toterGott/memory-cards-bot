@@ -5,6 +5,8 @@ import static com.example.memcards.user.UserState.EVALUATE_ANSWER;
 import static com.example.memcards.user.UserState.QUESTION_SHOWED;
 import static com.example.memcards.user.UserState.STAND_BY;
 import static com.example.memcards.user.UserState.WAITING_FOR_QUESTION;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 
 import com.example.memcards.card.Card;
 import com.example.memcards.card.CardService;
@@ -15,11 +17,13 @@ import com.example.memcards.user.TelegramUser;
 import com.example.memcards.user.UserService;
 import com.example.memcards.user.UserState;
 import jakarta.transaction.Transactional;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
@@ -53,8 +57,33 @@ public class TelegramUpdateHandler {
         var callbackAction = CallbackAction.valueOf(callbackArgs[0]);
 
         switch (callbackAction) {
-            case SET_LANGUAGE -> handleLanguageChangeCallback(callbackArgs[1], user, update.getCallbackQuery().getId());
+            case SET_LANGUAGE -> handleLanguageChangeCallback(callbackArgs[1], user);
+            case SELECT_COLLECTION -> log.info("Selecting collection {}", callbackArgs[1]);
+            case SELECT_COLLECTION_PAGE -> handleCollectionPage(callbackArgs[1], user, update);
         }
+
+        var callbackId = update.getCallbackQuery().getId();
+        AnswerCallbackQuery answer = new AnswerCallbackQuery(callbackId);
+        answer.setShowAlert(false);
+        client.execute(answer);
+    }
+
+    private void handleCollectionPage(String pageNumber, TelegramUser user, Update update) {
+        var pageRequest = PageRequest.of(Integer.parseInt(pageNumber), 2);
+        var page = collectionService.getCollections(user.getId(), pageRequest);
+        var text = messageProvider.getMessage(
+            "collections",
+            user.getLanguage(),
+            String.valueOf(page.getNumber() + 1),
+            String.valueOf(page.getTotalPages() + 1)
+        );
+        var pageKeyboard = keyboardProvider.getCollectionsPageInlineKeyboard(user.getLanguage(), page);
+
+        EditMessageText editMessageText = new EditMessageText(text);
+        editMessageText.setChatId(user.getChatId());
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        editMessageText.setReplyMarkup(pageKeyboard);
+        client.execute(editMessageText);
     }
 
     private void handleUpdateByUserState(Update update, TelegramUser user) {
@@ -80,12 +109,12 @@ public class TelegramUpdateHandler {
         handleButton(update, user);
     }
 
-    private void handleLanguageChangeCallback(String localeCode, TelegramUser user, String callbackId) {
+    private void handleLanguageChangeCallback(String localeCode, TelegramUser user) {
         var locale = AvailableLocale.valueOf(localeCode);
         user.setLanguage(locale);
 
         client.sendMessage(
-            user.getChatId(),
+            user,
             messageProvider.getMessage(
                 "language.updated",
                 user.getLanguage(),
@@ -93,10 +122,6 @@ public class TelegramUpdateHandler {
             ),
             keyboardProvider.getMainMenu(user.getLanguage())
         );
-
-        AnswerCallbackQuery answer = new AnswerCallbackQuery(callbackId);
-        answer.setShowAlert(false);
-        client.execute(answer);
     }
 
     private void handleWaitingForAnswer(Update update, TelegramUser user) {
@@ -107,9 +132,9 @@ public class TelegramUpdateHandler {
         user.setCurrentCardId(null);
         userService.save(user);
 
-        client.sendMessage(user.getChatId(), messageProvider.getMessage("create_card.created", user.getLanguage()));
-        client.sendMessage(user.getChatId(), card.getQuestion());
-        client.sendMessage(user.getChatId(), card.getAnswer(), keyboardProvider.getMainMenu(user.getLanguage()));
+        client.sendMessage(user, messageProvider.getMessage("create_card.created", user.getLanguage()));
+        client.sendMessage(user, card.getQuestion());
+        client.sendMessage(user, card.getAnswer(), keyboardProvider.getMainMenu(user.getLanguage()));
     }
 
     private void handleWaitingForQuestion(Update update, TelegramUser user) {
@@ -118,13 +143,13 @@ public class TelegramUpdateHandler {
         card.setQuestion(update.getMessage().getText());
         card.setCollection(defaultCollection);
         card.setOwner(user);
-        card.setGrade(0);
+        card.setAppearTime(Instant.now());
         card = cardService.save(card);
 
         user.setState(UserState.WAITING_FOR_ANSWER);
         user.setCurrentCardId(card.getId());
 
-        client.sendMessage(user.getChatId(), messageProvider.getMessage("create_card.answer", user.getLanguage()));
+        client.sendMessage(user, messageProvider.getMessage("create_card.answer", user.getLanguage()));
     }
 
     private void handleButton(Update update, TelegramUser user) {
@@ -136,12 +161,11 @@ public class TelegramUpdateHandler {
 
         switch (key) {
             case "button.info" -> client.sendMessage(
-                user.getChatId(), messageProvider.getMessage("info", user.getLanguage()),
+                user, messageProvider.getMessage("info", user.getLanguage()),
                 keyboardProvider.getMainMenu(user.getLanguage())
             );
             case "button.settings" -> sendSettingsMessage(user);
-            case "button.collections" ->
-                client.sendMessage(user.getChatId(), messageProvider.getMessage("collections", user.getLanguage()));
+            case "button.collections" -> handleCollectionsButton(user);
             case "button.create_card" -> createCard(user);
             case "button.get_card" -> getCard(user);
             case "button.again" -> setCardGrade(user, update, 0);
@@ -153,43 +177,74 @@ public class TelegramUpdateHandler {
         }
     }
 
+    private void handleCollectionsButton(TelegramUser user) {
+        var pageRequest = PageRequest.of(0, 2);
+        var page = collectionService.getCollections(user.getId(), pageRequest);
+        var text = messageProvider.getMessage(
+            "collections",
+            user.getLanguage(),
+            String.valueOf(page.getNumber() + 1),
+            String.valueOf(page.getTotalPages() + 1)
+        );
+        var pageKeyboard = keyboardProvider.getCollectionsPageInlineKeyboard(user.getLanguage(), page);
+        client.sendMessage(user, text, pageKeyboard);
+    }
+
     private void showAnswer(TelegramUser user) {
         var card = cardService.getCard(user.getCurrentCardId());
         var keyboard = keyboardProvider.getKnowledgeCheckKeyboard(user.getLanguage());
         user.setState(EVALUATE_ANSWER);
-        client.sendMessage(user.getChatId(), card.getAnswer(), keyboard);
+        client.sendMessage(user, card.getAnswer(), keyboard);
     }
 
-    private void setCardGrade(TelegramUser user, Update update, int i) {
+    private void setCardGrade(TelegramUser user, Update update, int grade) {
         var card = cardService.getCard(user.getCurrentCardId());
-        card.setGrade(i);
-        card.setUpdatedAt(LocalDateTime.now());
+        String text;
+        Instant appearTime = Instant.now();
+        switch (grade) {
+            default -> {
+                text = messageProvider.getMessage("card_answered", user.getLanguage(), "1", MINUTES.name());
+            }
+            case 1 -> {
+                appearTime = appearTime.plus(10, MINUTES);
+                text = messageProvider.getMessage("card_answered", user.getLanguage(), "10", MINUTES.name());
+            }
+            case 2 -> {
+                appearTime = appearTime.plus(1, DAYS);
+                text = messageProvider.getMessage("card_answered", user.getLanguage(), "1", DAYS.name());
+            }
+            case 3 -> {
+                appearTime = appearTime.plus(4, DAYS);
+                text = messageProvider.getMessage("card_answered", user.getLanguage(), "4", DAYS.name());
+            }
+        }
+        card.setAppearTime(appearTime);
         user.setState(STAND_BY);
         var mainMenu = keyboardProvider.getMainMenu(user.getLanguage());
-        client.sendMessage(user.getChatId(), messageProvider.getMessage("card_answered", user.getLanguage()), mainMenu);
+        client.sendMessage(user, text, mainMenu);
     }
 
     private void getCard(TelegramUser user) {
         cardService.getCardToLearn(user.getId()).ifPresentOrElse(
             card -> {
                 var keyboard = keyboardProvider.getShowAnswerKeyboard(user.getLanguage());
-                client.sendMessage(user.getChatId(), card.getQuestion(), keyboard);
+                client.sendMessage(user, card.getQuestion(), keyboard);
                 user.setCurrentCardId(card.getId());
                 user.setState(QUESTION_SHOWED);
             },
-            () -> client.sendMessage(user.getChatId(), messageProvider.getMessage("no_cards", user.getLanguage()))
+            () -> client.sendMessage(user, messageProvider.getMessage("no_cards", user.getLanguage()))
         );
     }
 
     private void handleUnknownMessage(TelegramUser user, String key) {
         var text = messageProvider.getMessage("unknown_request", user.getLanguage(), key);
-        client.sendMessage(user.getChatId(), text + key, keyboardProvider.getMainMenu(user.getLanguage()));
+        client.sendMessage(user, text + key, keyboardProvider.getMainMenu(user.getLanguage()));
     }
 
     private void createCard(TelegramUser user) {
         user.setState(WAITING_FOR_QUESTION);
         client.sendMessage(
-            user.getChatId(),
+            user,
             messageProvider.getMessage("create_card.question", user.getLanguage()),
             keyboardProvider.hideKeyboard()
         );
@@ -198,7 +253,7 @@ public class TelegramUpdateHandler {
     private void sendSettingsMessage(TelegramUser user) {
         var text = messageProvider.getMessage("settings", user.getLanguage());
         var settingsKeyboard = keyboardProvider.getSettingsMenu();
-        client.sendMessage(user.getChatId(), text, settingsKeyboard);
+        client.sendMessage(user, text, settingsKeyboard);
     }
 
     private void handleCommand(MessageEntity messageEntity, TelegramUser user) {
@@ -237,6 +292,6 @@ public class TelegramUpdateHandler {
     private void sendWelcomeMessage(TelegramUser user) {
         var welcomeText = messageProvider.getMessage("welcome", user.getLanguage());
         var mainMenu = keyboardProvider.getMainMenu(user.getLanguage());
-        client.sendMessage(user.getChatId(), welcomeText, mainMenu);
+        client.sendMessage(user, welcomeText, mainMenu);
     }
 }

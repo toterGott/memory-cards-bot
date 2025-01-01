@@ -22,6 +22,6 @@ public class CardService {
     }
 
     public Optional<Card> getCardToLearn(UUID id) {
-        return cardRepository.findFirstByOwnerIdOrderByGradeAscUpdatedAtAsc(id);
+        return cardRepository.findFirstByOwnerIdOrderByAppearTimeAsc(id);
     }
 }

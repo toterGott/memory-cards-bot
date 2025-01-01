@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 interface CardRepository extends JpaRepository<Card, UUID> {
 
-    Optional<Card> findFirstByOwnerIdOrderByGradeAscUpdatedAtAsc(UUID ownerId);
+    Optional<Card> findFirstByOwnerIdOrderByAppearTimeAsc(UUID ownerId);
 }

@@ -1,7 +1,9 @@
 package com.example.memcards.user;
 
 import com.example.memcards.collection.CardCollection;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,15 +13,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 @Entity
 @Table(name = "telegram_user")
 @Setter
-@Getter// todo fix
+@Getter
 public class TelegramUser {
 
     @Id
@@ -33,7 +40,16 @@ public class TelegramUser {
     private String lastName;
     @Enumerated(EnumType.STRING)
     private AvailableLocale language;
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb") // can be removed is ddl none
+    private Payload payload = new Payload();
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CardCollection> collections = new ArrayList<>();
     private UUID currentCardId;
+
+    @Data
+    @NoArgsConstructor
+    public static class Payload {
+        UUID selectedCollection;
+    }
 }
