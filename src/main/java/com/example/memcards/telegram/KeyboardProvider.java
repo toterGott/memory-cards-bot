@@ -5,6 +5,7 @@ import static com.example.memcards.telegram.TelegramUtils.CALLBACK_DELIMITER;
 import com.example.memcards.collection.CardCollection;
 import com.example.memcards.i18n.MessageProvider;
 import com.example.memcards.user.AvailableLocale;
+import com.example.memcards.user.TelegramUser;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,8 @@ public class KeyboardProvider {
 
     private final MessageProvider messageProvider;
 
-    public ReplyKeyboardMarkup getMainMenu(AvailableLocale languageCode) {
+    public ReplyKeyboardMarkup getMainMenu(TelegramUser user) {
+        var languageCode = user.getLanguage();
         List<KeyboardRow> keyboard = new ArrayList<>();
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
 
@@ -34,11 +36,14 @@ public class KeyboardProvider {
         keyboard.add(row);
 
         row = new KeyboardRow();
-        row.add(messageProvider.getMessage("button.get_card", languageCode));
+        if (user.getPayload().getFocusOnCollection() != null) {
+            row.add(messageProvider.getMessage("button.remove_focus", languageCode));
+        }
+        row.add(messageProvider.getMessage("button.create_card", languageCode));
         keyboard.add(row);
 
         row = new KeyboardRow();
-        row.add(messageProvider.getMessage("button.create_card", languageCode));
+        row.add(messageProvider.getMessage("button.get_card", languageCode));
         keyboard.add(row);
 
         keyboardMarkup.setKeyboard(keyboard);
@@ -109,12 +114,14 @@ public class KeyboardProvider {
         rows.add(finalRow);
         if (page.hasPrevious()) {
             var backButton = new InlineKeyboardButton(messageProvider.getMessage("button.previous_page", language));
-            backButton.setCallbackData(CallbackAction.SELECT_COLLECTION_PAGE + CALLBACK_DELIMITER + (page.getNumber() - 1));
+            backButton.setCallbackData(
+                CallbackAction.SELECT_COLLECTION_PAGE + CALLBACK_DELIMITER + (page.getNumber() - 1));
             finalRow.add(backButton);
         }
         if (page.hasNext()) {
             var forwardButton = new InlineKeyboardButton(messageProvider.getMessage("button.next_page", language));
-            forwardButton.setCallbackData(CallbackAction.SELECT_COLLECTION_PAGE + CALLBACK_DELIMITER + (page.getNumber() + 1));
+            forwardButton.setCallbackData(
+                CallbackAction.SELECT_COLLECTION_PAGE + CALLBACK_DELIMITER + (page.getNumber() + 1));
             finalRow.add(forwardButton);
         }
 
@@ -125,7 +132,7 @@ public class KeyboardProvider {
         List<InlineKeyboardRow> rows = new ArrayList<>();
 
         var choose = new InlineKeyboardButton(messageProvider.getMessage("button.collection.choose", language));
-        choose.setCallbackData(CallbackAction.CHOOSE_COLLECTION + CALLBACK_DELIMITER + collectionId);
+        choose.setCallbackData(CallbackAction.FOCUS_ON_COLLECTION + CALLBACK_DELIMITER + collectionId);
         rows.add(new InlineKeyboardRow(choose));
 
         var editCards = new InlineKeyboardButton(messageProvider.getMessage("button.collection.edit", language));

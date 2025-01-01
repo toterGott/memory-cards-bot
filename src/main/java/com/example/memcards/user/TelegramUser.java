@@ -48,6 +48,7 @@ public class TelegramUser {
     @Data
     @NoArgsConstructor
     public static class Payload {
-        UUID chosenCollection;
+        UUID focusOnCollection;
+        UUID defaultCollection;
     }
 }
