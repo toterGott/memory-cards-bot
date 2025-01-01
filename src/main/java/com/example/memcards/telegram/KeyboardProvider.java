@@ -1,13 +1,14 @@
 package com.example.memcards.telegram;
 
 import static com.example.memcards.telegram.TelegramUtils.CALLBACK_DELIMITER;
-import static com.example.memcards.telegram.TelegramUtils.telegramUserThreadLocal;
 
+import com.example.memcards.collection.CardCollection;
 import com.example.memcards.i18n.MessageProvider;
 import com.example.memcards.user.AvailableLocale;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -94,5 +95,29 @@ public class KeyboardProvider {
         keyboardMarkup.setKeyboard(keyboard);
         keyboardMarkup.setResizeKeyboard(true);
         return keyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getCollectionsPageInlineKeyboard(AvailableLocale language, Page<CardCollection> page) {
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+        for (CardCollection collection : page.getContent()) {
+            var button = new InlineKeyboardButton(collection.getName());
+            button.setCallbackData(CallbackAction.SELECT_COLLECTION + CALLBACK_DELIMITER + collection.getId());
+            rows.add(new InlineKeyboardRow(button));
+        }
+
+        var finalRow = new InlineKeyboardRow();
+        rows.add(finalRow);
+        if (page.hasPrevious()) {
+            var backButton = new InlineKeyboardButton(messageProvider.getMessage("button.previous_page", language));
+            backButton.setCallbackData(CallbackAction.SELECT_COLLECTION_PAGE + CALLBACK_DELIMITER + (page.getNumber() - 1));
+            finalRow.add(backButton);
+        }
+        if (page.hasNext()) {
+            var forwardButton = new InlineKeyboardButton(messageProvider.getMessage("button.next_page", language));
+            forwardButton.setCallbackData(CallbackAction.SELECT_COLLECTION_PAGE + CALLBACK_DELIMITER + (page.getNumber() + 1));
+            finalRow.add(forwardButton);
+        }
+
+        return new InlineKeyboardMarkup(rows);
     }
 }

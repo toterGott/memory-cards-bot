@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Data;
@@ -30,7 +31,7 @@ public class Card {
     private UUID id;
     private String question; // todo jsonb
     private String answer; // todo jsonb
-    private Integer grade;
+    private Instant appearTime;
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private TelegramUser owner;
@@ -38,7 +39,7 @@ public class Card {
     @JoinColumn(name = "collection_id", nullable = false)
     private CardCollection collection;
     @CreatedDate
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 }

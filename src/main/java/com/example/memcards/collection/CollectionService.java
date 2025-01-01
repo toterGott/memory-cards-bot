@@ -1,9 +1,10 @@
 package com.example.memcards.collection;
 
 import com.example.memcards.user.TelegramUser;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,5 +27,9 @@ public class CollectionService {
 
     public CardCollection getDefaultCollection(UUID id) {
         return cardCollectionRepository.findByOwnerIdAndName(id, DEFAULT_COLLECTION_NAME).orElseGet(null);
+    }
+
+    public Page<CardCollection> getCollections(UUID id, Pageable pageable) {
+        return cardCollectionRepository.findAllByOwnerId(id, pageable);
     }
 }
