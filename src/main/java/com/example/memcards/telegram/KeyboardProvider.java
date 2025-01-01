@@ -120,4 +120,26 @@ public class KeyboardProvider {
 
         return new InlineKeyboardMarkup(rows);
     }
+
+    public InlineKeyboardMarkup getCollectionSelectedKeyboard(AvailableLocale language, String collectionId) {
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+
+        var choose = new InlineKeyboardButton(messageProvider.getMessage("button.collection.choose", language));
+        choose.setCallbackData(CallbackAction.CHOOSE_COLLECTION + CALLBACK_DELIMITER + collectionId);
+        rows.add(new InlineKeyboardRow(choose));
+
+        var editCards = new InlineKeyboardButton(messageProvider.getMessage("button.collection.edit", language));
+        editCards.setCallbackData(CallbackAction.EDIT_COLLECTION_CARDS + CALLBACK_DELIMITER + collectionId);
+        rows.add(new InlineKeyboardRow(editCards));
+
+        var delete = new InlineKeyboardButton(messageProvider.getMessage("button.collection.delete", language));
+        delete.setCallbackData(CallbackAction.DELETE_COLLECTION_CARDS + CALLBACK_DELIMITER + collectionId);
+        rows.add(new InlineKeyboardRow(delete));
+
+        var back = new InlineKeyboardButton(messageProvider.getMessage("button.collection.back", language));
+        back.setCallbackData(CallbackAction.SELECT_COLLECTION_PAGE + CALLBACK_DELIMITER + 0);
+        rows.add(new InlineKeyboardRow(back));
+
+        return new InlineKeyboardMarkup(rows);
+    }
 }

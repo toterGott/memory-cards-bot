@@ -13,9 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import lombok.Data;
 import lombok.Getter;
@@ -50,6 +48,6 @@ public class TelegramUser {
     @Data
     @NoArgsConstructor
     public static class Payload {
-        UUID selectedCollection;
+        UUID chosenCollection;
     }
 }

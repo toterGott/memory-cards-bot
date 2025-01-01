@@ -18,6 +18,7 @@ import com.example.memcards.user.UserService;
 import com.example.memcards.user.UserState;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -58,14 +59,30 @@ public class TelegramUpdateHandler {
 
         switch (callbackAction) {
             case SET_LANGUAGE -> handleLanguageChangeCallback(callbackArgs[1], user);
-            case SELECT_COLLECTION -> log.info("Selecting collection {}", callbackArgs[1]);
+            case SELECT_COLLECTION -> handleSelectCollection(callbackArgs[1], user, update);
+            case CHOOSE_COLLECTION -> {
+            }
             case SELECT_COLLECTION_PAGE -> handleCollectionPage(callbackArgs[1], user, update);
+            case EDIT_COLLECTION_CARDS -> {
+            }
         }
 
         var callbackId = update.getCallbackQuery().getId();
         AnswerCallbackQuery answer = new AnswerCallbackQuery(callbackId);
         answer.setShowAlert(false);
         client.execute(answer);
+    }
+
+    private void handleSelectCollection(String collectionId, TelegramUser user, Update update) {
+        var collection = collectionService.findById(UUID.fromString(collectionId)).orElseThrow();
+        var text = messageProvider.getMessage("collections.select", user.getLanguage(), collection.getName());
+        var inlineKeyboard = keyboardProvider.getCollectionSelectedKeyboard(user.getLanguage(), collectionId);
+
+        EditMessageText editMessageText = new EditMessageText(text);
+        editMessageText.setChatId(user.getChatId());
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        editMessageText.setReplyMarkup(inlineKeyboard);
+        client.execute(editMessageText);
     }
 
     private void handleCollectionPage(String pageNumber, TelegramUser user, Update update) {
