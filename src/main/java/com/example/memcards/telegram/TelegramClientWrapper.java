@@ -21,6 +21,7 @@ public class TelegramClientWrapper {
 
     public void sendMessage(TelegramUser user, String text, ReplyKeyboard replyKeyboard) {
         SendMessage sendMessage = new SendMessage(user.getChatId().toString(), text);
+
         sendMessage.setReplyMarkup(replyKeyboard);
         try {
             telegramClient.execute(sendMessage);

@@ -19,7 +19,6 @@ import jakarta.transaction.Transactional;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -88,10 +87,16 @@ public class TelegramUpdateHandler {
     }
 
     private void handleWaitingForQuestion(Update update, TelegramUser user) {
-        var defaultCollection = collectionService.getById(user.getPayload().getDefaultCollection()).orElseThrow();
+        CardCollection collection;
+        if (user.getPayload().getFocusOnCollection() != null) {
+            collection = collectionService.getById(user.getPayload().getFocusOnCollection()).orElseThrow();
+        } else {
+            collection = collectionService.getById(user.getPayload().getDefaultCollection()).orElseThrow();
+        }
+
         var card = new Card();
         card.setQuestion(update.getMessage().getText());
-        card.setCollection(defaultCollection);
+        card.setCollection(collection);
         card.setOwner(user);
         card.setAppearTime(Instant.now());
         card = cardService.save(card);
@@ -164,8 +169,7 @@ public class TelegramUpdateHandler {
                     "card_answered",
                     user.getLanguage(),
                     "1",
-                    MINUTES.name(),
-                    card.getCollection().getName()
+                    MINUTES.name()
                 );
             }
             case 1 -> {
@@ -174,8 +178,7 @@ public class TelegramUpdateHandler {
                     "card_answered",
                     user.getLanguage(),
                     "10",
-                    MINUTES.name(),
-                    card.getCollection().getName()
+                    MINUTES.name()
                 );
             }
             case 2 -> {
@@ -184,8 +187,7 @@ public class TelegramUpdateHandler {
                     "card_answered",
                     user.getLanguage(),
                     "1",
-                    DAYS.name(),
-                    card.getCollection().getName()
+                    DAYS.name()
                 );
             }
             case 3 -> {
@@ -194,11 +196,16 @@ public class TelegramUpdateHandler {
                     "card_answered",
                     user.getLanguage(),
                     "4",
-                    DAYS.name(),
-                    card.getCollection().getName()
+                    DAYS.name()
                 );
             }
         }
+
+        if (user.getPayload().getFocusOnCollection() != null) {
+            var collectionName = collectionService.getById(user.getPayload().getFocusOnCollection()).orElseThrow().getName();
+            text += " " + messageProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
+        }
+
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
         var mainMenu = keyboardProvider.getMainMenu(user);
@@ -206,15 +213,28 @@ public class TelegramUpdateHandler {
     }
 
     private void getCard(TelegramUser user) {
-        cardService.getCardToLearn(user.getId()).ifPresentOrElse(
-            card -> {
-                var keyboard = keyboardProvider.getShowAnswerKeyboard(user.getLanguage());
-                client.sendMessage(user, card.getQuestion(), keyboard);
-                user.setCurrentCardId(card.getId());
-                user.setState(QUESTION_SHOWED);
-            },
-            () -> client.sendMessage(user, messageProvider.getMessage("no_cards", user.getLanguage()))
-        );
+        var focusedOnCollectionId = user.getPayload().getFocusOnCollection();
+        if (focusedOnCollectionId == null) {
+            cardService.getCardToLearn(user.getId()).ifPresentOrElse(
+                card -> sendCard(card, user),
+                () -> client.sendMessage(user, messageProvider.getMessage("no_cards", user.getLanguage()))
+            );
+        } else {
+            var collectionName = collectionService.getById(focusedOnCollectionId).orElseThrow().getName();
+            cardService.getCardToLearn(user.getId(), focusedOnCollectionId).ifPresentOrElse(
+                card -> sendCard(card, user),
+                () -> client.sendMessage(user, messageProvider.getMessage("no_cards_for_focus", user.getLanguage(), collectionName))
+            );
+        }
+
+
+    }
+
+    private void sendCard(Card card, TelegramUser user) {
+        var keyboard = keyboardProvider.getShowAnswerKeyboard(user.getLanguage());
+        client.sendMessage(user, card.getQuestion(), keyboard);
+        user.setCurrentCardId(card.getId());
+        user.setState(QUESTION_SHOWED);
     }
 
     private void handleUnknownMessage(TelegramUser user, String key) {

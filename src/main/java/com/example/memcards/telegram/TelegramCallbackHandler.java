@@ -63,15 +63,8 @@ public class TelegramCallbackHandler {
         var locale = AvailableLocale.valueOf(localeCode);
         user.setLanguage(locale);
 
-        client.sendMessage(
-            user,
-            messageProvider.getMessage(
-                "language.updated",
-                user.getLanguage(),
-                locale.getName()
-            ),
-            keyboardProvider.getMainMenu(user)
-        );
+        var text = messageProvider.getMessage("language.updated", user.getLanguage(), locale.getName());
+        client.sendMessage(user, text, keyboardProvider.getMainMenu(user));
 
         DeleteMessage deleteMessage = new DeleteMessage(
             user.getChatId().toString(),
