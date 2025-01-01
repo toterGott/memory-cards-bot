@@ -1,40 +1,52 @@
 package com.example.memcards.collection;
 
+import com.example.memcards.i18n.MessageProvider;
 import com.example.memcards.user.TelegramUser;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class CollectionService {
 
-    private final CardCollectionRepository cardCollectionRepository;
-
-    public static final String DEFAULT_COLLECTION_NAME = "default";
+    private final CardCollectionRepository repository;
+    private final MessageProvider messageProvider;
 
     public void initDefaultCollection(TelegramUser user) {
-        var collections = cardCollectionRepository.findAllByOwnerId(user.getId());
+        var collections = repository.findAllByOwnerId(user.getId());
         if (collections.isEmpty()) {
             var defaultCollection = new CardCollection();
-            defaultCollection.setName(DEFAULT_COLLECTION_NAME);
+            defaultCollection.setName(messageProvider.getMessage("default_collection_name", user.getLanguage()));
             defaultCollection.setOwner(user);
-            cardCollectionRepository.save(defaultCollection);
+            defaultCollection = repository.save(defaultCollection);
+            user.getPayload().setDefaultCollection(defaultCollection.getId());
+        }
+
+        for (int i = 0; i < 10; i++) {
+            var stubCollection = new CardCollection();
+            stubCollection.setName("Stub collection " + i);
+            stubCollection.setOwner(user);
+            repository.save(stubCollection);
         }
     }
 
-    public CardCollection getDefaultCollection(UUID id) {
-        return cardCollectionRepository.findByOwnerIdAndName(id, DEFAULT_COLLECTION_NAME).orElseGet(null);
-    }
-
-    public Page<CardCollection> getCollections(UUID id, Pageable pageable) {
-        return cardCollectionRepository.findAllByOwnerId(id, pageable);
+    public Page<CardCollection> getCollectionsPage(UUID id, int page) {
+        var pageRequest = PageRequest.of(page, 4, Sort.by(Order.by("name")));
+        return repository.findAllByOwnerId(id, pageRequest);
     }
 
     public Optional<CardCollection> findById(UUID id) {
-        return cardCollectionRepository.findById(id);
+        return repository.findById(id);
+    }
+
+    public Optional<CardCollection> getById(UUID defaultCollection) {
+        return repository.findById(defaultCollection);
     }
 }
