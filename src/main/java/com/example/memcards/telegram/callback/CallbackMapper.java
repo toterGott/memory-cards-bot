@@ -4,6 +4,8 @@ import static com.example.memcards.telegram.TelegramUtils.CALLBACK_DELIMITER;
 
 import com.example.memcards.telegram.callback.model.Callback;
 import com.example.memcards.telegram.callback.model.CallbackSource;
+import com.example.memcards.telegram.callback.model.CardCallback;
+import com.example.memcards.telegram.callback.model.CardCallback.CardCallbackAction;
 import com.example.memcards.telegram.callback.model.CollectionsCallback;
 import com.example.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import com.example.memcards.telegram.callback.model.NewCardCallback;
@@ -35,6 +37,13 @@ public class CallbackMapper {
                 return NewCardCallback.builder()
                     .source(source)
                     .action(NewCardCallbackAction.fromCode(callbackArgs[1]))
+                    .data(callbackArgs[2])
+                    .build();
+            }
+            case CARD -> {
+                return CardCallback.builder()
+                    .source(source)
+                    .action(CardCallbackAction.fromCode(callbackArgs[1]))
                     .data(callbackArgs[2])
                     .build();
             }

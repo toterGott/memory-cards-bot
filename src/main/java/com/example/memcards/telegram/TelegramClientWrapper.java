@@ -1,5 +1,9 @@
 package com.example.memcards.telegram;
 
+import static com.example.memcards.telegram.TelegramUtils.getCallback;
+import static com.example.memcards.telegram.TelegramUtils.getCallbackMessageId;
+import static com.example.memcards.telegram.TelegramUtils.getChatId;
+
 import com.example.memcards.user.TelegramUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +13,7 @@ import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -21,14 +26,25 @@ public class TelegramClientWrapper {
 
     private final TelegramClient telegramClient;
 
-    public void sendMessage(TelegramUser user, String text, ReplyKeyboard replyKeyboard) {
+    public Message sendMessage(TelegramUser user, String text, ReplyKeyboard replyKeyboard) {
         SendMessage sendMessage = new SendMessage(user.getChatId().toString(), text);
 
         sendMessage.setReplyMarkup(replyKeyboard);
         try {
-            telegramClient.execute(sendMessage);
+            return telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
-            log.error("Error while sending a message", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Message sendMessage(String text, ReplyKeyboard replyKeyboard) {
+        SendMessage sendMessage = new SendMessage(getChatId().toString(), text);
+
+        sendMessage.setReplyMarkup(replyKeyboard);
+        try {
+            return telegramClient.execute(sendMessage);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -65,10 +81,33 @@ public class TelegramClientWrapper {
         execute(editMessageText);
     }
 
+    public void editMessage(String text, InlineKeyboardMarkup inlineKeyboard) {
+        EditMessageText editMessageText = new EditMessageText(text);
+        editMessageText.setChatId(getChatId().toString());
+        editMessageText.setMessageId(getCallbackMessageId());
+        editMessageText.setReplyMarkup(inlineKeyboard);
+        execute(editMessageText);
+    }
+
+    public void editMessage(String text, Integer messageId, InlineKeyboardMarkup inlineKeyboard) {
+        EditMessageText editMessageText = new EditMessageText(text);
+        editMessageText.setChatId(getChatId().toString());
+        editMessageText.setMessageId(messageId);
+        editMessageText.setReplyMarkup(inlineKeyboard);
+        execute(editMessageText);
+    }
+
     public void showAlert(String callbackId, String text) {
         AnswerCallbackQuery answer = new AnswerCallbackQuery(callbackId);
         answer.setShowAlert(true);
         answer.setText(text);
+        execute(answer);
+    }
+
+    public void showAlertNotImplemented() {
+        AnswerCallbackQuery answer = new AnswerCallbackQuery(getCallback().getId());
+        answer.setShowAlert(true);
+        answer.setText("NOT IMPLEMENTED");
         execute(answer);
     }
 }

@@ -1,5 +1,8 @@
 package com.example.memcards.telegram.callback.handler;
 
+import static com.example.memcards.telegram.TelegramUtils.getCallbackMessageId;
+import static com.example.memcards.telegram.TelegramUtils.getChatId;
+
 import com.example.memcards.card.CardService;
 import com.example.memcards.collection.CollectionService;
 import com.example.memcards.i18n.MessageProvider;
@@ -82,10 +85,13 @@ public class CollectionsCallbackHandler implements CallbackHandler {
             && user.getFocusedOnCollection().getId().equals(collectionId)) {
             user.setFocusedOnCollection(null);
         }
-
+        var collectionName = collectionService.findById(collectionId).orElseThrow().getName();
         collectionService.deleteById(collectionId);
 
-        handleCollectionPage("0", user, messageId);
+        client.deleteMessage(getChatId(), getCallbackMessageId());
+        var menu = keyboardProvider.getMainMenu(user);
+        var text = messageProvider.getText("collections.deleted", collectionName);
+        client.sendMessage(text, menu);
     }
 
     private void handleSelectCollection(UUID collectionId, Integer messageId, TelegramUser user) {
@@ -136,10 +142,10 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         );
         var pageKeyboard = keyboardProvider.buildCollectionsPage(user.getLanguage(), page);
 
-        // todo make this cleaner
-        if (user.getCurrentCardId() != null) {
-            pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(user.getLanguage(), page);
-        }
+//        // todo make this cleaner
+//        if (user.getCurrentCardId() != null) {
+//            pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(user.getLanguage(), page);
+//        }
 
         client.editMessage(user.getChatId(), messageId, text, pageKeyboard);
     }
@@ -147,7 +153,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
     private void handleBackToPage(String cardId, TelegramUser user, Update update) {
         var page = collectionService.getCollectionsPage(user.getId(), 0);
         var text = messageProvider.getMessage(
-            "cards.collections.select",
+            "card.collections.select",
             user.getLanguage(),
             String.valueOf(page.getNumber() + 1),
             String.valueOf(page.getTotalPages())

@@ -1,5 +1,7 @@
 package com.example.memcards.telegram;
 
+import static com.example.memcards.telegram.TelegramUtils.telegramUserThreadLocal;
+import static com.example.memcards.telegram.TelegramUtils.updateThreadLocal;
 import static com.example.memcards.user.UserState.STAND_BY;
 
 import com.example.memcards.card.Card;
@@ -39,6 +41,9 @@ public class TelegramUpdateHandler {
     @Transactional
     public void handleUpdate(Update update) {
         var user = welcomeOrGetUser(update);
+        telegramUserThreadLocal.set(user);
+        updateThreadLocal.set(update);
+
         if (update.hasCallbackQuery()) {
             callbackHandler.handleCallback(update.getCallbackQuery(), user);
         } else if (update.hasMessage()) {
