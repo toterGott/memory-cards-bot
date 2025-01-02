@@ -6,6 +6,10 @@ import com.example.memcards.telegram.callback.model.Callback;
 import com.example.memcards.telegram.callback.model.CallbackSource;
 import com.example.memcards.telegram.callback.model.CollectionsCallback;
 import com.example.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
+import com.example.memcards.telegram.callback.model.NewCardCallback;
+import com.example.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
+import com.example.memcards.telegram.callback.model.SettingsCallback;
+import com.example.memcards.telegram.callback.model.SettingsCallback.SettingsCallbackAction;
 
 public class CallbackMapper {
 
@@ -17,6 +21,20 @@ public class CallbackMapper {
                 return CollectionsCallback.builder()
                     .source(source)
                     .action(CollectionCallbackAction.fromCode(callbackArgs[1]))
+                    .data(callbackArgs[2])
+                    .build();
+            }
+            case SETTINGS -> {
+                return SettingsCallback.builder()
+                    .source(source)
+                    .action(SettingsCallbackAction.fromCode(callbackArgs[1]))
+                    .data(callbackArgs[2])
+                    .build();
+            }
+            case NEW_CARD -> {
+                return NewCardCallback.builder()
+                    .source(source)
+                    .action(NewCardCallbackAction.fromCode(callbackArgs[1]))
                     .data(callbackArgs[2])
                     .build();
             }

@@ -1,6 +1,7 @@
 package com.example.memcards.collection;
 
 import com.example.memcards.card.Card;
+import com.example.memcards.common.PageableEntity;
 import com.example.memcards.user.TelegramUser;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -14,7 +15,6 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,7 +22,7 @@ import lombok.Setter;
 @Table(name = "collection")
 @Getter
 @Setter
-public class CardCollection {
+public class CardCollection implements PageableEntity {
 
     @Id
     @GeneratedValue
@@ -31,6 +31,11 @@ public class CardCollection {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private TelegramUser owner;
-    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(
+        mappedBy = "collection",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
     private List<Card> cards = new ArrayList<>();
 }

@@ -2,13 +2,11 @@ package com.example.memcards.collection;
 
 import com.example.memcards.i18n.MessageProvider;
 import com.example.memcards.user.TelegramUser;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
@@ -56,6 +54,7 @@ public class CollectionService {
     }
 
     public void deleteById(UUID collectionId) {
+//        repository.deleteById(collectionId); // todo find out why is this not working
         repository.deleteByIdQuery(collectionId);
     }
 }

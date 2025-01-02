@@ -13,5 +13,5 @@ public enum AvailableLocale {
 
     private final String tag;
     private final Locale locale;
-    private final String name;
+    private final String readableName;
 }

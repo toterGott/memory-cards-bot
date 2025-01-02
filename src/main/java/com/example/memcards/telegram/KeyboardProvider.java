@@ -4,12 +4,16 @@ import static com.example.memcards.telegram.TelegramUtils.CALLBACK_DELIMITER;
 import static com.example.memcards.telegram.callback.CallbackMapper.writeCallback;
 
 import com.example.memcards.collection.CardCollection;
+import com.example.memcards.common.PageableEntity;
 import com.example.memcards.i18n.MessageProvider;
-import com.example.memcards.telegram.callback.CallbackAction;
 import com.example.memcards.telegram.callback.model.Callback;
 import com.example.memcards.telegram.callback.model.CallbackSource;
 import com.example.memcards.telegram.callback.model.CollectionsCallback;
 import com.example.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
+import com.example.memcards.telegram.callback.model.NewCardCallback;
+import com.example.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
+import com.example.memcards.telegram.callback.model.SettingsCallback;
+import com.example.memcards.telegram.callback.model.SettingsCallback.SettingsCallbackAction;
 import com.example.memcards.user.AvailableLocale;
 import com.example.memcards.user.TelegramUser;
 import java.util.ArrayList;
@@ -58,19 +62,26 @@ public class KeyboardProvider {
         return keyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getSettingsMenu() {
-        InlineKeyboardRow row = new InlineKeyboardRow();
-        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup(List.of(row));
+    public InlineKeyboardMarkup getSettingsMenu(TelegramUser user) {
+        List<InlineKeyboardRow> keyboard = new ArrayList<>();
 
-        var eng = new InlineKeyboardButton(AvailableLocale.EN.getName());
-        eng.setCallbackData(CallbackAction.SET_LANGUAGE + CALLBACK_DELIMITER + AvailableLocale.EN);
-        row.add(eng);
+        SettingsCallback callback = SettingsCallback.builder()
+            .source(CallbackSource.SETTINGS)
+            .action(SettingsCallbackAction.LANGUAGE)
+            .build();
 
-        var rus = new InlineKeyboardButton(AvailableLocale.RU.getName());
-        rus.setCallbackData(CallbackAction.SET_LANGUAGE + CALLBACK_DELIMITER + AvailableLocale.RU);
-        row.add(rus);
-
-        return keyboardMarkup;
+        var text = messageProvider.getMessage("button.settings.language", user.getLanguage());
+        var languageChangeButton = new InlineKeyboardButton(text);
+        languageChangeButton.setCallbackData(writeCallback(callback));
+        keyboard.add(new InlineKeyboardRow(languageChangeButton));
+//        var eng = new InlineKeyboardButton(AvailableLocale.EN.getName());
+//        eng.setCallbackData(CallbackAction.SET_LANGUAGE + CALLBACK_DELIMITER + AvailableLocale.EN);
+//        row.add(eng);
+//
+//        var rus = new InlineKeyboardButton(AvailableLocale.RU.getName());
+//        rus.setCallbackData(CallbackAction.SET_LANGUAGE + CALLBACK_DELIMITER + AvailableLocale.RU);
+//        row.add(rus);
+        return new InlineKeyboardMarkup(keyboard);
     }
 
     public ReplyKeyboardRemove hideKeyboard() {
@@ -113,7 +124,6 @@ public class KeyboardProvider {
         CollectionsCallback callback = CollectionsCallback.builder()
             .source(CallbackSource.COLLECTIONS)
             .build();
-
         List<InlineKeyboardRow> rows = new ArrayList<>();
 
         callback.setAction(CollectionCallbackAction.NEW_COLLECTION);
@@ -131,9 +141,12 @@ public class KeyboardProvider {
         return new InlineKeyboardMarkup(rows);
     }
 
-    private List<InlineKeyboardRow> buildCollectionsPageContent(Page<CardCollection> page, Callback callback) {
+    private List<InlineKeyboardRow> buildCollectionsPageContent(
+        Page<? extends PageableEntity> page,
+        Callback callback
+    ) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
-        for (CardCollection collection : page.getContent()) {
+        for (PageableEntity collection : page.getContent()) {
             callback.setData(collection.getId().toString());
 
             var button = new InlineKeyboardButton(collection.getName());
@@ -144,7 +157,7 @@ public class KeyboardProvider {
     }
 
     private InlineKeyboardRow buildPageNavigationRow(
-        Page<CardCollection> page,
+        Page<?> page,
         Callback callback,
         AvailableLocale language
     ) {
@@ -168,15 +181,15 @@ public class KeyboardProvider {
         AvailableLocale language,
         Page<CardCollection> page
     ) {
-        CollectionsCallback callback = CollectionsCallback.builder()
+        NewCardCallback callback = NewCardCallback.builder()
             .source(CallbackSource.NEW_CARD)
-            .action(CollectionCallbackAction.SELECT)
+            .action(NewCardCallbackAction.SET_COLLECTION)
             .build();
 
         var pageContentRows = buildCollectionsPageContent(page, callback);
         List<InlineKeyboardRow> rows = new ArrayList<>(pageContentRows);
 
-        callback.setAction(CollectionCallbackAction.CHANGE_PAGE);
+        callback.setAction(NewCardCallbackAction.CHANGE_PAGE);
         rows.add(buildPageNavigationRow(page, callback, language));
 
         return new InlineKeyboardMarkup(rows);
@@ -186,10 +199,10 @@ public class KeyboardProvider {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         CollectionsCallback callback = CollectionsCallback.builder()
             .source(CallbackSource.COLLECTIONS)
-            .action(CollectionCallbackAction.FOCUS_ON_COLLECTION)
             .data(collectionId.toString())
             .build();
 
+        callback.setAction(CollectionCallbackAction.FOCUS_ON_COLLECTION);
         var choose = new InlineKeyboardButton(messageProvider.getMessage("button.collection.choose", language));
         choose.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(choose));
@@ -215,16 +228,23 @@ public class KeyboardProvider {
     public InlineKeyboardMarkup getCardCreatedInlineKeyboard(TelegramUser user, UUID cardId) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
 
+        NewCardCallback callback = NewCardCallback.builder()
+            .source(CallbackSource.NEW_CARD)
+            .build();
+
+        callback.setAction(NewCardCallbackAction.CHANGE_COLLECTION);
+        callback.setData(cardId.toString());
         var changeCollectionButton = new InlineKeyboardButton(messageProvider.getMessage(
             "button.card.change_collection",
             user.getLanguage()
         ));
-        changeCollectionButton.setCallbackData(CallbackAction.CHANGE_CARD_COLLECTION + CALLBACK_DELIMITER + cardId);
+        changeCollectionButton.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(changeCollectionButton));
 
+        callback.setAction(NewCardCallbackAction.CONFIRM);
         var confirmText = messageProvider.getMessage("button.card.confirm_creation", user.getLanguage());
         var okButton = new InlineKeyboardButton(confirmText);
-        okButton.setCallbackData(CallbackAction.CONFIRM_CARD_CREATION.name());
+        okButton.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(okButton));
 
         return new InlineKeyboardMarkup(rows);
@@ -255,5 +275,28 @@ public class KeyboardProvider {
         rows.add(new InlineKeyboardRow(back));
 
         return new InlineKeyboardMarkup(rows);
+    }
+
+    public InlineKeyboardMarkup buildLanguageKeyboard() {
+        var row = new InlineKeyboardRow();
+        List<InlineKeyboardRow> keyboard = new ArrayList<>();
+        keyboard.add(row);
+
+        SettingsCallback callback = SettingsCallback.builder()
+            .source(CallbackSource.SETTINGS)
+            .action(SettingsCallbackAction.CHANNEL_LANGUAGE)
+            .build();
+
+        callback.setData(AvailableLocale.EN.name());
+        var eng = new InlineKeyboardButton(AvailableLocale.EN.getReadableName());
+        eng.setCallbackData(writeCallback(callback));
+        row.add(eng);
+
+        callback.setData(AvailableLocale.RU.name());
+        var rus = new InlineKeyboardButton(AvailableLocale.RU.getReadableName());
+        rus.setCallbackData(writeCallback(callback));
+        row.add(rus);
+
+        return new InlineKeyboardMarkup(keyboard);
     }
 }
