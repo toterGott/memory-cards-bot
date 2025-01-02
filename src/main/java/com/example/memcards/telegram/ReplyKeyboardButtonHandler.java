@@ -161,14 +161,15 @@ public class ReplyKeyboardButtonHandler {
             String.valueOf(page.getNumber() + 1),
             String.valueOf(page.getTotalPages())
         );
-        var pageKeyboard = keyboardProvider.getCollectionsInlineKeyboardPage(user.getLanguage(), page);
+        var pageKeyboard = keyboardProvider.buildCollectionsPage(user.getLanguage(), page);
         client.sendMessage(user, text, pageKeyboard);
     }
 
     private void sendSettingsMessage(TelegramUser user) {
         var text = messageProvider.getMessage("settings", user.getLanguage());
         if (user.getFocusedOnCollection() != null) {
-            text += "\n" + messageProvider.getMessage("collections.focus_on", user.getLanguage());
+            var collectionName = user.getFocusedOnCollection().getName();
+            text += "\n" + messageProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
         }
         var settingsKeyboard = keyboardProvider.getSettingsMenu();
         client.sendMessage(user, text, settingsKeyboard);
