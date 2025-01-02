@@ -1,6 +1,5 @@
 package com.example.memcards.telegram;
 
-import static com.example.memcards.telegram.TelegramUtils.CALLBACK_DELIMITER;
 import static com.example.memcards.telegram.callback.CallbackMapper.writeCallback;
 
 import com.example.memcards.collection.CardCollection;
@@ -8,6 +7,8 @@ import com.example.memcards.common.PageableEntity;
 import com.example.memcards.i18n.MessageProvider;
 import com.example.memcards.telegram.callback.model.Callback;
 import com.example.memcards.telegram.callback.model.CallbackSource;
+import com.example.memcards.telegram.callback.model.CardCallback;
+import com.example.memcards.telegram.callback.model.CardCallback.CardCallbackAction;
 import com.example.memcards.telegram.callback.model.CollectionsCallback;
 import com.example.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import com.example.memcards.telegram.callback.model.NewCardCallback;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.repository.JpaContext;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -34,6 +36,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 public class KeyboardProvider {
 
     private final MessageProvider messageProvider;
+    private final JpaContext jpaContext;
 
     public ReplyKeyboardMarkup getMainMenu(TelegramUser user) {
         var languageCode = user.getLanguage();
@@ -74,13 +77,6 @@ public class KeyboardProvider {
         var languageChangeButton = new InlineKeyboardButton(text);
         languageChangeButton.setCallbackData(writeCallback(callback));
         keyboard.add(new InlineKeyboardRow(languageChangeButton));
-//        var eng = new InlineKeyboardButton(AvailableLocale.EN.getName());
-//        eng.setCallbackData(CallbackAction.SET_LANGUAGE + CALLBACK_DELIMITER + AvailableLocale.EN);
-//        row.add(eng);
-//
-//        var rus = new InlineKeyboardButton(AvailableLocale.RU.getName());
-//        rus.setCallbackData(CallbackAction.SET_LANGUAGE + CALLBACK_DELIMITER + AvailableLocale.RU);
-//        row.add(rus);
         return new InlineKeyboardMarkup(keyboard);
     }
 
@@ -296,6 +292,56 @@ public class KeyboardProvider {
         var rus = new InlineKeyboardButton(AvailableLocale.RU.getReadableName());
         rus.setCallbackData(writeCallback(callback));
         row.add(rus);
+
+        return new InlineKeyboardMarkup(keyboard);
+    }
+
+    public InlineKeyboardMarkup getCardDeleteConfirmation(String cardId) {
+        var row = new InlineKeyboardRow();
+        List<InlineKeyboardRow> keyboard = new ArrayList<>();
+        keyboard.add(row);
+
+        var callback = CardCallback.builder()
+            .source(CallbackSource.CARD)
+            .action(CardCallbackAction.DELETE_CONFIRM)
+            .data(cardId)
+            .build();
+
+        var text = messageProvider.getText("button.card.delete");
+        var delete = new InlineKeyboardButton(text);
+        delete.setCallbackData(writeCallback(callback));
+        row.add(delete);
+
+        callback.setAction(CardCallbackAction.CANCEL);
+        text = messageProvider.getText("button.card.cancel");
+        var cancel = new InlineKeyboardButton(text);
+        cancel.setCallbackData(writeCallback(callback));
+        row.add(cancel);
+
+        return new InlineKeyboardMarkup(keyboard);
+    }
+
+    public InlineKeyboardMarkup getAfterCardAnswer(UUID cardId) {
+        var row = new InlineKeyboardRow();
+        List<InlineKeyboardRow> keyboard = new ArrayList<>();
+        keyboard.add(row);
+
+        var callback = CardCallback.builder()
+            .source(CallbackSource.CARD)
+            .action(CardCallbackAction.DELETE)
+            .data(cardId.toString())
+            .build();
+
+        var text = messageProvider.getText("button.card.delete");
+        var delete = new InlineKeyboardButton(text);
+        delete.setCallbackData(writeCallback(callback));
+        row.add(delete);
+
+        callback.setAction(CardCallbackAction.CHANGE_COLLECTION);
+        text = messageProvider.getText("button.card.change_collection");
+        var changeCollection = new InlineKeyboardButton(text);
+        changeCollection.setCallbackData(writeCallback(callback));
+        row.add(changeCollection);
 
         return new InlineKeyboardMarkup(keyboard);
     }

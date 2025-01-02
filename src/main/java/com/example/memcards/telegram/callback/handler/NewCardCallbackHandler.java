@@ -58,7 +58,7 @@ public class NewCardCallbackHandler implements CallbackHandler {
         }
 
         card.setCollection(collection);
-        var text = messageProvider.getMessage("cards.collections.changed", user.getLanguage(), collection.getName());
+        var text = messageProvider.getMessage("card.collections.changed", user.getLanguage(), collection.getName());
         var keyboard = keyboardProvider.getMainMenu(user);
         client.sendMessage(user, text, keyboard);
 
@@ -82,7 +82,7 @@ public class NewCardCallbackHandler implements CallbackHandler {
     private void changeCardCollection(TelegramUser user, Integer messageId) {
         var page = collectionService.getCollectionsPage(user.getId(), 0);
         var text = messageProvider.getMessage(
-            "cards.collections.select",
+            "card.collections.select",
             user.getLanguage(),
             String.valueOf(page.getNumber() + 1),
             String.valueOf(page.getTotalPages())

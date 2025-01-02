@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class ReplyKeyboardButtonHandler {
 
     public void handleButton(Update update, TelegramUser user) {
         var text = update.getMessage().getText();
-        var key = messageProvider.resolveCode(text, user.getLanguage());
+        var key = messageProvider.resolveCode(text);
         if (key == null) {
             key = "Key not found";
         }
@@ -115,7 +116,12 @@ public class ReplyKeyboardButtonHandler {
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
         var mainMenu = keyboardProvider.getMainMenu(user);
+
         client.sendMessage(user, text, mainMenu);
+
+        InlineKeyboardMarkup keyboard = keyboardProvider.getAfterCardAnswer(card.getId());
+        text = messageProvider.getText("card.actions");
+        client.sendMessage(text, keyboard);
     }
 
 

@@ -1,5 +1,8 @@
 package com.example.memcards.i18n;
 
+import static com.example.memcards.telegram.TelegramUtils.getLanguage;
+import static com.example.memcards.telegram.TelegramUtils.getLocale;
+
 import com.example.memcards.user.AvailableLocale;
 import jakarta.annotation.PostConstruct;
 import java.util.Arrays;
@@ -20,9 +23,8 @@ public class MessageProvider {
 
     @PostConstruct
     public void init() {
-        Arrays.stream(AvailableLocale.values()).forEach(locale -> {
-            localeToMessagesByCode.put(locale, loadMessagesToMap(locale));
-        });
+        Arrays.stream(AvailableLocale.values())
+            .forEach(locale -> localeToMessagesByCode.put(locale, loadMessagesToMap(locale)));
     }
 
     private Map<String, String> loadMessagesToMap(AvailableLocale availableLocale) {
@@ -33,16 +35,26 @@ public class MessageProvider {
         return messagesMap;
     }
 
+    @Deprecated
     public String getMessage(String code, AvailableLocale availableLocale) {
         return messageSource.getMessage(code, null, availableLocale.getLocale());
     }
 
+    @Deprecated
     public String getMessage(String code, AvailableLocale availableLocale, String... args) {
         return messageSource.getMessage(code, args, availableLocale.getLocale());
     }
 
-    public String resolveCode(String text, AvailableLocale languageCode) {
-        var langMap = localeToMessagesByCode.get(languageCode);
+    public String getText(String code, String... args) {
+        return messageSource.getMessage(code, args, getLanguage().getLocale());
+    }
+
+    public String getText(String code) {
+        return messageSource.getMessage(code, null, getLocale());
+    }
+
+    public String resolveCode(String text) {
+        var langMap = localeToMessagesByCode.get(getLanguage());
         if (langMap == null) {
             langMap = localeToMessagesByCode.get(AvailableLocale.EN);
         }
@@ -54,7 +66,7 @@ public class MessageProvider {
     }
 
     private String findInAllLocales(String text) {
-        for(Map<String, String> messageByKey : localeToMessagesByCode.values()) {
+        for (Map<String, String> messageByKey : localeToMessagesByCode.values()) {
             String code = messageByKey.get(text);
             if (code != null) {
                 return code;
