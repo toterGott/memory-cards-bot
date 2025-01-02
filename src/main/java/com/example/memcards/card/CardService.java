@@ -29,4 +29,8 @@ public class CardService {
     public Optional<Card> getCardToLearn(UUID userId, UUID collectionId) {
         return cardRepository.findFirstByOwnerIdAndCollectionIdOrderByAppearTimeAsc(userId, collectionId);
     }
+
+    public Optional<Card> findById(UUID uuid) {
+        return cardRepository.findById(uuid);
+    }
 }

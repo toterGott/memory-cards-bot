@@ -3,7 +3,7 @@ package com.example.memcards.telegram;
 import static com.example.memcards.user.UserState.EVALUATE_ANSWER;
 import static com.example.memcards.user.UserState.QUESTION_SHOWED;
 import static com.example.memcards.user.UserState.STAND_BY;
-import static com.example.memcards.user.UserState.WAITING_FOR_QUESTION;
+import static com.example.memcards.user.UserState.FILL_CARD_QUESTION;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 
@@ -37,10 +37,7 @@ public class ReplyKeyboardButtonHandler {
         }
 
         switch (key) {
-            case "button.info" -> client.sendMessage(
-                user, messageProvider.getMessage("info", user.getLanguage()),
-                keyboardProvider.getMainMenu(user)
-            );
+            case "button.schedule" -> handleSchedule(user, update);
             case "button.settings" -> sendSettingsMessage(user);
             case "button.collections" -> handleCollectionsButton(user);
             case "button.create_card" -> createCard(user);
@@ -53,6 +50,10 @@ public class ReplyKeyboardButtonHandler {
             case "button.remove_focus" -> removeFocus(user);
             default -> handleUnknownMessage(user, key);
         }
+    }
+
+    private void handleSchedule(TelegramUser user, Update update) {
+        client.sendMessage(user, messageProvider.getMessage("schedule", user.getLanguage()));
     }
 
     private void showAnswer(TelegramUser user) {
@@ -105,8 +106,8 @@ public class ReplyKeyboardButtonHandler {
             }
         }
 
-        if (user.getPayload().getFocusOnCollection() != null) {
-            var collectionName = collectionService.getById(user.getPayload().getFocusOnCollection()).orElseThrow()
+        if (user.getFocusedOnCollection() != null) {
+            var collectionName = collectionService.getById(user.getFocusedOnCollection().getId()).orElseThrow()
                 .getName();
             text += " " + messageProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
         }
@@ -119,22 +120,21 @@ public class ReplyKeyboardButtonHandler {
 
 
     private void getCard(TelegramUser user) {
-        var focusedOnCollectionId = user.getPayload().getFocusOnCollection();
-        if (focusedOnCollectionId == null) {
+        if (user.getFocusedOnCollection() == null) {
             cardService.getCardToLearn(user.getId()).ifPresentOrElse(
                 card -> sendCard(card, user),
                 () -> client.sendMessage(user, messageProvider.getMessage("no_cards", user.getLanguage()))
             );
         } else {
-            var collectionName = collectionService.getById(focusedOnCollectionId).orElseThrow().getName();
-            cardService.getCardToLearn(user.getId(), focusedOnCollectionId).ifPresentOrElse(
+            cardService.getCardToLearn(user.getId(), user.getFocusedOnCollection().getId()).ifPresentOrElse(
                 card -> sendCard(card, user),
-                () -> client.sendMessage(user,
-                                         messageProvider.getMessage(
-                                             "no_cards_for_focus",
-                                             user.getLanguage(),
-                                             collectionName
-                                         )
+                () -> client.sendMessage(
+                    user,
+                    messageProvider.getMessage(
+                        "no_cards_for_focus",
+                        user.getLanguage(),
+                        user.getFocusedOnCollection().getName()
+                    )
                 )
             );
         }
@@ -148,7 +148,7 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void removeFocus(TelegramUser user) {
-        user.getPayload().setFocusOnCollection(null);
+        user.setFocusedOnCollection(null);
         var keyboard = keyboardProvider.getMainMenu(user);
         client.sendMessage(user, messageProvider.getMessage("focus_removed", user.getLanguage()), keyboard);
     }
@@ -161,12 +161,15 @@ public class ReplyKeyboardButtonHandler {
             String.valueOf(page.getNumber() + 1),
             String.valueOf(page.getTotalPages())
         );
-        var pageKeyboard = keyboardProvider.getCollectionsPageInlineKeyboard(user.getLanguage(), page);
+        var pageKeyboard = keyboardProvider.getCollectionsInlineKeyboardPage(user.getLanguage(), page);
         client.sendMessage(user, text, pageKeyboard);
     }
 
     private void sendSettingsMessage(TelegramUser user) {
         var text = messageProvider.getMessage("settings", user.getLanguage());
+        if (user.getFocusedOnCollection() != null) {
+            text += "\n" + messageProvider.getMessage("collections.focus_on", user.getLanguage());
+        }
         var settingsKeyboard = keyboardProvider.getSettingsMenu();
         client.sendMessage(user, text, settingsKeyboard);
     }
@@ -177,7 +180,7 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void createCard(TelegramUser user) {
-        user.setState(WAITING_FOR_QUESTION);
+        user.setState(FILL_CARD_QUESTION);
         client.sendMessage(
             user,
             messageProvider.getMessage("create_card.question", user.getLanguage()),

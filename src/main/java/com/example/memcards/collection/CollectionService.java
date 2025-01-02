@@ -2,6 +2,7 @@ package com.example.memcards.collection;
 
 import com.example.memcards.i18n.MessageProvider;
 import com.example.memcards.user.TelegramUser;
+import jakarta.transaction.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ public class CollectionService {
             user.getPayload().setDefaultCollection(defaultCollection.getId());
         }
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 9; i++) {
             var stubCollection = new CardCollection();
             stubCollection.setName("Stub collection " + i);
             stubCollection.setOwner(user);
@@ -38,7 +39,7 @@ public class CollectionService {
     }
 
     public Page<CardCollection> getCollectionsPage(UUID id, int page) {
-        var pageRequest = PageRequest.of(page, 4, Sort.by(Order.by("name")));
+        var pageRequest = PageRequest.of(page, 3, Sort.by(Order.by("name")));
         return repository.findAllByOwnerId(id, pageRequest);
     }
 
@@ -46,7 +47,15 @@ public class CollectionService {
         return repository.findById(id);
     }
 
+    public int countUserCollections(UUID ownerId) {
+        return repository.countAllByOwnerId(ownerId);
+    }
+
     public Optional<CardCollection> getById(UUID defaultCollection) {
         return repository.findById(defaultCollection);
+    }
+
+    public void deleteById(String collectionId) {
+        repository.deleteByIdQuery(UUID.fromString(collectionId));
     }
 }

@@ -48,8 +48,8 @@ public class TelegramUpdateHandler {
     private void handleUpdateByUserState(Update update, TelegramUser user) {
         switch (user.getState()) {
             case STAND_BY -> handleStandBy(update, user);
-            case WAITING_FOR_QUESTION -> handleWaitingForQuestion(update, user);
-            case WAITING_FOR_ANSWER -> handleWaitingForAnswer(update, user);
+            case FILL_CARD_QUESTION -> fillCardQuest(update, user);
+            case FILL_CARD_ANSWER -> fillCardAnswer(update, user);
             case QUESTION_SHOWED, EVALUATE_ANSWER -> buttonHandler.handleButton(update, user);
         }
     }
@@ -68,24 +68,32 @@ public class TelegramUpdateHandler {
         buttonHandler.handleButton(update, user);
     }
 
-    private void handleWaitingForAnswer(Update update, TelegramUser user) {
+    private void fillCardAnswer(Update update, TelegramUser user) {
         Card card = cardService.getCard(user.getCurrentCardId());
         card.setAnswer(update.getMessage().getText());
 
         user.setState(STAND_BY);
-        user.setCurrentCardId(null);
         userService.save(user);
 
-        client.sendMessage(user, messageProvider.getMessage("create_card.created", user.getLanguage()));
-        client.sendMessage(user, card.getQuestion());
-        client.sendMessage(user, card.getAnswer(), keyboardProvider.getMainMenu(user));
+        var text = messageProvider.getMessage(
+            "create_card.created",
+            user.getLanguage(),
+            card.getCollection().getName()
+        );
+        if (user.getFocusedOnCollection() == null) {
+            text += " " + messageProvider.getMessage("create_card.created.default_collection", user.getLanguage());
+        } else {
+            text += " " + messageProvider.getMessage("create_card.created.focused_collection", user.getLanguage());
+        }
+
+        var keyboard = keyboardProvider.getCardCreatedInlineKeyboard(user, card.getId());
+
+        client.sendMessage(user, text, keyboard);
     }
 
-    private void handleWaitingForQuestion(Update update, TelegramUser user) {
-        CardCollection collection;
-        if (user.getPayload().getFocusOnCollection() != null) {
-            collection = collectionService.getById(user.getPayload().getFocusOnCollection()).orElseThrow();
-        } else {
+    private void fillCardQuest(Update update, TelegramUser user) {
+        CardCollection collection = user.getFocusedOnCollection();
+        if (collection == null) {
             collection = collectionService.getById(user.getPayload().getDefaultCollection()).orElseThrow();
         }
 
@@ -96,7 +104,7 @@ public class TelegramUpdateHandler {
         card.setAppearTime(Instant.now());
         card = cardService.save(card);
 
-        user.setState(UserState.WAITING_FOR_ANSWER);
+        user.setState(UserState.FILL_CARD_ANSWER);
         user.setCurrentCardId(card.getId());
 
         client.sendMessage(user, messageProvider.getMessage("create_card.answer", user.getLanguage()));

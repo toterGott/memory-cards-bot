@@ -8,6 +8,7 @@ import com.example.memcards.user.AvailableLocale;
 import com.example.memcards.user.TelegramUser;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -31,12 +32,12 @@ public class KeyboardProvider {
 
         KeyboardRow row = new KeyboardRow();
         row.add(messageProvider.getMessage("button.collections", languageCode));
-        row.add(messageProvider.getMessage("button.info", languageCode));
+        row.add(messageProvider.getMessage("button.schedule", languageCode));
         row.add(messageProvider.getMessage("button.settings", languageCode));
         keyboard.add(row);
 
         row = new KeyboardRow();
-        if (user.getPayload().getFocusOnCollection() != null) {
+        if (user.getFocusedOnCollection() != null) {
             row.add(messageProvider.getMessage("button.remove_focus", languageCode));
         }
         row.add(messageProvider.getMessage("button.create_card", languageCode));
@@ -102,11 +103,42 @@ public class KeyboardProvider {
         return keyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getCollectionsPageInlineKeyboard(AvailableLocale language, Page<CardCollection> page) {
+    public InlineKeyboardMarkup getCollectionsInlineKeyboardPage(AvailableLocale language, Page<CardCollection> page) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         for (CardCollection collection : page.getContent()) {
             var button = new InlineKeyboardButton(collection.getName());
             button.setCallbackData(CallbackAction.SELECT_COLLECTION + CALLBACK_DELIMITER + collection.getId());
+            rows.add(new InlineKeyboardRow(button));
+        }
+
+        var finalRow = new InlineKeyboardRow();
+        rows.add(finalRow);
+        if (page.hasPrevious()) {
+            var backButton = new InlineKeyboardButton(messageProvider.getMessage("button.previous_page", language));
+            backButton.setCallbackData(
+                CallbackAction.SELECT_COLLECTION_PAGE + CALLBACK_DELIMITER + (page.getNumber() - 1));
+            finalRow.add(backButton);
+        }
+        if (page.hasNext()) {
+            var forwardButton = new InlineKeyboardButton(messageProvider.getMessage("button.next_page", language));
+            forwardButton.setCallbackData(
+                CallbackAction.SELECT_COLLECTION_PAGE + CALLBACK_DELIMITER + (page.getNumber() + 1));
+            finalRow.add(forwardButton);
+        }
+
+        return new InlineKeyboardMarkup(rows);
+    }
+
+    public InlineKeyboardMarkup getSelectCollectionForCardPage(
+        AvailableLocale language,
+        Page<CardCollection> page
+    ) {
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+        for (CardCollection collection : page.getContent()) {
+            var button = new InlineKeyboardButton(collection.getName());
+            button.setCallbackData(CallbackAction.SELECT_COLLECTION_FOR_CARD
+                                       + CALLBACK_DELIMITER
+                                       + collection.getId());
             rows.add(new InlineKeyboardRow(button));
         }
 
@@ -140,12 +172,30 @@ public class KeyboardProvider {
         rows.add(new InlineKeyboardRow(editCards));
 
         var delete = new InlineKeyboardButton(messageProvider.getMessage("button.collection.delete", language));
-        delete.setCallbackData(CallbackAction.DELETE_COLLECTION_CARDS + CALLBACK_DELIMITER + collectionId);
+        delete.setCallbackData(CallbackAction.DELETE_COLLECTION + CALLBACK_DELIMITER + collectionId);
         rows.add(new InlineKeyboardRow(delete));
 
         var back = new InlineKeyboardButton(messageProvider.getMessage("button.collection.back", language));
         back.setCallbackData(CallbackAction.SELECT_COLLECTION_PAGE + CALLBACK_DELIMITER + 0);
         rows.add(new InlineKeyboardRow(back));
+
+        return new InlineKeyboardMarkup(rows);
+    }
+
+    public InlineKeyboardMarkup getCardCreatedInlineKeyboard(TelegramUser user, UUID cardId) {
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+
+        var changeCollectionButton = new InlineKeyboardButton(messageProvider.getMessage(
+            "button.card.change_collection",
+            user.getLanguage()
+        ));
+        changeCollectionButton.setCallbackData(CallbackAction.CHANGE_CARD_COLLECTION + CALLBACK_DELIMITER + cardId);
+        rows.add(new InlineKeyboardRow(changeCollectionButton));
+
+        var confirmText = messageProvider.getMessage("button.card.confirm_creation", user.getLanguage());
+        var okButton = new InlineKeyboardButton(confirmText);
+        okButton.setCallbackData(CallbackAction.CONFIRM_CARD_CREATION.name());
+        rows.add(new InlineKeyboardRow(okButton));
 
         return new InlineKeyboardMarkup(rows);
     }
