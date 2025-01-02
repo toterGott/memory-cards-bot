@@ -1,10 +1,11 @@
-package com.example.memcards.telegram.callback;
+package com.example.memcards.telegram.callback.handler;
 
 import com.example.memcards.card.CardService;
 import com.example.memcards.collection.CollectionService;
 import com.example.memcards.i18n.MessageProvider;
 import com.example.memcards.telegram.KeyboardProvider;
 import com.example.memcards.telegram.TelegramClientWrapper;
+import com.example.memcards.telegram.callback.CallbackHandler;
 import com.example.memcards.telegram.callback.model.Callback;
 import com.example.memcards.telegram.callback.model.CallbackSource;
 import com.example.memcards.telegram.callback.model.CollectionsCallback;

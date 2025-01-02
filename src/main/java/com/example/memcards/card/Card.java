@@ -1,6 +1,7 @@
 package com.example.memcards.card;
 
 import com.example.memcards.collection.CardCollection;
+import com.example.memcards.common.PageableEntity;
 import com.example.memcards.user.TelegramUser;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -12,11 +13,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -26,7 +27,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
-public class Card {
+public class Card implements PageableEntity {
 
     @Id
     @GeneratedValue
@@ -38,10 +39,16 @@ public class Card {
     @JoinColumn(name = "user_id", nullable = false)
     private TelegramUser owner;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "collection_id", nullable = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "collection_id")
     private CardCollection collection;
     @CreatedDate
     private Instant createdAt;
     @LastModifiedDate
     private Instant updatedAt;
+
+    @Override
+    public String getName() {
+        return question;
+    }
 }

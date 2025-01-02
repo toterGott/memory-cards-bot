@@ -171,7 +171,7 @@ public class ReplyKeyboardButtonHandler {
             var collectionName = user.getFocusedOnCollection().getName();
             text += "\n" + messageProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
         }
-        var settingsKeyboard = keyboardProvider.getSettingsMenu();
+        var settingsKeyboard = keyboardProvider.getSettingsMenu(user);
         client.sendMessage(user, text, settingsKeyboard);
     }
 
