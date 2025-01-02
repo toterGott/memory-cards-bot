@@ -8,6 +8,8 @@ import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
@@ -53,5 +55,20 @@ public class TelegramClientWrapper {
     public void deleteMessage(Long chatId, Integer messageId) {
         DeleteMessage deleteMessage = new DeleteMessage(chatId.toString(), messageId);
         execute(deleteMessage);
+    }
+
+    public void editMessage(Long chatId, Integer messageId, String text, InlineKeyboardMarkup inlineKeyboard) {
+        EditMessageText editMessageText = new EditMessageText(text);
+        editMessageText.setChatId(chatId.toString());
+        editMessageText.setMessageId(messageId);
+        editMessageText.setReplyMarkup(inlineKeyboard);
+        execute(editMessageText);
+    }
+
+    public void showAlert(String callbackId, String text) {
+        AnswerCallbackQuery answer = new AnswerCallbackQuery(callbackId);
+        answer.setShowAlert(true);
+        answer.setText(text);
+        execute(answer);
     }
 }

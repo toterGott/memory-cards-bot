@@ -7,6 +7,7 @@ import com.example.memcards.card.CardService;
 import com.example.memcards.collection.CardCollection;
 import com.example.memcards.collection.CollectionService;
 import com.example.memcards.i18n.MessageProvider;
+import com.example.memcards.telegram.callback.TelegramCallbackDelegate;
 import com.example.memcards.user.TelegramUser;
 import com.example.memcards.user.UserService;
 import com.example.memcards.user.UserState;
@@ -30,7 +31,7 @@ public class TelegramUpdateHandler {
     private final MessageProvider messageProvider;
     private final CollectionService collectionService;
     private final CardService cardService;
-    private final TelegramCallbackHandler callbackHandler;
+    private final TelegramCallbackDelegate callbackHandler;
     private final ReplyKeyboardButtonHandler buttonHandler;
 
     public static final String COMMAND_TYPE = "bot_command";
@@ -39,7 +40,7 @@ public class TelegramUpdateHandler {
     public void handleUpdate(Update update) {
         var user = welcomeOrGetUser(update);
         if (update.hasCallbackQuery()) {
-            callbackHandler.handleCallback(update, user);
+            callbackHandler.handleCallback(update.getCallbackQuery(), user);
         } else if (update.hasMessage()) {
             handleUpdateByUserState(update, user);
         }

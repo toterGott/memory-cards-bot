@@ -55,7 +55,7 @@ public class CollectionService {
         return repository.findById(defaultCollection);
     }
 
-    public void deleteById(String collectionId) {
-        repository.deleteByIdQuery(UUID.fromString(collectionId));
+    public void deleteById(UUID collectionId) {
+        repository.deleteByIdQuery(collectionId);
     }
 }

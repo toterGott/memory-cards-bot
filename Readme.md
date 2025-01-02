@@ -3,5 +3,6 @@
 This is a telegram bot with memory cards.
 
  ## TODOs
--  After creating a card, show its collection and add an ability to change the collection after creation
--  Add a card browser in a collection browser
+- Segregate callback types by messages
+- Add an ability to create a collection
+- Add a card browser in a collection browser
