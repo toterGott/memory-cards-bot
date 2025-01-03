@@ -6,4 +6,6 @@ public enum UserState {
     FILL_CARD_ANSWER,
     QUESTION_SHOWED,
     EVALUATE_ANSWER,
+    COLLECTION_CREATION,
+    ;
 }

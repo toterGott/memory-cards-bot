@@ -73,6 +73,11 @@ public class TelegramClientWrapper {
         execute(deleteMessage);
     }
 
+    public void deleteCallbackMessage() {
+        DeleteMessage deleteMessage = new DeleteMessage(getChatId().toString(), getCallbackMessageId());
+        execute(deleteMessage);
+    }
+
     public void editMessage(Long chatId, Integer messageId, String text, InlineKeyboardMarkup inlineKeyboard) {
         EditMessageText editMessageText = new EditMessageText(text);
         editMessageText.setChatId(chatId.toString());
@@ -81,7 +86,7 @@ public class TelegramClientWrapper {
         execute(editMessageText);
     }
 
-    public void editMessage(String text, InlineKeyboardMarkup inlineKeyboard) {
+    public void editCallbackMessage(String text, InlineKeyboardMarkup inlineKeyboard) {
         EditMessageText editMessageText = new EditMessageText(text);
         editMessageText.setChatId(getChatId().toString());
         editMessageText.setMessageId(getCallbackMessageId());

@@ -16,7 +16,7 @@ public class TelegramUtils {
 
     public static final String CALLBACK_DELIMITER = " ";
 
-    public static TelegramUser getTelegramUser() {
+    public static TelegramUser getUser() {
         return telegramUserThreadLocal.get();
     }
 

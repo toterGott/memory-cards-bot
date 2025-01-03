@@ -54,7 +54,7 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void handleSchedule(TelegramUser user, Update update) {
-        client.sendMessage(user, messageProvider.getMessage("schedule", user.getLanguage()));
+        client.sendMessage(user, messageProvider.getText("schedule"));
     }
 
     private void showAnswer(TelegramUser user) {
@@ -147,7 +147,7 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void sendCard(Card card, TelegramUser user) {
-        var keyboard = keyboardProvider.getShowAnswerKeyboard(user.getLanguage());
+        var keyboard = keyboardProvider.getShowAnswerKeyboard();
         client.sendMessage(user, card.getQuestion(), keyboard);
         user.setCurrentCardId(card.getId());
         user.setState(QUESTION_SHOWED);
@@ -167,7 +167,7 @@ public class ReplyKeyboardButtonHandler {
             String.valueOf(page.getNumber() + 1),
             String.valueOf(page.getTotalPages())
         );
-        var pageKeyboard = keyboardProvider.buildCollectionsPage(user.getLanguage(), page);
+        var pageKeyboard = keyboardProvider.buildCollectionsPage(page);
         client.sendMessage(user, text, pageKeyboard);
     }
 

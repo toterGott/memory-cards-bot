@@ -2,6 +2,8 @@ package com.example.memcards.telegram.callback.handler;
 
 import static com.example.memcards.telegram.TelegramUtils.getCallbackMessageId;
 import static com.example.memcards.telegram.TelegramUtils.getChatId;
+import static com.example.memcards.telegram.TelegramUtils.getUser;
+import static com.example.memcards.user.UserState.COLLECTION_CREATION;
 
 import com.example.memcards.card.CardService;
 import com.example.memcards.collection.CollectionService;
@@ -22,6 +24,9 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
 @Component
 @RequiredArgsConstructor
@@ -52,10 +57,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
                 user
             );
             case BACK -> handleCollectionPage("0", user, messageId);
-            case NEW_COLLECTION -> client.showAlert(
-                callbackQuery.getId(),
-                "UNDER DEVELOPMENT"
-            );
+            case NEW_COLLECTION -> createCollection();
             case CHANGE_PAGE -> handleCollectionPage(
                 collectionsCallback.getData(),
                 user,
@@ -72,15 +74,20 @@ public class CollectionsCallbackHandler implements CallbackHandler {
                 callbackQuery.getId()
             );
             case CONFIRM_DELETE -> confirmDelete(
-                UUID.fromString(collectionsCallback.getData()),
-                messageId,
-                user,
-                callbackQuery.getId()
+                UUID.fromString(collectionsCallback.getData())
             );
         }
     }
 
-    private void confirmDelete(UUID collectionId, Integer messageId, TelegramUser user, String id) {
+    private void createCollection() {
+        getUser().setState(COLLECTION_CREATION);
+        var text = messageProvider.getText("collections.create");
+        client.deleteCallbackMessage();
+        client.sendMessage(text, new ReplyKeyboardRemove(true));
+    }
+
+    private void confirmDelete(UUID collectionId) {
+        var user = getUser();
         if (user.getFocusedOnCollection() != null
             && user.getFocusedOnCollection().getId().equals(collectionId)) {
             user.setFocusedOnCollection(null);
@@ -140,7 +147,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
             String.valueOf(page.getNumber() + 1),
             String.valueOf(page.getTotalPages())
         );
-        var pageKeyboard = keyboardProvider.buildCollectionsPage(user.getLanguage(), page);
+        var pageKeyboard = keyboardProvider.buildCollectionsPage(page);
 
 //        // todo make this cleaner
 //        if (user.getCurrentCardId() != null) {
@@ -158,7 +165,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
             String.valueOf(page.getNumber() + 1),
             String.valueOf(page.getTotalPages())
         );
-        var pageKeyboard = keyboardProvider.buildCollectionsPage(user.getLanguage(), page);
+        var pageKeyboard = keyboardProvider.buildCollectionsPage(page);
 
         EditMessageText editMessageText = new EditMessageText(text);
         editMessageText.setChatId(user.getChatId());

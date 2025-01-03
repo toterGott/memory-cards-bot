@@ -1,5 +1,7 @@
 package com.example.memcards.telegram;
 
+import static com.example.memcards.telegram.TelegramUtils.getLanguage;
+import static com.example.memcards.telegram.TelegramUtils.getUser;
 import static com.example.memcards.telegram.callback.CallbackMapper.writeCallback;
 
 import com.example.memcards.collection.CardCollection;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaContext;
 import org.springframework.stereotype.Component;
@@ -36,7 +39,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 public class KeyboardProvider {
 
     private final MessageProvider messageProvider;
-    private final JpaContext jpaContext;
+
+    public ReplyKeyboardMarkup getMainMenu() {
+        return getMainMenu(getUser());
+    }
 
     public ReplyKeyboardMarkup getMainMenu(TelegramUser user) {
         var languageCode = user.getLanguage();
@@ -103,12 +109,12 @@ public class KeyboardProvider {
         return keyboardMarkup;
     }
 
-    public ReplyKeyboardMarkup getShowAnswerKeyboard(AvailableLocale languageCode) {
+    public ReplyKeyboardMarkup getShowAnswerKeyboard() {
         List<KeyboardRow> keyboard = new ArrayList<>();
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
 
         KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getMessage("button.show_answer", languageCode));
+        row.add(messageProvider.getText("button.show_answer"));
         keyboard.add(row);
 
         keyboardMarkup.setKeyboard(keyboard);
@@ -116,14 +122,14 @@ public class KeyboardProvider {
         return keyboardMarkup;
     }
 
-    public InlineKeyboardMarkup buildCollectionsPage(AvailableLocale language, Page<CardCollection> page) {
+    public InlineKeyboardMarkup buildCollectionsPage(Page<CardCollection> page) {
         CollectionsCallback callback = CollectionsCallback.builder()
             .source(CallbackSource.COLLECTIONS)
             .build();
         List<InlineKeyboardRow> rows = new ArrayList<>();
 
         callback.setAction(CollectionCallbackAction.NEW_COLLECTION);
-        var newCollections = new InlineKeyboardButton(messageProvider.getMessage("button.collection.new", language));
+        var newCollections = new InlineKeyboardButton(messageProvider.getText("button.collection.new"));
         newCollections.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(newCollections));
 
@@ -132,7 +138,7 @@ public class KeyboardProvider {
         rows.addAll(pageContentRows);
 
         callback.setAction(CollectionCallbackAction.CHANGE_PAGE);
-        rows.add(buildPageNavigationRow(page, callback, language));
+        rows.add(buildPageNavigationRow(page, callback));
 
         return new InlineKeyboardMarkup(rows);
     }
@@ -154,39 +160,34 @@ public class KeyboardProvider {
 
     private InlineKeyboardRow buildPageNavigationRow(
         Page<?> page,
-        Callback callback,
-        AvailableLocale language
+        Callback callback
     ) {
         var pageNavigationRow = new InlineKeyboardRow();
         if (page.hasPrevious()) {
             callback.setData(String.valueOf(page.getNumber() - 1));
-            var backButton = new InlineKeyboardButton(messageProvider.getMessage("button.previous_page", language));
+            var backButton = new InlineKeyboardButton(messageProvider.getText("button.previous_page"));
             backButton.setCallbackData(writeCallback(callback));
             pageNavigationRow.add(backButton);
         }
         if (page.hasNext()) {
             callback.setData(String.valueOf(page.getNumber() + 1));
-            var forwardButton = new InlineKeyboardButton(messageProvider.getMessage("button.next_page", language));
+            var forwardButton = new InlineKeyboardButton(messageProvider.getText("button.next_page"));
             forwardButton.setCallbackData(writeCallback(callback));
             pageNavigationRow.add(forwardButton);
         }
         return pageNavigationRow;
     }
 
+    // todo shoulb page callback handler
     public InlineKeyboardMarkup buildCollectionPageForCardSelectionOnCreation(
-        AvailableLocale language,
-        Page<CardCollection> page
+        Page<CardCollection> page,
+        Callback pageCallback,
+        Callback navigationCallback
     ) {
-        NewCardCallback callback = NewCardCallback.builder()
-            .source(CallbackSource.NEW_CARD)
-            .action(NewCardCallbackAction.SET_COLLECTION)
-            .build();
-
-        var pageContentRows = buildCollectionsPageContent(page, callback);
+        var pageContentRows = buildCollectionsPageContent(page, pageCallback);
         List<InlineKeyboardRow> rows = new ArrayList<>(pageContentRows);
 
-        callback.setAction(NewCardCallbackAction.CHANGE_PAGE);
-        rows.add(buildPageNavigationRow(page, callback, language));
+        rows.add(buildPageNavigationRow(page, navigationCallback));
 
         return new InlineKeyboardMarkup(rows);
     }

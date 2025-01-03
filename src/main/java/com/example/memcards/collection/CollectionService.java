@@ -57,4 +57,8 @@ public class CollectionService {
 //        repository.deleteById(collectionId); // todo find out why is this not working
         repository.deleteByIdQuery(collectionId);
     }
+
+    public CardCollection save(CardCollection collection) {
+        return repository.save(collection);
+    }
 }

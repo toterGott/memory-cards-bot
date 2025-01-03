@@ -1,5 +1,7 @@
 package com.example.memcards.telegram;
 
+import static com.example.memcards.telegram.TelegramUtils.getMessage;
+import static com.example.memcards.telegram.TelegramUtils.getUser;
 import static com.example.memcards.telegram.TelegramUtils.telegramUserThreadLocal;
 import static com.example.memcards.telegram.TelegramUtils.updateThreadLocal;
 import static com.example.memcards.user.UserState.STAND_BY;
@@ -49,6 +51,9 @@ public class TelegramUpdateHandler {
         } else if (update.hasMessage()) {
             handleUpdateByUserState(update, user);
         }
+
+        telegramUserThreadLocal.remove();
+        updateThreadLocal.remove();
     }
 
     private void handleUpdateByUserState(Update update, TelegramUser user) {
@@ -57,7 +62,22 @@ public class TelegramUpdateHandler {
             case FILL_CARD_QUESTION -> fillCardQuest(update, user);
             case FILL_CARD_ANSWER -> fillCardAnswer(update, user);
             case QUESTION_SHOWED, EVALUATE_ANSWER -> buttonHandler.handleButton(update, user);
+            case COLLECTION_CREATION -> createCollection();
+            default -> log.warn("Unhandled state: {} and command: {}", user.getState(), getMessage().getText());
         }
+    }
+
+    private void createCollection() {
+        var collectionName = getMessage().getText();
+        var collection = new CardCollection();
+        collection.setName(collectionName);
+        collection.setOwner(getUser());
+        collectionService.save(collection);
+
+        getUser().setState(STAND_BY);
+
+        var text = messageProvider.getText("collections.created");
+        client.sendMessage(text, keyboardProvider.getMainMenu());
     }
 
     private void handleStandBy(Update update, TelegramUser user) {
