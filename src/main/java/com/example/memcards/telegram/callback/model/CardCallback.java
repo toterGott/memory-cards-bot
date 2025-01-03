@@ -33,8 +33,9 @@ public class CardCallback extends Callback {
         DELETE("d"),
         DELETE_CONFIRM("D"),
         CHANGE_COLLECTION("C"),
-        CANCEL("c")
-        ;
+        SET_COLLECTION("S"),
+        CANCEL("c"),
+        CHANGE_PAGE("P");
 
         @Getter
         private final String code;

@@ -1,5 +1,7 @@
 package com.example.memcards.telegram.callback.handler;
 
+import static com.example.memcards.telegram.TelegramUtils.getUser;
+
 import com.example.memcards.card.CardService;
 import com.example.memcards.collection.CollectionService;
 import com.example.memcards.i18n.MessageProvider;
@@ -9,6 +11,7 @@ import com.example.memcards.telegram.callback.CallbackHandler;
 import com.example.memcards.telegram.callback.model.Callback;
 import com.example.memcards.telegram.callback.model.CallbackSource;
 import com.example.memcards.telegram.callback.model.CardCallback;
+import com.example.memcards.telegram.callback.model.CardCallback.CardCallbackAction;
 import com.example.memcards.user.TelegramUser;
 import java.util.UUID;
 import lombok.Getter;
@@ -37,32 +40,107 @@ public class CardCallbackHandler implements CallbackHandler {
     public void handle(Callback callback, CallbackQuery callbackQuery, TelegramUser user) {
         CardCallback cardCallback = (CardCallback) callback;
         switch (cardCallback.getAction()) {
-            case DELETE -> deleteCard(cardCallback.getData());
-            case DELETE_CONFIRM -> confirmDelete(cardCallback.getData());
-            case CHANGE_COLLECTION -> client.showAlertNotImplemented();
-            case CANCEL -> cancel(cardCallback.getData());
+            case DELETE -> deleteCard(UUID.fromString(callback.getData()));
+            case DELETE_CONFIRM -> confirmDelete(UUID.fromString(callback.getData()));
+            case CHANGE_COLLECTION -> changeCollection(UUID.fromString(callback.getData()));
+            case CANCEL -> cancel(UUID.fromString(callback.getData()));
+            case SET_COLLECTION -> setCollection(UUID.fromString(callback.getData()));
+            case CHANGE_PAGE -> changePage(callback.getData());
         }
     }
 
-    private void cancel(String cardId) {
-        InlineKeyboardMarkup keyboard = keyboardProvider.getAfterCardAnswer(UUID.fromString(cardId));
-        var text = messageProvider.getText("card.actions");
-        client.editMessage(text, keyboard);
+    private void setCollection(UUID id) {
+        var user = getUser();
+        var card = cardService.findById(user.getCurrentCardId()).orElseThrow();
+        var collection = collectionService.findById(id).orElseThrow();
+        if (card.getOwner().getId() != user.getId() || collection.getOwner().getId() != user.getId()) {
+            throw new RuntimeException("Access violation");
+        }
+
+        card.setCollection(collection);
+        var text = messageProvider.getText("card.collections.changed", collection.getName());
+        var keyboard = keyboardProvider.getMainMenu(user);
+        client.sendMessage(user, text, keyboard);
+
+        client.deleteCallbackMessage();
+
+        user.setCurrentCardId(null);
     }
 
-    private void confirmDelete(String cardId) {
-        cardService.deleteById(UUID.fromString(cardId));
+    private void changeCollection(UUID cardId) {
+        getUser().setCurrentCardId(cardId);
+        var page = collectionService.getCollectionsPage(getUser().getId(), 0);
+        var text = messageProvider.getText(
+            "card.collections.select",
+            String.valueOf(page.getNumber() + 1),
+            String.valueOf(page.getTotalPages())
+        );
 
-        client.editMessage(
+        CardCallback pageCallback = CardCallback.builder()
+            .source(CallbackSource.NEW_CARD)
+            .action(CardCallbackAction.SET_COLLECTION)
+            .build();
+
+        CardCallback navigationCallback = CardCallback.builder()
+            .source(CallbackSource.NEW_CARD)
+            .action(CardCallbackAction.CHANGE_PAGE)
+            .build();
+
+        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(
+            page,
+            pageCallback,
+            navigationCallback
+        );
+
+        client.editCallbackMessage(text, pageKeyboard);
+    }
+
+    private void changePage(String pageNumber) {
+        var page = collectionService.getCollectionsPage(getUser().getId(), Integer.parseInt(pageNumber));
+        var text = messageProvider.getText(
+            "card.collections.select",
+            String.valueOf(page.getNumber() + 1),
+            String.valueOf(page.getTotalPages())
+        );
+
+        CardCallback pageCallback = CardCallback.builder()
+            .source(CallbackSource.NEW_CARD)
+            .action(CardCallbackAction.SET_COLLECTION)
+            .build();
+
+        CardCallback navigationCallback = CardCallback.builder()
+            .source(CallbackSource.NEW_CARD)
+            .action(CardCallbackAction.CHANGE_PAGE)
+            .build();
+
+        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(
+            page,
+            pageCallback,
+            navigationCallback
+        );
+
+        client.editCallbackMessage(text, pageKeyboard);
+    }
+
+    private void cancel(UUID cardId) {
+        InlineKeyboardMarkup keyboard = keyboardProvider.getAfterCardAnswer(cardId);
+        var text = messageProvider.getText("card.actions");
+        client.editCallbackMessage(text, keyboard);
+    }
+
+    private void confirmDelete(UUID cardId) {
+        cardService.deleteById(cardId);
+
+        client.editCallbackMessage(
             messageProvider.getText("card.delete.deleted"),
             null
         );
     }
 
-    private void deleteCard(String cardId) {
-        client.editMessage(
+    private void deleteCard(UUID cardId) {
+        client.editCallbackMessage(
             messageProvider.getText("card.delete.confirm"),
-            keyboardProvider.getCardDeleteConfirmation(cardId)
+            keyboardProvider.getCardDeleteConfirmation(cardId.toString())
         );
     }
 }

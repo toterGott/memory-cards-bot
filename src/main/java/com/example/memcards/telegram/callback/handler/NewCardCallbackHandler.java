@@ -1,5 +1,7 @@
 package com.example.memcards.telegram.callback.handler;
 
+import static com.example.memcards.telegram.TelegramUtils.getUser;
+
 import com.example.memcards.card.CardService;
 import com.example.memcards.collection.CollectionService;
 import com.example.memcards.i18n.MessageProvider;
@@ -9,6 +11,7 @@ import com.example.memcards.telegram.callback.CallbackHandler;
 import com.example.memcards.telegram.callback.model.Callback;
 import com.example.memcards.telegram.callback.model.CallbackSource;
 import com.example.memcards.telegram.callback.model.NewCardCallback;
+import com.example.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
 import com.example.memcards.user.TelegramUser;
 import java.util.UUID;
 import lombok.Getter;
@@ -40,11 +43,9 @@ public class NewCardCallbackHandler implements CallbackHandler {
             case CONFIRM -> confirmCardCreation(user, messageId);
             case CHANGE_COLLECTION -> changeCardCollection(user, messageId);
             case SET_COLLECTION -> setCollection(newCardCallback.getData(), user, messageId);
-            case CHANGE_PAGE -> {
-            }
+            case CHANGE_PAGE -> changePage(callback.getData());
         }
     }
-
 
     private void setCollection(
         String collectionId,
@@ -79,6 +80,34 @@ public class NewCardCallbackHandler implements CallbackHandler {
         user.setCurrentCardId(null);
     }
 
+    private void changePage(String pageNumber) {
+        var user = getUser();
+        var page = collectionService.getCollectionsPage(user.getId(), Integer.parseInt(pageNumber));
+        var text = messageProvider.getText(
+            "collections",
+            String.valueOf(page.getNumber() + 1),
+            String.valueOf(page.getTotalPages())
+        );
+
+        NewCardCallback pageCallback = NewCardCallback.builder()
+            .source(CallbackSource.NEW_CARD)
+            .action(NewCardCallbackAction.SET_COLLECTION)
+            .build();
+
+        NewCardCallback navigationCallback = NewCardCallback.builder()
+            .source(CallbackSource.NEW_CARD)
+            .action(NewCardCallbackAction.CHANGE_PAGE)
+            .build();
+
+        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(
+            page,
+            pageCallback,
+            navigationCallback
+        );
+
+        client.editCallbackMessage(text, pageKeyboard);
+    }
+
     private void changeCardCollection(TelegramUser user, Integer messageId) {
         var page = collectionService.getCollectionsPage(user.getId(), 0);
         var text = messageProvider.getMessage(
@@ -87,7 +116,22 @@ public class NewCardCallbackHandler implements CallbackHandler {
             String.valueOf(page.getNumber() + 1),
             String.valueOf(page.getTotalPages())
         );
-        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(user.getLanguage(), page);
+
+        NewCardCallback pageCallback = NewCardCallback.builder()
+            .source(CallbackSource.NEW_CARD)
+            .action(NewCardCallbackAction.SET_COLLECTION)
+            .build();
+
+        NewCardCallback navigationCallback = NewCardCallback.builder()
+            .source(CallbackSource.NEW_CARD)
+            .action(NewCardCallbackAction.CHANGE_PAGE)
+            .build();
+
+        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(
+            page,
+            pageCallback,
+            navigationCallback
+        );
 
         client.editMessage(user.getChatId(), messageId, text, pageKeyboard);
     }
