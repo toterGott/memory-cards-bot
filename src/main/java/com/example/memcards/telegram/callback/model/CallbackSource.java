@@ -11,6 +11,7 @@ public enum CallbackSource implements EncodedEnum {
     NEW_CARD("N"),
     CARD("c"),
     SETTINGS("S"),
+    SCHEDULE("s"),
     ;
 
     @Getter

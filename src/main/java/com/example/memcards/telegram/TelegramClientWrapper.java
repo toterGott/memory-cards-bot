@@ -37,6 +37,10 @@ public class TelegramClientWrapper {
         }
     }
 
+    public Message sendMessage(String text) {
+        return sendMessage(text, null);
+    }
+
     public Message sendMessage(String text, ReplyKeyboard replyKeyboard) {
         SendMessage sendMessage = new SendMessage(getChatId().toString(), text);
 
@@ -92,6 +96,10 @@ public class TelegramClientWrapper {
         editMessageText.setMessageId(getCallbackMessageId());
         editMessageText.setReplyMarkup(inlineKeyboard);
         execute(editMessageText);
+    }
+
+    public void editCallbackMessage(String text) {
+        editCallbackMessage(text, null);
     }
 
     public void editMessage(String text, Integer messageId, InlineKeyboardMarkup inlineKeyboard) {
