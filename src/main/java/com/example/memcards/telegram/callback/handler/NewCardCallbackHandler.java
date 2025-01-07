@@ -13,6 +13,7 @@ import com.example.memcards.telegram.callback.model.CallbackSource;
 import com.example.memcards.telegram.callback.model.NewCardCallback;
 import com.example.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
 import com.example.memcards.user.TelegramUser;
+import com.example.memcards.user.UserState;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +67,7 @@ public class NewCardCallbackHandler implements CallbackHandler {
         client.deleteMessage(user.getChatId(), messageId);
 
         user.setCurrentCardId(null);
+        user.setState(UserState.STAND_BY);
     }
 
     private void confirmCardCreation(TelegramUser user, Integer messageId) {

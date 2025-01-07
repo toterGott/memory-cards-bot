@@ -1,5 +1,6 @@
 package com.example.memcards.telegram;
 
+import static com.example.memcards.telegram.TelegramUtils.getUser;
 import static com.example.memcards.user.UserState.EVALUATE_ANSWER;
 import static com.example.memcards.user.UserState.QUESTION_SHOWED;
 import static com.example.memcards.user.UserState.STAND_BY;
@@ -13,6 +14,7 @@ import com.example.memcards.collection.CollectionService;
 import com.example.memcards.i18n.MessageProvider;
 import com.example.memcards.user.TelegramUser;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -38,7 +40,7 @@ public class ReplyKeyboardButtonHandler {
         }
 
         switch (key) {
-            case "button.schedule" -> handleSchedule(user, update);
+            case "button.schedule" -> handleSchedule();
             case "button.settings" -> sendSettingsMessage(user);
             case "button.collections" -> handleCollectionsButton(user);
             case "button.create_card" -> createCard(user);
@@ -49,12 +51,20 @@ public class ReplyKeyboardButtonHandler {
             case "button.easy" -> setCardGrade(user, update, 3);
             case "button.show_answer" -> showAnswer(user);
             case "button.remove_focus" -> removeFocus(user);
-            default -> handleUnknownMessage(user, key);
+            default -> handleUnknownMessage(user, text);
         }
     }
 
-    private void handleSchedule(TelegramUser user, Update update) {
-        client.sendMessage(user, messageProvider.getText("schedule"));
+    private void handleSchedule() {
+        var schedule = getUser().getPayload().getSchedule();
+        String text;
+        if (schedule != null) {
+            text = messageProvider.getText("schedule.enabled", schedule.getHours().toString());
+        } else {
+            text = messageProvider.getText("schedule");
+        }
+        var keyboard = keyboardProvider.getScheduleKeyboard();
+        client.sendMessage(text, keyboard);
     }
 
     private void showAnswer(TelegramUser user) {
@@ -69,13 +79,16 @@ public class ReplyKeyboardButtonHandler {
 
         String text;
         Instant appearTime = Instant.now();
+
+        // todo improve
         switch (grade) {
             default -> {
                 text = messageProvider.getMessage(
                     "card_answered",
                     user.getLanguage(),
                     "1",
-                    MINUTES.name()
+                    MINUTES.toString().toLowerCase(),
+                    card.getCollection().getName()
                 );
             }
             case 1 -> {
@@ -84,7 +97,8 @@ public class ReplyKeyboardButtonHandler {
                     "card_answered",
                     user.getLanguage(),
                     "10",
-                    MINUTES.name()
+                    MINUTES.toString().toLowerCase(),
+                    card.getCollection().getName()
                 );
             }
             case 2 -> {
@@ -93,7 +107,8 @@ public class ReplyKeyboardButtonHandler {
                     "card_answered",
                     user.getLanguage(),
                     "1",
-                    DAYS.name()
+                    DAYS.toString().toLowerCase(),
+                    card.getCollection().getName()
                 );
             }
             case 3 -> {
@@ -102,7 +117,8 @@ public class ReplyKeyboardButtonHandler {
                     "card_answered",
                     user.getLanguage(),
                     "4",
-                    DAYS.name()
+                    DAYS.toString().toLowerCase(),
+                    card.getCollection().getName()
                 );
             }
         }
@@ -116,14 +132,19 @@ public class ReplyKeyboardButtonHandler {
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
         var mainMenu = keyboardProvider.getMainMenu(user);
-
         client.sendMessage(user, text, mainMenu);
+
+        if (user.getPayload().getSchedule() != null) {
+            var schedule = user.getPayload().getSchedule();
+//          var nextRun = schedule.getNextRun().plus(schedule.getHours(), ChronoUnit.HOURS);
+            var nextRun = schedule.getNextRun().plus(schedule.getHours(), ChronoUnit.SECONDS);
+            schedule.setNextRun(nextRun);
+        }
 
         InlineKeyboardMarkup keyboard = keyboardProvider.getAfterCardAnswer(card.getId());
         text = messageProvider.getText("card.actions");
         client.sendMessage(text, keyboard);
     }
-
 
     private void getCard(TelegramUser user) {
         if (user.getFocusedOnCollection() == null) {
@@ -172,18 +193,15 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void sendSettingsMessage(TelegramUser user) {
-        var text = messageProvider.getMessage("settings", user.getLanguage());
-        if (user.getFocusedOnCollection() != null) {
-            var collectionName = user.getFocusedOnCollection().getName();
-            text += "\n" + messageProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
-        }
+        var text = messageProvider.getText("settings");
         var settingsKeyboard = keyboardProvider.getSettingsMenu(user);
         client.sendMessage(user, text, settingsKeyboard);
     }
 
     private void handleUnknownMessage(TelegramUser user, String key) {
+        getUser().setState(STAND_BY);
         var text = messageProvider.getMessage("unknown_request", user.getLanguage(), key);
-        client.sendMessage(user, text + key, keyboardProvider.getMainMenu(user));
+        client.sendMessage(user, text, keyboardProvider.getMainMenu(user));
     }
 
     private void createCard(TelegramUser user) {

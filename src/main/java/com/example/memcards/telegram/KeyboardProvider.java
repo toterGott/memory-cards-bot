@@ -15,6 +15,8 @@ import com.example.memcards.telegram.callback.model.CollectionsCallback;
 import com.example.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import com.example.memcards.telegram.callback.model.NewCardCallback;
 import com.example.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
+import com.example.memcards.telegram.callback.model.ScheduleCallback;
+import com.example.memcards.telegram.callback.model.ScheduleCallback.ScheduleCallbackAction;
 import com.example.memcards.telegram.callback.model.SettingsCallback;
 import com.example.memcards.telegram.callback.model.SettingsCallback.SettingsCallbackAction;
 import com.example.memcards.user.AvailableLocale;
@@ -343,6 +345,47 @@ public class KeyboardProvider {
         var changeCollection = new InlineKeyboardButton(text);
         changeCollection.setCallbackData(writeCallback(callback));
         row.add(changeCollection);
+
+        return new InlineKeyboardMarkup(keyboard);
+    }
+
+    public InlineKeyboardMarkup getScheduleKeyboard() {
+        var row = new InlineKeyboardRow();
+        List<InlineKeyboardRow> keyboard = new ArrayList<>();
+        keyboard.add(row);
+
+        var callback = ScheduleCallback.builder()
+            .source(CallbackSource.SCHEDULE)
+            .action(ScheduleCallbackAction.SET_TIME)
+            .build();
+
+        callback.setData("1");
+        var text = messageProvider.getText("button.schedule.settings.time", callback.getData());
+        var timeButton = new InlineKeyboardButton(text);
+        timeButton.setCallbackData(writeCallback(callback));
+        row.add(timeButton);
+
+        callback.setData("3");
+        text = messageProvider.getText("button.schedule.settings.time", callback.getData());
+        timeButton = new InlineKeyboardButton(text);
+        timeButton.setCallbackData(writeCallback(callback));
+        row.add(timeButton);
+
+        row = new InlineKeyboardRow();
+        keyboard.add(row);
+
+        callback.setData("6");
+        text = messageProvider.getText("button.schedule.settings.time", callback.getData());
+        timeButton = new InlineKeyboardButton(text);
+        timeButton.setCallbackData(writeCallback(callback));
+        row.add(timeButton);
+
+        callback.setData(null);
+        callback.setAction(ScheduleCallbackAction.DISABLE);
+        text = messageProvider.getText("button.schedule.settings.disable", callback.getData());
+        timeButton = new InlineKeyboardButton(text);
+        timeButton.setCallbackData(writeCallback(callback));
+        row.add(timeButton);
 
         return new InlineKeyboardMarkup(keyboard);
     }

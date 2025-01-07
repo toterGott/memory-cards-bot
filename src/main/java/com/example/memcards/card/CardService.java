@@ -1,5 +1,6 @@
 package com.example.memcards.card;
 
+import com.example.memcards.user.TelegramUser;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -35,5 +36,15 @@ public class CardService {
 
     public void deleteById(UUID cardId) {
         repository.deleteById(cardId);
+    }
+
+    public Optional<Card> getCardToLearn(TelegramUser user) {
+        if (user.getFocusedOnCollection() != null) {
+            return repository.findAvailableCardInCollection(
+                user.getId(),
+                user.getFocusedOnCollection().getId()
+            );
+        }
+        return repository.findAvailableCard(user.getId());
     }
 }

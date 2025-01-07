@@ -10,6 +10,8 @@ import com.example.memcards.telegram.callback.model.CollectionsCallback;
 import com.example.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import com.example.memcards.telegram.callback.model.NewCardCallback;
 import com.example.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
+import com.example.memcards.telegram.callback.model.ScheduleCallback;
+import com.example.memcards.telegram.callback.model.ScheduleCallback.ScheduleCallbackAction;
 import com.example.memcards.telegram.callback.model.SettingsCallback;
 import com.example.memcards.telegram.callback.model.SettingsCallback.SettingsCallbackAction;
 
@@ -44,6 +46,13 @@ public class CallbackMapper {
                 return CardCallback.builder()
                     .source(source)
                     .action(CardCallbackAction.fromCode(callbackArgs[1]))
+                    .data(callbackArgs[2])
+                    .build();
+            }
+            case SCHEDULE -> {
+                return ScheduleCallback.builder()
+                    .source(source)
+                    .action(ScheduleCallbackAction.fromCode(callbackArgs[1]))
                     .data(callbackArgs[2])
                     .build();
             }

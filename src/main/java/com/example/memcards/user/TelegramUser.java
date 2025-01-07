@@ -14,6 +14,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +24,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.descriptor.jdbc.TimestampJdbcType;
 
 @Entity
 @Table(name = "telegram_user")
@@ -47,12 +50,20 @@ public class TelegramUser {
     private List<CardCollection> collections = new ArrayList<>();
     private UUID currentCardId;
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "focused_on_collection_id", nullable = true)
+    @JoinColumn(name = "focused_on_collection_id")
     private CardCollection focusedOnCollection;
 
     @Data
     @NoArgsConstructor
     public static class Payload {
         UUID defaultCollection;
+        Schedule schedule;
+
+        @Data
+        @NoArgsConstructor
+        public static class Schedule {
+            Integer hours;
+            Instant nextRun;
+        }
     }
 }

@@ -12,10 +12,10 @@ import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 @Slf4j
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final UserRepository repository;
 
     public Optional<TelegramUser> getUserByTelegramId(Long chatId) {
-        var user = userRepository.findByChatId(chatId);
+        var user = repository.findByChatId(chatId);
         user.ifPresentOrElse(
             foundTelegramUser -> log.debug("Found user {}", foundTelegramUser),
             () -> log.debug("User not found: {}", chatId)
@@ -31,7 +31,7 @@ public class UserService {
         user.setLastName(chat.getLastName());
         user.setState(UserState.STAND_BY);
         user.setLanguage(resolveLanguageCode(languageCode));
-        user = userRepository.save(user);
+        user = repository.save(user);
         log.debug("Created user: {}", user);
         return user;
     }
@@ -61,12 +61,16 @@ public class UserService {
             updateRequired = true;
         }
         if (updateRequired) {
-            user = userRepository.save(user);
+            user = repository.save(user);
         }
         return user;
     }
 
     public TelegramUser save(TelegramUser user) {
-        return userRepository.save(user);
+        return repository.save(user);
+    }
+
+    public Optional<TelegramUser> getScheduledUser() {
+        return repository.getScheduledUser();
     }
 }

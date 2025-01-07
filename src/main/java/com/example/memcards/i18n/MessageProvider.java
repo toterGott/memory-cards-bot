@@ -35,12 +35,10 @@ public class MessageProvider {
         return messagesMap;
     }
 
-    @Deprecated
     public String getMessage(String code, AvailableLocale availableLocale) {
         return messageSource.getMessage(code, null, availableLocale.getLocale());
     }
 
-    @Deprecated
     public String getMessage(String code, AvailableLocale availableLocale, String... args) {
         return messageSource.getMessage(code, args, availableLocale.getLocale());
     }
