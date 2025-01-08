@@ -81,15 +81,9 @@ public class CardCallbackHandler implements CallbackHandler {
             .action(CardCallbackAction.SET_COLLECTION)
             .build();
 
-        CardCallback navigationCallback = CardCallback.builder()
-            .source(CallbackSource.NEW_CARD)
-            .action(CardCallbackAction.CHANGE_PAGE)
-            .build();
-
-        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(
+        var pageKeyboard = keyboardProvider.buildPage(
             page,
-            pageCallback,
-            navigationCallback
+            pageCallback
         );
 
         client.editCallbackMessage(text, pageKeyboard);
@@ -108,15 +102,9 @@ public class CardCallbackHandler implements CallbackHandler {
             .action(CardCallbackAction.SET_COLLECTION)
             .build();
 
-        CardCallback navigationCallback = CardCallback.builder()
-            .source(CallbackSource.NEW_CARD)
-            .action(CardCallbackAction.CHANGE_PAGE)
-            .build();
-
-        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(
+        var pageKeyboard = keyboardProvider.buildPage(
             page,
-            pageCallback,
-            navigationCallback
+            pageCallback
         );
 
         client.editCallbackMessage(text, pageKeyboard);

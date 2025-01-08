@@ -1,6 +1,7 @@
 package com.example.memcards.telegram;
 
 import static com.example.memcards.telegram.TelegramUtils.getUser;
+import static com.example.memcards.user.UserState.COLLECTION_CREATION;
 import static com.example.memcards.user.UserState.EVALUATE_ANSWER;
 import static com.example.memcards.user.UserState.QUESTION_SHOWED;
 import static com.example.memcards.user.UserState.STAND_BY;
@@ -12,6 +13,8 @@ import com.example.memcards.card.Card;
 import com.example.memcards.card.CardService;
 import com.example.memcards.collection.CollectionService;
 import com.example.memcards.i18n.MessageProvider;
+import com.example.memcards.telegram.callback.model.CollectionsCallback;
+import com.example.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import com.example.memcards.user.TelegramUser;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -20,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
 @Component
 @RequiredArgsConstructor
@@ -44,6 +48,7 @@ public class ReplyKeyboardButtonHandler {
             case "button.settings" -> sendSettingsMessage(user);
             case "button.collections" -> handleCollectionsButton(user);
             case "button.create_card" -> createCard(user);
+            case "button.create_collection" -> createCollection();
             case "button.get_card" -> getCard(user);
             case "button.again" -> setCardGrade(user, update, 0);
             case "button.hard" -> setCardGrade(user, update, 1);
@@ -184,11 +189,11 @@ public class ReplyKeyboardButtonHandler {
         var page = collectionService.getCollectionsPage(user.getId(), 0);
         var text = messageProvider.getMessage(
             "collections",
-            user.getLanguage(),
-            String.valueOf(page.getNumber() + 1),
-            String.valueOf(page.getTotalPages())
+            user.getLanguage()
         );
-        var pageKeyboard = keyboardProvider.buildCollectionsPage(page);
+        CollectionsCallback callback = new CollectionsCallback();
+        callback.setAction(CollectionCallbackAction.SELECT);
+        var pageKeyboard = keyboardProvider.buildPage(page, callback);
         client.sendMessage(user, text, pageKeyboard);
     }
 
@@ -202,6 +207,13 @@ public class ReplyKeyboardButtonHandler {
         getUser().setState(STAND_BY);
         var text = messageProvider.getMessage("unknown_request", user.getLanguage(), key);
         client.sendMessage(user, text, keyboardProvider.getMainMenu(user));
+    }
+
+    private void createCollection() {
+        getUser().setState(COLLECTION_CREATION);
+        var text = messageProvider.getText("collections.create");
+//        client.deleteCallbackMessage();
+        client.sendMessage(text, new ReplyKeyboardRemove(true));
     }
 
     private void createCard(TelegramUser user) {
