@@ -4,13 +4,17 @@ import java.util.Arrays;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
+@NoArgsConstructor
 public class CollectionsCallback extends Callback {
+
+    protected CallbackSource source = CallbackSource.COLLECTIONS;
 
     private CollectionCallbackAction action;
 

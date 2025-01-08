@@ -12,6 +12,7 @@ public enum CallbackSource implements EncodedEnum {
     CARD("c"),
     SETTINGS("S"),
     SCHEDULE("s"),
+    PAGE_NAVIGATION("P"),
     ;
 
     @Getter

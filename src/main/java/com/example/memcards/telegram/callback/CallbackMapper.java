@@ -2,6 +2,7 @@ package com.example.memcards.telegram.callback;
 
 import static com.example.memcards.telegram.TelegramUtils.CALLBACK_DELIMITER;
 
+import com.example.memcards.common.PageableEntity;
 import com.example.memcards.telegram.callback.model.Callback;
 import com.example.memcards.telegram.callback.model.CallbackSource;
 import com.example.memcards.telegram.callback.model.CardCallback;
@@ -10,6 +11,8 @@ import com.example.memcards.telegram.callback.model.CollectionsCallback;
 import com.example.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import com.example.memcards.telegram.callback.model.NewCardCallback;
 import com.example.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
+import com.example.memcards.telegram.callback.model.PageNavigationCallback;
+import com.example.memcards.telegram.callback.model.PageNavigationCallback.PageNavigationCallbackAction;
 import com.example.memcards.telegram.callback.model.ScheduleCallback;
 import com.example.memcards.telegram.callback.model.ScheduleCallback.ScheduleCallbackAction;
 import com.example.memcards.telegram.callback.model.SettingsCallback;
@@ -53,6 +56,13 @@ public class CallbackMapper {
                 return ScheduleCallback.builder()
                     .source(source)
                     .action(ScheduleCallbackAction.fromCode(callbackArgs[1]))
+                    .data(callbackArgs[2])
+                    .build();
+            }
+            case PAGE_NAVIGATION -> {
+                return PageNavigationCallback.builder()
+                    .source(source)
+                    .action(PageNavigationCallbackAction.fromCode(callbackArgs[1]))
                     .data(callbackArgs[2])
                     .build();
             }

@@ -14,12 +14,14 @@ import com.example.memcards.telegram.callback.CallbackHandler;
 import com.example.memcards.telegram.callback.model.Callback;
 import com.example.memcards.telegram.callback.model.CallbackSource;
 import com.example.memcards.telegram.callback.model.CollectionsCallback;
+import com.example.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import com.example.memcards.user.TelegramUser;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -143,34 +145,12 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         var page = collectionService.getCollectionsPage(user.getId(), Integer.parseInt(pageNumber));
         var text = messageProvider.getMessage(
             "collections",
-            user.getLanguage(),
-            String.valueOf(page.getNumber() + 1),
-            String.valueOf(page.getTotalPages())
+            user.getLanguage()
         );
-        var pageKeyboard = keyboardProvider.buildCollectionsPage(page);
-
-//        // todo make this cleaner
-//        if (user.getCurrentCardId() != null) {
-//            pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(user.getLanguage(), page);
-//        }
+        CollectionsCallback pageItemCallback = new CollectionsCallback();
+        pageItemCallback.setAction(CollectionCallbackAction.SELECT);
+        var pageKeyboard = keyboardProvider.buildPage(page, pageItemCallback);
 
         client.editMessage(user.getChatId(), messageId, text, pageKeyboard);
-    }
-
-    private void handleBackToPage(String cardId, TelegramUser user, Update update) {
-        var page = collectionService.getCollectionsPage(user.getId(), 0);
-        var text = messageProvider.getMessage(
-            "card.collections.select",
-            user.getLanguage(),
-            String.valueOf(page.getNumber() + 1),
-            String.valueOf(page.getTotalPages())
-        );
-        var pageKeyboard = keyboardProvider.buildCollectionsPage(page);
-
-        EditMessageText editMessageText = new EditMessageText(text);
-        editMessageText.setChatId(user.getChatId());
-        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
-        editMessageText.setReplyMarkup(pageKeyboard);
-        client.execute(editMessageText);
     }
 }

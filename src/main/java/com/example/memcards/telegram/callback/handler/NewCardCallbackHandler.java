@@ -85,11 +85,7 @@ public class NewCardCallbackHandler implements CallbackHandler {
     private void changePage(String pageNumber) {
         var user = getUser();
         var page = collectionService.getCollectionsPage(user.getId(), Integer.parseInt(pageNumber));
-        var text = messageProvider.getText(
-            "collections",
-            String.valueOf(page.getNumber() + 1),
-            String.valueOf(page.getTotalPages())
-        );
+        var text = messageProvider.getText("collections");
 
         NewCardCallback pageCallback = NewCardCallback.builder()
             .source(CallbackSource.NEW_CARD)
@@ -101,11 +97,14 @@ public class NewCardCallbackHandler implements CallbackHandler {
             .action(NewCardCallbackAction.CHANGE_PAGE)
             .build();
 
-        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(
-            page,
-            pageCallback,
-            navigationCallback
-        );
+//        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(
+//            page,
+//            pageCallback,
+//            navigationCallback
+//        );
+
+
+        var pageKeyboard = keyboardProvider.buildPage(page, pageCallback);
 
         client.editCallbackMessage(text, pageKeyboard);
     }
@@ -129,10 +128,9 @@ public class NewCardCallbackHandler implements CallbackHandler {
             .action(NewCardCallbackAction.CHANGE_PAGE)
             .build();
 
-        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(
+        var pageKeyboard = keyboardProvider.buildPage(
             page,
-            pageCallback,
-            navigationCallback
+            pageCallback
         );
 
         client.editMessage(user.getChatId(), messageId, text, pageKeyboard);
