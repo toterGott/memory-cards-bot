@@ -389,12 +389,27 @@ public class KeyboardProvider {
         return pageNavigationRow;
     }
 
-    public InlineKeyboardMarkup updateKeyboard(InlineKeyboardMarkup sourceKeyboard, Page<CardCollection> newPage) {
+    public InlineKeyboardMarkup updateKeyboard(InlineKeyboardMarkup sourceKeyboard, Page<? extends PageableEntity> newPage) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         var callback = readCallback(sourceKeyboard.getKeyboard().getFirst().getFirst().getCallbackData());
         rows.addAll(buildCollectionsPageContent(newPage, callback));
 
         rows.add(buildDefaultNavigationRow(newPage));
+        return new InlineKeyboardMarkup(rows);
+    }
+
+    public InlineKeyboardMarkup buildCardKeyboard(UUID cardId) {
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+        var row = new InlineKeyboardRow();
+        rows.add(row);
+        var callback = new CardCallback();
+        callback.setData(cardId.toString());
+
+        callback.setAction(CardCallbackAction.DELETE);
+        var deleteButton = new InlineKeyboardButton(messageProvider.getText("button.card.delete"));
+        deleteButton.setCallbackData(writeCallback(callback));
+        row.add(deleteButton);
+
         return new InlineKeyboardMarkup(rows);
     }
 }

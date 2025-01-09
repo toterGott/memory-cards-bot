@@ -2,6 +2,8 @@ package com.example.memcards.card;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -34,4 +36,6 @@ interface CardRepository extends JpaRepository<Card, UUID> {
             """
     )
     Optional<Card> findAvailableCard(UUID ownerId);
+
+    Page<Card> findAllByCollectionId(UUID collectionId, Pageable pageable);
 }

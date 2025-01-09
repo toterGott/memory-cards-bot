@@ -194,6 +194,7 @@ public class ReplyKeyboardButtonHandler {
         CollectionsCallback callback = new CollectionsCallback();
         callback.setAction(CollectionCallbackAction.SELECT);
         var pageKeyboard = keyboardProvider.buildPage(page, callback);
+        text = messageProvider.appendPageInfo(text, page);
         client.sendMessage(user, text, pageKeyboard);
     }
 
