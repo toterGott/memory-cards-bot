@@ -5,6 +5,10 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -46,5 +50,10 @@ public class CardService {
             );
         }
         return repository.findAvailableCard(user.getId());
+    }
+
+    public Page<Card> getCardPageByCollectionId(UUID collectionId, int pageIdx) {
+        var pageRequest = PageRequest.of(pageIdx, 3, Sort.by(Order.desc("createdAt")));
+        return repository.findAllByCollectionId(collectionId, pageRequest);
     }
 }

@@ -92,20 +92,9 @@ public class NewCardCallbackHandler implements CallbackHandler {
             .action(NewCardCallbackAction.SET_COLLECTION)
             .build();
 
-        NewCardCallback navigationCallback = NewCardCallback.builder()
-            .source(CallbackSource.NEW_CARD)
-            .action(NewCardCallbackAction.CHANGE_PAGE)
-            .build();
-
-//        var pageKeyboard = keyboardProvider.buildCollectionPageForCardSelectionOnCreation(
-//            page,
-//            pageCallback,
-//            navigationCallback
-//        );
-
-
         var pageKeyboard = keyboardProvider.buildPage(page, pageCallback);
 
+        text = messageProvider.appendPageInfo(text, page);
         client.editCallbackMessage(text, pageKeyboard);
     }
 
@@ -123,16 +112,12 @@ public class NewCardCallbackHandler implements CallbackHandler {
             .action(NewCardCallbackAction.SET_COLLECTION)
             .build();
 
-        NewCardCallback navigationCallback = NewCardCallback.builder()
-            .source(CallbackSource.NEW_CARD)
-            .action(NewCardCallbackAction.CHANGE_PAGE)
-            .build();
-
         var pageKeyboard = keyboardProvider.buildPage(
             page,
             pageCallback
         );
 
+        text = messageProvider.appendPageInfo(text, page);
         client.editMessage(user.getChatId(), messageId, text, pageKeyboard);
     }
 }

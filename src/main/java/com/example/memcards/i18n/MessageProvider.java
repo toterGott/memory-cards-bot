@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -33,6 +34,15 @@ public class MessageProvider {
         ResourceBundle bundle = ResourceBundle.getBundle(basename, availableLocale.getLocale());
         bundle.keySet().forEach(key -> messagesMap.put(bundle.getString(key), key));
         return messagesMap;
+    }
+
+    public String appendPageInfo(String text, Page<?> page) {
+        return text + "\n" + getText(
+            "page.info",
+            String.valueOf(page.getNumber() + 1),
+            String.valueOf(page.getTotalPages()),
+            String.valueOf(page.getTotalElements())
+        );
     }
 
     public String getMessage(String code, AvailableLocale availableLocale) {

@@ -46,7 +46,16 @@ public class CardCallbackHandler implements CallbackHandler {
             case CANCEL -> cancel(UUID.fromString(callback.getData()));
             case SET_COLLECTION -> setCollection(UUID.fromString(callback.getData()));
             case CHANGE_PAGE -> changePage(callback.getData());
+            case SELECT -> selectCard(UUID.fromString(callback.getData()));
         }
+    }
+
+    private void selectCard(UUID cardId) {
+        var card = cardService.findById(cardId).orElseThrow();
+        var text = messageProvider.getText("card.selected", card.getQuestion(), card.getAnswer());
+        var keyboard = keyboardProvider.buildCardKeyboard(cardId);
+
+        client.editCallbackMessage(text, keyboard);
     }
 
     private void setCollection(UUID id) {
@@ -86,6 +95,7 @@ public class CardCallbackHandler implements CallbackHandler {
             pageCallback
         );
 
+        text = messageProvider.appendPageInfo(text, page);
         client.editCallbackMessage(text, pageKeyboard);
     }
 
@@ -107,6 +117,7 @@ public class CardCallbackHandler implements CallbackHandler {
             pageCallback
         );
 
+        text = messageProvider.appendPageInfo(text, page);
         client.editCallbackMessage(text, pageKeyboard);
     }
 
