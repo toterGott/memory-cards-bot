@@ -43,7 +43,7 @@ jobs:
         pkill -f java || echo "No Java processes running."
 
     - name: Start application in background
-      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      env: ${{ secrets.BOT_TOKEN }}
       run: |
         echo "Starting application in background with nohup..."
         nohup java -jar build/libs/memory-cards-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
