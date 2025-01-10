@@ -24,7 +24,6 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-
 public class ScheduleCallbackHandler implements CallbackHandler {
 
     private final MessageProvider messageProvider;
@@ -53,8 +52,7 @@ public class ScheduleCallbackHandler implements CallbackHandler {
         var schedule = new Schedule();
         var hours = Integer.parseInt(data);
         schedule.setHours(hours);
-//        schedule.setNextRun(Instant.now().plus(hours, ChronoUnit.HOURS));
-        schedule.setNextRun(Instant.now().plus(hours, ChronoUnit.SECONDS));
+        schedule.setNextRun(Instant.now().plus(hours, ChronoUnit.HOURS));
         getUser().getPayload().setSchedule(schedule);
 
         var text = messageProvider.getText("schedule.enabled", data);

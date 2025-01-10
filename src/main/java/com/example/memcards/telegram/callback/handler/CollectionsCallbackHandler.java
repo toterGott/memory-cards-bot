@@ -53,6 +53,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         switch (collectionsCallback.getAction()) {
             case SELECT -> handleSelectCollection(
                 UUID.fromString(collectionsCallback.getData()),
+                callback.getAdditionalData(),
                 messageId,
                 user
             );
@@ -61,7 +62,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
                 messageId,
                 user
             );
-            case BACK -> handleCollectionPage("0", user, messageId);
+            case BACK -> handleCollectionPage(callback.getAdditionalData(), user, messageId);
             case NEW_COLLECTION -> createCollection();
             case CHANGE_PAGE -> handleCollectionPage(
                 collectionsCallback.getData(),
@@ -114,10 +115,11 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         client.sendMessage(text, menu);
     }
 
-    private void handleSelectCollection(UUID collectionId, Integer messageId, TelegramUser user) {
+    private void handleSelectCollection(UUID collectionId, String pageNumber, Integer messageId, TelegramUser user) {
         var collection = collectionService.findById(collectionId).orElseThrow();
         var text = messageProvider.getMessage("collections.select", user.getLanguage(), collection.getName());
-        var inlineKeyboard = keyboardProvider.buildCollectionSelectedOptionsKeyboard(user.getLanguage(), collectionId);
+        var inlineKeyboard = keyboardProvider.buildCollectionSelectedOptionsKeyboard(user.getLanguage(), collectionId
+            , pageNumber);
 
         client.editMessage(user.getChatId(), messageId, text, inlineKeyboard);
     }

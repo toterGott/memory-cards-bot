@@ -4,7 +4,6 @@ import static com.example.memcards.telegram.TelegramUtils.getUser;
 import static com.example.memcards.telegram.callback.CallbackMapper.readCallback;
 import static com.example.memcards.telegram.callback.CallbackMapper.writeCallback;
 
-import com.example.memcards.collection.CardCollection;
 import com.example.memcards.common.PageableEntity;
 import com.example.memcards.i18n.MessageProvider;
 import com.example.memcards.telegram.callback.model.Callback;
@@ -132,6 +131,7 @@ public class KeyboardProvider {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         for (PageableEntity collection : page.getContent()) {
             callback.setData(collection.getId().toString());
+            callback.setAdditionalData(String.valueOf(page.getNumber()));
 
             var button = new InlineKeyboardButton(collection.getName());
             button.setCallbackData(writeCallback(callback));
@@ -140,7 +140,11 @@ public class KeyboardProvider {
         return rows;
     }
 
-    public InlineKeyboardMarkup buildCollectionSelectedOptionsKeyboard(AvailableLocale language, UUID collectionId) {
+    public InlineKeyboardMarkup buildCollectionSelectedOptionsKeyboard(
+        AvailableLocale language,
+        UUID collectionId,
+        String pageNumber
+    ) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         CollectionsCallback callback = CollectionsCallback.builder()
             .source(CallbackSource.COLLECTIONS)
@@ -163,6 +167,7 @@ public class KeyboardProvider {
         rows.add(new InlineKeyboardRow(delete));
 
         callback.setAction(CollectionCallbackAction.BACK);
+        callback.setAdditionalData(pageNumber);
         var back = new InlineKeyboardButton(messageProvider.getMessage("button.collection.back", language));
         back.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(back));
@@ -176,6 +181,13 @@ public class KeyboardProvider {
         NewCardCallback callback = NewCardCallback.builder()
             .source(CallbackSource.NEW_CARD)
             .build();
+
+        var cardCallback = new CardCallback();
+        cardCallback.setAction(CardCallbackAction.DELETE);
+        var text = messageProvider.getText("button.card.delete");
+        var delete = new InlineKeyboardButton(text);
+        delete.setCallbackData(writeCallback(cardCallback));
+        rows.add(new InlineKeyboardRow(delete));
 
         callback.setAction(NewCardCallbackAction.CHANGE_COLLECTION);
         callback.setData(cardId.toString());
@@ -191,13 +203,6 @@ public class KeyboardProvider {
         var okButton = new InlineKeyboardButton(confirmText);
         okButton.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(okButton));
-
-        var cardCallback = new CardCallback();
-        cardCallback.setAction(CardCallbackAction.DELETE);
-        var text = messageProvider.getText("button.card.delete");
-        var delete = new InlineKeyboardButton(text);
-        delete.setCallbackData(writeCallback(cardCallback));
-        rows.add(new InlineKeyboardRow(delete));
 
         return new InlineKeyboardMarkup(rows);
     }
@@ -220,7 +225,7 @@ public class KeyboardProvider {
 
         callback.setAction(CollectionCallbackAction.SELECT);
         var back = new InlineKeyboardButton(messageProvider.getMessage(
-            "button.collection.delete.back",
+            "button.back",
             user.getLanguage()
         ));
         back.setCallbackData(writeCallback(callback));
@@ -398,17 +403,23 @@ public class KeyboardProvider {
         return new InlineKeyboardMarkup(rows);
     }
 
-    public InlineKeyboardMarkup buildCardKeyboard(UUID cardId) {
+    public InlineKeyboardMarkup buildCardKeyboard(UUID cardId, String pageNumber) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         var row = new InlineKeyboardRow();
         rows.add(row);
         var callback = new CardCallback();
+        callback.setAdditionalData(pageNumber);
         callback.setData(cardId.toString());
 
         callback.setAction(CardCallbackAction.DELETE);
         var deleteButton = new InlineKeyboardButton(messageProvider.getText("button.card.delete"));
         deleteButton.setCallbackData(writeCallback(callback));
         row.add(deleteButton);
+
+        callback.setAction(CardCallbackAction.BACK);
+        var backButton = new InlineKeyboardButton(messageProvider.getText("button.back"));
+        backButton.setCallbackData(writeCallback(callback));
+        row.add(backButton);
 
         return new InlineKeyboardMarkup(rows);
     }

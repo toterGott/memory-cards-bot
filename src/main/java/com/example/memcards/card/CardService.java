@@ -1,6 +1,7 @@
 package com.example.memcards.card;
 
 import com.example.memcards.user.TelegramUser;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -55,5 +56,9 @@ public class CardService {
     public Page<Card> getCardPageByCollectionId(UUID collectionId, int pageIdx) {
         var pageRequest = PageRequest.of(pageIdx, 3, Sort.by(Order.desc("createdAt")));
         return repository.findAllByCollectionId(collectionId, pageRequest);
+    }
+
+    public void saveAll(ArrayList<Card> cards) {
+        repository.saveAll(cards);
     }
 }

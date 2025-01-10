@@ -29,6 +29,7 @@ public class CallbackMapper {
                     .source(source)
                     .action(CollectionCallbackAction.fromCode(callbackArgs[1]))
                     .data(callbackArgs[2])
+                    .additionalData(callbackArgs[3])
                     .build();
             }
             case SETTINGS -> {
@@ -50,6 +51,7 @@ public class CallbackMapper {
                     .source(source)
                     .action(CardCallbackAction.fromCode(callbackArgs[1]))
                     .data(callbackArgs[2])
+                    .additionalData(callbackArgs[3])
                     .build();
             }
             case SCHEDULE -> {
@@ -75,6 +77,8 @@ public class CallbackMapper {
             + CALLBACK_DELIMITER
             + callback.getActionCode()
             + CALLBACK_DELIMITER
-            + callback.getData();
+            + callback.getData()
+            + CALLBACK_DELIMITER
+            + callback.getAdditionalData();
     }
 }
