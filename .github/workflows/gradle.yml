@@ -28,7 +28,8 @@ jobs:
         with:
           java-version: '23'
           distribution: 'temurin'
-
+      - name: Verify JAR existence
+        run: ls -R build/libs
       - name: Stop all running Java processes
         run: |
           echo "Killing all running Java processes..."
@@ -75,6 +76,8 @@ jobs:
 
     - name: Build with Gradle Wrapper
       run: ./gradlew build
+    - name: Verify JAR existence
+      run: ls -R build/libs
 
   dependency-submission:
     runs-on: self-hosted
