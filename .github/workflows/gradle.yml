@@ -69,10 +69,13 @@ jobs:
       with:
         java-version: '23'
         distribution: 'temurin'
+
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+
     - name: Build with Gradle Wrapper
       run: ./gradlew build
+
     - name: Verify JAR existence
       run: ls -R build/libs
 
@@ -81,10 +84,22 @@ jobs:
         echo "Killing all running Java processes..."
         pkill -f java || echo "No Java processes running."
 
-    - name: Run in a job (to be removed)
-      env:
-        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-      run: java -jar build/libs/memory-cards-0.0.1-SNAPSHOT.jar
+    - name: Start application in background
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      run: |
+        echo "Starting application in background with nohup..."
+        nohup java -jar build/libs/memory-cards-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+
+    - name: Start Check
+      run: |
+        echo "Performing health check..."
+        sleep 20  # Letting the app to start
+        if pgrep -f memory-cards-0.0.1-SNAPSHOT.jar > /dev/null; then
+          echo "Application is running."
+        else
+          echo "Application failed to start."
+          exit 1
+        fi
 
 #  dependency-submission:
 #    runs-on: self-hosted
