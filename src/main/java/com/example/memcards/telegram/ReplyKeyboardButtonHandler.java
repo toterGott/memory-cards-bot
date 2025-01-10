@@ -137,12 +137,11 @@ public class ReplyKeyboardButtonHandler {
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
         var mainMenu = keyboardProvider.getMainMenu(user);
-        client.sendMessage(user, text, mainMenu);
+        var message = client.sendMessage(user, text, mainMenu);
 
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
-//          var nextRun = schedule.getNextRun().plus(schedule.getHours(), ChronoUnit.HOURS);
-            var nextRun = schedule.getNextRun().plus(schedule.getHours(), ChronoUnit.SECONDS);
+          var nextRun = schedule.getNextRun().plus(schedule.getHours(), ChronoUnit.HOURS);
             schedule.setNextRun(nextRun);
         }
 
@@ -213,7 +212,6 @@ public class ReplyKeyboardButtonHandler {
     private void createCollection() {
         getUser().setState(COLLECTION_CREATION);
         var text = messageProvider.getText("collections.create");
-//        client.deleteCallbackMessage();
         client.sendMessage(text, new ReplyKeyboardRemove(true));
     }
 

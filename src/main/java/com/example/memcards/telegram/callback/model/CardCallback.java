@@ -39,7 +39,8 @@ public class CardCallback extends Callback {
         SET_COLLECTION("S"),
         CANCEL("c"),
         CHANGE_PAGE("P"),
-        SELECT("s")
+        SELECT("s"),
+        BACK("b"),
         ;
 
         @Getter

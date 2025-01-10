@@ -140,7 +140,6 @@ public class TelegramUpdateHandler {
         switch (messageEntity.getText()) {
             case "/start" -> {
                 user.setState(STAND_BY);
-                userService.save(user);
                 sendWelcomeMessage(user);
             }
         }
@@ -164,8 +163,8 @@ public class TelegramUpdateHandler {
 
         var newUser = userService.createUser(chat, languageCode);
 
-        sendWelcomeMessage(newUser);
         collectionService.initDefaultCollection(newUser);
+        collectionService.initHowToUserCollection(newUser);
         return newUser;
     }
 

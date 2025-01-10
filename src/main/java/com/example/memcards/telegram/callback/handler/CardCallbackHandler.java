@@ -46,14 +46,15 @@ public class CardCallbackHandler implements CallbackHandler {
             case CANCEL -> cancel(UUID.fromString(callback.getData()));
             case SET_COLLECTION -> setCollection(UUID.fromString(callback.getData()));
             case CHANGE_PAGE -> changePage(callback.getData());
-            case SELECT -> selectCard(UUID.fromString(callback.getData()));
+            case SELECT -> selectCard(UUID.fromString(callback.getData()), callback.getAdditionalData());
+            case BACK -> back(UUID.fromString(callback.getData()), callback.getAdditionalData());
         }
     }
 
-    private void selectCard(UUID cardId) {
+    private void selectCard(UUID cardId, String additionalData) {
         var card = cardService.findById(cardId).orElseThrow();
         var text = messageProvider.getText("card.selected", card.getQuestion(), card.getAnswer());
-        var keyboard = keyboardProvider.buildCardKeyboard(cardId);
+        var keyboard = keyboardProvider.buildCardKeyboard(cardId, additionalData);
 
         client.editCallbackMessage(text, keyboard);
     }
@@ -141,5 +142,18 @@ public class CardCallbackHandler implements CallbackHandler {
             messageProvider.getText("card.delete.confirm"),
             keyboardProvider.getCardDeleteConfirmation(cardId.toString())
         );
+    }
+
+    private void back(UUID cardId, String pageNumber) {
+        var collectionId = cardService.findById(cardId).orElseThrow().getCollection().getId();
+        // todo dry, same code in CollectionHandler
+        var collectionName = collectionService.findById(collectionId).orElseThrow().getName();
+        var cardPage = cardService.getCardPageByCollectionId(collectionId, Integer.parseInt(pageNumber));
+        CardCallback cardCallback = new CardCallback();
+        cardCallback.setAction(CardCallbackAction.SELECT);
+        var keyboard = keyboardProvider.buildPage(cardPage, cardCallback);
+        var text = messageProvider.getText("cards", collectionName);
+        text = messageProvider.appendPageInfo(text, cardPage);
+        client.editCallbackMessage(text, keyboard);
     }
 }

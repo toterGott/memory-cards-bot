@@ -10,6 +10,7 @@ import lombok.experimental.SuperBuilder;
 public abstract class Callback {
     protected CallbackSource source;
     private String data;
+    private String additionalData;
 
     public abstract String getActionCode();
     public abstract void setAction(String actionName);
