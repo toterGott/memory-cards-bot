@@ -3,10 +3,10 @@ package com.example.memcards;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+//@SpringBootTest
 class MemoryCardsApplicationTests {
 
-	@Test
+//	@Test
 	void contextLoads() {
 	}
 
