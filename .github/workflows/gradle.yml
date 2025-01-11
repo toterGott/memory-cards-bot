@@ -35,7 +35,7 @@ jobs:
       run: ./gradlew build
 
     - name: Build Dockerfile
-      run: docker build --rm -t memory-cards:latest .
+      run: docker build --no-cache -t memory-cards:latest .
 
   run:
     needs: build
