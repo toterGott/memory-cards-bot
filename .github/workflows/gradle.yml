@@ -37,8 +37,8 @@ jobs:
     - name: Verify JAR existence
       run: ls -R build/libs
 
-    - name: Copy JAR to /tmp
-      run: cp build/libs/memory-cards-0.0.1-SNAPSHOT.jar /tmp/
+    - name: Build Dockerfile
+      run: docker build -t memory-cards:latest .
 
   run-app:
     needs: build
