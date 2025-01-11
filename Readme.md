@@ -3,9 +3,7 @@
 This is a telegram bot with memory cards.
 
  ## TODOs
-- On schedule do not send if not in stand by
-- On schedule do not send if previous card not answered
-- Add a default 
+- Implement GitHub Actions
 
 ```shell
 docker network create tg_bot_network
@@ -23,7 +21,7 @@ docker run -d \
   postgres:latest
 ```
 
-### Build and run the container locally
+## Build and run the container locally
 
 ```shell
 ./gradlew clean build
