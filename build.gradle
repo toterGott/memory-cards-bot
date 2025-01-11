@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.totergott'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0'
 
 java {
 	toolchain {
@@ -24,7 +24,8 @@ dependencies {
 	implementation 'org.telegram:telegrambots-longpolling:8.0.0'
 	implementation 'org.telegram:telegrambots-client:8.0.0'
 	implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.9.0'
-	implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	compileOnly 'org.projectlombok:lombok:1.18.30'
 

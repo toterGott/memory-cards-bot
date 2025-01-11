@@ -3,7 +3,7 @@
 This is a telegram bot with memory cards.
 
  ## TODOs
-- Print version in settings
+- Hide edit card options after answer under menu
 
 ```shell
 docker network create tg_bot_network

@@ -34,13 +34,10 @@ jobs:
     - name: Build with Gradle Wrapper
       run: ./gradlew build
 
-    - name: Verify JAR existence
-      run: ls -R build/libs
-
     - name: Build Dockerfile
       run: docker build -t memory-cards:latest .
 
-  run-app:
+  run:
     needs: build
     runs-on: self-hosted
     permissions:
@@ -68,14 +65,24 @@ jobs:
       - name: Health Check
         run: |
           echo "Performing health check..."
-          sleep 20  # Letting the app to start
-          if docker ps --filter "name=memory-cards" --filter "status=running" | grep -q memory-cards; then
-            echo "Application is running."
-          else
-            echo "Application failed to start."
-            docker logs memory-cards
-            exit 1
-          fi
+          HEALTH_CHECK_URL="http://localhost:8080/actuator/health"
+
+          for i in {1..4}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_CHECK_URL)
+
+            if [ "$STATUS" -eq 200 ]; then
+              echo "Application is healthy."
+              exit 0
+            fi
+
+            echo "Attempt $i failed. Retrying in 5 seconds..."
+            sleep 5
+          done
+
+          echo "Application health check failed after 4 attempts."
+          docker logs memory-cards
+          exit 1
+
 
 #  dependency-submission:
 #    runs-on: self-hosted
