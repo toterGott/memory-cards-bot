@@ -3,7 +3,7 @@
 This is a telegram bot with memory cards.
 
  ## TODOs
-- Implement GitHub Actions
+- Print version in settings
 
 ```shell
 docker network create tg_bot_network
