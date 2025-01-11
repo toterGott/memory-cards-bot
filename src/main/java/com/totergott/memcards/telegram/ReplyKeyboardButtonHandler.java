@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -29,6 +30,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 @RequiredArgsConstructor
 @Slf4j
 public class ReplyKeyboardButtonHandler {
+
+    @Value("${app.version}")
+    private String version;
 
     private final KeyboardProvider keyboardProvider;
     private final MessageProvider messageProvider;
@@ -198,7 +202,7 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void sendSettingsMessage(TelegramUser user) {
-        var text = messageProvider.getText("settings");
+        var text = "v." + version + "\n" + messageProvider.getText("settings");
         var settingsKeyboard = keyboardProvider.getSettingsMenu(user);
         client.sendMessage(user, text, settingsKeyboard);
     }
