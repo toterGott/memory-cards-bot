@@ -68,9 +68,10 @@ jobs:
           HEALTH_CHECK_URL="http://localhost:8080/actuator/health"
 
           for i in {1..4}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_CHECK_URL)
+            RESPONSE=$(curl -s $HEALTH_CHECK_URL)
+            STATUS=$(echo "$RESPONSE" | jq -r '.status')
 
-            if [ "$STATUS" -eq 200 ]; then
+            if [ "$STATUS" == "UP" ]; then
               echo "Application is healthy."
               exit 0
             fi
@@ -82,6 +83,7 @@ jobs:
           echo "Application health check failed after 4 attempts."
           docker logs memory-cards
           exit 1
+
 
 
 #  dependency-submission:
