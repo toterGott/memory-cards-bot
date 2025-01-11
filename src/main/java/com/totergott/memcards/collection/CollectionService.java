@@ -29,7 +29,7 @@ public class CollectionService {
 
     private final CardCollectionRepository repository;
     private final MessageProvider messageProvider;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final CardService cardService;
 
     public void initDefaultCollection(TelegramUser user) {

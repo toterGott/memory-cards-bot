@@ -141,7 +141,7 @@ public class ReplyKeyboardButtonHandler {
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
         var mainMenu = keyboardProvider.getMainMenu(user);
-        var message = client.sendMessage(user, text, mainMenu);
+        client.sendMessage(user, text, mainMenu);
 
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
