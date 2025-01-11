@@ -67,7 +67,7 @@ jobs:
           echo "Performing health check..."
           HEALTH_CHECK_URL="http://localhost:8080/actuator/health"
 
-          for i in {1..4}; do
+          for i in {1..10}; do
             RESPONSE=$(curl -v -s $HEALTH_CHECK_URL || echo "ERROR")
 
             if [[ "$RESPONSE" == *'"status":"UP"'* ]]; then
