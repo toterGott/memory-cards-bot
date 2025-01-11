@@ -35,10 +35,7 @@ jobs:
       run: ./gradlew build
 
     - name: Build Dockerfile
-      run: docker build -t memory-cards:latest .
-
-    - name: Clean Docker's image cache
-      run: docker image prune -af
+      run: docker build --no-cache -t memory-cards:latest .
 
   run:
     needs: build
