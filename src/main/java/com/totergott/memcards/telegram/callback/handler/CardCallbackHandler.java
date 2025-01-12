@@ -128,8 +128,8 @@ public class CardCallbackHandler implements CallbackHandler {
 
         InlineKeyboardMarkup keyboard = keyboardProvider.getAfterCardAnswer(card.getId());
         text = messageProvider.getText("card.actions");
+        client.clearCallbackKeyboard();
         client.sendMessage(text, keyboard);
-
     }
 
     private void showAnswer(UUID cardId) {

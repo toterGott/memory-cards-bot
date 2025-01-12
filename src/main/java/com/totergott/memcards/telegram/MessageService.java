@@ -132,7 +132,8 @@ public class MessageService {
     public void deleteMessagesExceptLast(Integer keepLast) {
         AtomicInteger counter = new AtomicInteger(0);
         var chatMessages = getUser().getPayload().getChatMessages();
-        chatMessages.subList(0, chatMessages.size() - keepLast)
+        var chatMessagesToRemove = chatMessages.subList(0, chatMessages.size() - keepLast);
+        chatMessagesToRemove
             .stream()
             .collect(Collectors.groupingBy(_ -> counter.getAndIncrement() / CHUNK_SIZE))
             .values()
@@ -140,5 +141,6 @@ public class MessageService {
                 var request = new DeleteMessages(getChatId().toString(), messageIds);
                 execute(request);
             });
+        chatMessages.removeAll(chatMessagesToRemove);
     }
 }
