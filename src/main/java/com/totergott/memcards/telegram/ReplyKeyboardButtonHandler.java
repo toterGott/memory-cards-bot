@@ -1,5 +1,6 @@
 package com.totergott.memcards.telegram;
 
+import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
 import static com.totergott.memcards.user.UserState.EVALUATE_ANSWER;
@@ -176,7 +177,9 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void sendCard(Card card, TelegramUser user) {
-        var keyboard = keyboardProvider.getShowAnswerKeyboard();
+        var keyboard = keyboardProvider.getInlineShowAnswerKeyboard(card.getId());
+        var message = client.sendMessage("remove keyboard", new ReplyKeyboardRemove(true));
+        client.deleteMessage(getChatId(), message.getMessageId());
         client.sendMessage(user, card.getQuestion(), keyboard);
         user.setCurrentCardId(card.getId());
         user.setState(QUESTION_SHOWED);

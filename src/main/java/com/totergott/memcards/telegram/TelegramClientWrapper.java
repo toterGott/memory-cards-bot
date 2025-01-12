@@ -123,4 +123,9 @@ public class TelegramClientWrapper {
         answer.setText("NOT IMPLEMENTED");
         execute(answer);
     }
+
+    public void clearCallbackKeyboard() {
+        var sameText = ((Message) (getCallback().getMessage())).getText();
+        editMessage(sameText, getCallbackMessageId(), null);
+    }
 }

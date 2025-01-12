@@ -1,6 +1,9 @@
 package com.totergott.memcards.telegram.callback.handler;
 
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
+import static com.totergott.memcards.user.UserState.STAND_BY;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
@@ -13,6 +16,8 @@ import com.totergott.memcards.telegram.callback.model.CallbackSource;
 import com.totergott.memcards.telegram.callback.model.CardCallback;
 import com.totergott.memcards.telegram.callback.model.CardCallback.CardCallbackAction;
 import com.totergott.memcards.user.TelegramUser;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +53,90 @@ public class CardCallbackHandler implements CallbackHandler {
             case CHANGE_PAGE -> changePage(callback.getData());
             case SELECT -> selectCard(UUID.fromString(callback.getData()), callback.getAdditionalData());
             case BACK -> back(UUID.fromString(callback.getData()), callback.getAdditionalData());
+            case SHOW_ANSWER -> showAnswer(UUID.fromString(callback.getData()));
+            case CHECK_KNOWLEDGE -> checkKnowledge(UUID.fromString(callback.getData()), callback.getAdditionalData());
         }
+    }
+
+    private void checkKnowledge(UUID uuid, String additionalData) {
+        var card = cardService.findById(uuid).orElseThrow();
+        var user = getUser();
+        var grade = Integer.parseInt(additionalData);
+
+        String text;
+        Instant appearTime = Instant.now();
+
+        // todo improve
+        switch (grade) {
+            default -> {
+                text = messageProvider.getMessage(
+                    "card_answered",
+                    user.getLanguage(),
+                    "1",
+                    MINUTES.toString().toLowerCase(),
+                    card.getCollection().getName()
+                );
+            }
+            case 1 -> {
+                appearTime = appearTime.plus(10, MINUTES);
+                text = messageProvider.getMessage(
+                    "card_answered",
+                    user.getLanguage(),
+                    "10",
+                    MINUTES.toString().toLowerCase(),
+                    card.getCollection().getName()
+                );
+            }
+            case 2 -> {
+                appearTime = appearTime.plus(1, DAYS);
+                text = messageProvider.getMessage(
+                    "card_answered",
+                    user.getLanguage(),
+                    "1",
+                    DAYS.toString().toLowerCase(),
+                    card.getCollection().getName()
+                );
+            }
+            case 3 -> {
+                appearTime = appearTime.plus(4, DAYS);
+                text = messageProvider.getMessage(
+                    "card_answered",
+                    user.getLanguage(),
+                    "4",
+                    DAYS.toString().toLowerCase(),
+                    card.getCollection().getName()
+                );
+            }
+        }
+
+        if (user.getFocusedOnCollection() != null) {
+            var collectionName = collectionService.getById(user.getFocusedOnCollection().getId()).orElseThrow()
+                .getName();
+            text += " " + messageProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
+        }
+
+        card.setAppearTime(appearTime);
+        user.setState(STAND_BY);
+        var mainMenu = keyboardProvider.getMainMenu(user);
+        client.sendMessage(user, text, mainMenu);
+
+        if (user.getPayload().getSchedule() != null) {
+            var schedule = user.getPayload().getSchedule();
+            var nextRun = schedule.getNextRun().plus(schedule.getHours(), ChronoUnit.HOURS);
+            schedule.setNextRun(nextRun);
+        }
+
+        InlineKeyboardMarkup keyboard = keyboardProvider.getAfterCardAnswer(card.getId());
+        text = messageProvider.getText("card.actions");
+        client.sendMessage(text, keyboard);
+
+    }
+
+    private void showAnswer(UUID cardId) {
+        var card = cardService.findById(cardId).orElseThrow();
+        client.clearCallbackKeyboard();
+        var answerKeyboard = keyboardProvider.getInlineKnowledgeCheckKeyboard(cardId);
+        client.sendMessage(card.getAnswer(), answerKeyboard);
     }
 
     private void selectCard(UUID cardId, String additionalData) {

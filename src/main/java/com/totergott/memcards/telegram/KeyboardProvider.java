@@ -111,6 +111,39 @@ public class KeyboardProvider {
         return keyboardMarkup;
     }
 
+    public InlineKeyboardMarkup getInlineKnowledgeCheckKeyboard(UUID cardId) {
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+        InlineKeyboardRow row = new InlineKeyboardRow();
+        rows.add(row);
+        CardCallback callback =
+            CardCallback.builder().action(CardCallbackAction.CHECK_KNOWLEDGE).data(cardId.toString()).build();
+
+        InlineKeyboardButton againButton = new InlineKeyboardButton(messageProvider.getText("button.again"));
+        callback.setAdditionalData("0");
+        againButton.setCallbackData(writeCallback(callback));
+        row.add(againButton);
+
+        InlineKeyboardButton hardButton = new InlineKeyboardButton(messageProvider.getText("button.hard"));
+        callback.setAdditionalData("1");
+        hardButton.setCallbackData(writeCallback(callback));
+        row.add(hardButton);
+
+        row = new InlineKeyboardRow();
+        rows.add(row);
+
+        InlineKeyboardButton goodButton = new InlineKeyboardButton(messageProvider.getText("button.good"));
+        callback.setAdditionalData("2");
+        goodButton.setCallbackData(writeCallback(callback));
+        row.add(goodButton);
+
+        InlineKeyboardButton easyButton = new InlineKeyboardButton(messageProvider.getText("button.easy"));
+        callback.setAdditionalData("3");
+        easyButton.setCallbackData(writeCallback(callback));
+        row.add(easyButton);
+
+        return new InlineKeyboardMarkup(rows);
+    }
+
     public ReplyKeyboardMarkup getShowAnswerKeyboard() {
         List<KeyboardRow> keyboard = new ArrayList<>();
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
@@ -122,6 +155,20 @@ public class KeyboardProvider {
         keyboardMarkup.setKeyboard(keyboard);
         keyboardMarkup.setResizeKeyboard(true);
         return keyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getInlineShowAnswerKeyboard(UUID id) {
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+        InlineKeyboardRow row = new InlineKeyboardRow();
+        rows.add(row);
+
+        CardCallback callback =
+            CardCallback.builder().action(CardCallbackAction.SHOW_ANSWER).data(id.toString()).build();
+        InlineKeyboardButton showAnswerButton = new InlineKeyboardButton(messageProvider.getText("button.show_answer"));
+        showAnswerButton.setCallbackData(writeCallback(callback));
+        row.add(showAnswerButton);
+
+        return new InlineKeyboardMarkup(rows);
     }
 
     private List<InlineKeyboardRow> buildCollectionsPageContent(
@@ -354,7 +401,6 @@ public class KeyboardProvider {
         Page<? extends PageableEntity> page,
         Callback pageItemsCallback
     ) {
-
         List<InlineKeyboardRow> rows = new ArrayList<>(buildCollectionsPageContent(page, pageItemsCallback));
 
         rows.add(buildDefaultNavigationRow(page));
@@ -367,7 +413,7 @@ public class KeyboardProvider {
 
         if (page.hasPrevious()) {
             var index = String.valueOf(page.getNumber() - 1);
-            var prevPageNum = String.valueOf(page.getNumber() - 1 + 1);
+            var prevPageNum = String.valueOf(page.getNumber() + 1 - 1);
             navigationCallback.setAction(PageNavigationCallbackAction.PREVIOUS);
             navigationCallback.setData(index);
             var backButton = new InlineKeyboardButton(messageProvider.getText("button.previous_page", prevPageNum));
@@ -393,7 +439,10 @@ public class KeyboardProvider {
         return pageNavigationRow;
     }
 
-    public InlineKeyboardMarkup updateKeyboard(InlineKeyboardMarkup sourceKeyboard, Page<? extends PageableEntity> newPage) {
+    public InlineKeyboardMarkup updateKeyboard(
+        InlineKeyboardMarkup sourceKeyboard,
+        Page<? extends PageableEntity> newPage
+    ) {
         var callback = readCallback(sourceKeyboard.getKeyboard().getFirst().getFirst().getCallbackData());
         List<InlineKeyboardRow> rows = new ArrayList<>(buildCollectionsPageContent(newPage, callback));
 

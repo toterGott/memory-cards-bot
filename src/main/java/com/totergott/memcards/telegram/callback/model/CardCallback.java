@@ -43,7 +43,8 @@ public class CardCallback extends Callback {
         CHANGE_PAGE("P"),
         SELECT("s"),
         BACK("b"),
-        ;
+        SHOW_ANSWER("A"),
+        CHECK_KNOWLEDGE("K");
 
         @Getter
         private final String code;

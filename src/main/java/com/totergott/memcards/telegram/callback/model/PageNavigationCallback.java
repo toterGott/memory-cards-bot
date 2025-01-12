@@ -34,7 +34,6 @@ public class PageNavigationCallback extends Callback {
         this.action = action;
     }
 
-    // tdoo remove
     @RequiredArgsConstructor
     public enum PageNavigationCallbackAction implements EncodedEnum {
         NEXT("N"),
