@@ -342,7 +342,7 @@ public class KeyboardProvider {
         return new InlineKeyboardMarkup(keyboard);
     }
 
-    public InlineKeyboardMarkup getAfterCardAnswer(UUID cardId) {
+    public InlineKeyboardMarkup getCardMenuAfterAnswerWithOptions(UUID cardId) {
         var row = new InlineKeyboardRow();
         List<InlineKeyboardRow> keyboard = new ArrayList<>();
         keyboard.add(row);
@@ -365,6 +365,25 @@ public class KeyboardProvider {
         changeCollection.setCallbackData(writeCallback(callback));
         row.add(changeCollection);
         keyboard.add(row);
+
+        return new InlineKeyboardMarkup(keyboard);
+    }
+
+    public InlineKeyboardMarkup getCardMenuAfterAnswer(UUID cardId) {
+        var row = new InlineKeyboardRow();
+        List<InlineKeyboardRow> keyboard = new ArrayList<>();
+        keyboard.add(row);
+
+        var callback = CardCallback.builder()
+            .source(CallbackSource.CARD)
+            .action(CardCallbackAction.CONFIGS)
+            .data(cardId.toString())
+            .build();
+
+        var text = messageProvider.getText("button.card.configure");
+        var configureButton = new InlineKeyboardButton(text);
+        configureButton.setCallbackData(writeCallback(callback));
+        row.add(configureButton);
 
         return new InlineKeyboardMarkup(keyboard);
     }

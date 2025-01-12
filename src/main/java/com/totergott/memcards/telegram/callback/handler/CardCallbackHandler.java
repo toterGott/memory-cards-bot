@@ -55,7 +55,13 @@ public class CardCallbackHandler implements CallbackHandler {
             case BACK -> back(UUID.fromString(callback.getData()), callback.getAdditionalData());
             case SHOW_ANSWER -> showAnswer(UUID.fromString(callback.getData()));
             case CHECK_KNOWLEDGE -> checkKnowledge(UUID.fromString(callback.getData()), callback.getAdditionalData());
+            case CONFIGS -> showConfigOptions(UUID.fromString(callback.getData()));
         }
+    }
+
+    private void showConfigOptions(UUID uuid) {
+        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswerWithOptions(uuid);
+        client.editCallbackKeyboard(keyboard);
     }
 
     private void checkKnowledge(UUID uuid, String additionalData) {
@@ -126,7 +132,7 @@ public class CardCallbackHandler implements CallbackHandler {
             schedule.setNextRun(nextRun);
         }
 
-        InlineKeyboardMarkup keyboard = keyboardProvider.getAfterCardAnswer(card.getId());
+        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(card.getId());
         text = messageProvider.getText("card.actions");
         client.clearCallbackKeyboard();
         client.sendMessage(text, keyboard);
@@ -211,7 +217,7 @@ public class CardCallbackHandler implements CallbackHandler {
     }
 
     private void cancel(UUID cardId) {
-        InlineKeyboardMarkup keyboard = keyboardProvider.getAfterCardAnswer(cardId);
+        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(cardId);
         var text = messageProvider.getText("card.actions");
         client.editCallbackMessage(text, keyboard);
     }

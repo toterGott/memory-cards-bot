@@ -143,4 +143,9 @@ public class MessageService {
             });
         chatMessages.removeAll(chatMessagesToRemove);
     }
+
+    public void editCallbackKeyboard(InlineKeyboardMarkup keyboard) {
+        var sameText = ((Message) (getCallback().getMessage())).getText();
+        editCallbackMessage(sameText, keyboard);
+    }
 }

@@ -77,7 +77,7 @@ public class NewCardCallbackHandler implements CallbackHandler {
         var text = messageProvider.getMessage("create_card.created", user.getLanguage(), collectionName);
         client.sendMessage(user, text, keyboard);
 
-        client.deleteMessage(user.getChatId(), messageId);
+        client.deleteMessagesExceptLast(1);
 
         user.setCurrentCardId(null);
     }

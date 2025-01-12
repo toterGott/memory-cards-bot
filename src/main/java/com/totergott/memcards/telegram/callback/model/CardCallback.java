@@ -44,7 +44,9 @@ public class CardCallback extends Callback {
         SELECT("s"),
         BACK("b"),
         SHOW_ANSWER("A"),
-        CHECK_KNOWLEDGE("K");
+        CHECK_KNOWLEDGE("K"),
+        CONFIGS("O"),
+        ;
 
         @Getter
         private final String code;
