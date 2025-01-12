@@ -152,7 +152,7 @@ public class ReplyKeyboardButtonHandler {
             schedule.setNextRun(nextRun);
         }
 
-        InlineKeyboardMarkup keyboard = keyboardProvider.getAfterCardAnswer(card.getId());
+        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(card.getId());
         text = messageProvider.getText("card.actions");
         client.sendMessage(text, keyboard);
     }
@@ -208,6 +208,7 @@ public class ReplyKeyboardButtonHandler {
         var pageKeyboard = keyboardProvider.buildPage(page, callback);
         text = messageProvider.appendPageInfo(text, page);
         client.sendMessage(user, text, pageKeyboard);
+//        client.deleteMessagesExceptLast(1);
     }
 
     private void sendSettingsMessage(TelegramUser user) {
@@ -217,7 +218,6 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void handleUnknownMessage(TelegramUser user, String key) {
-//        getUser().setState(STAND_BY);
         var text = messageProvider.getMessage("unknown_request", user.getLanguage(), key);
         client.deleteMessage(getChatId(), getMessage().getMessageId());
     }

@@ -6,6 +6,7 @@ This is a telegram bot with memory cards.
 - Hide edit card options after card answer inside a menu
 - Clean up messages
 - Add Grafana loki for logs
+- Todo make cards unavailable if it's not time yet
 
 ```shell
 docker network create tg_bot_network
