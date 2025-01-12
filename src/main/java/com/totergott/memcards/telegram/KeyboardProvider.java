@@ -51,9 +51,7 @@ public class KeyboardProvider {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
 
         KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getMessage("button.collections", languageCode));
-        row.add(messageProvider.getMessage("button.schedule", languageCode));
-        row.add(messageProvider.getMessage("button.settings", languageCode));
+        row.add(messageProvider.getMessage("button.get_card", languageCode));
         keyboard.add(row);
 
         row = new KeyboardRow();
@@ -65,7 +63,9 @@ public class KeyboardProvider {
         keyboard.add(row);
 
         row = new KeyboardRow();
-        row.add(messageProvider.getMessage("button.get_card", languageCode));
+        row.add(messageProvider.getMessage("button.collections", languageCode));
+        row.add(messageProvider.getMessage("button.schedule", languageCode));
+        row.add(messageProvider.getMessage("button.settings", languageCode));
         keyboard.add(row);
 
         keyboardMarkup.setKeyboard(keyboard);
@@ -354,9 +354,8 @@ public class KeyboardProvider {
         Page<? extends PageableEntity> page,
         Callback pageItemsCallback
     ) {
-        List<InlineKeyboardRow> rows = new ArrayList<>();
 
-        rows.addAll(buildCollectionsPageContent(page, pageItemsCallback));
+        List<InlineKeyboardRow> rows = new ArrayList<>(buildCollectionsPageContent(page, pageItemsCallback));
 
         rows.add(buildDefaultNavigationRow(page));
         return new InlineKeyboardMarkup(rows);
@@ -395,9 +394,8 @@ public class KeyboardProvider {
     }
 
     public InlineKeyboardMarkup updateKeyboard(InlineKeyboardMarkup sourceKeyboard, Page<? extends PageableEntity> newPage) {
-        List<InlineKeyboardRow> rows = new ArrayList<>();
         var callback = readCallback(sourceKeyboard.getKeyboard().getFirst().getFirst().getCallbackData());
-        rows.addAll(buildCollectionsPageContent(newPage, callback));
+        List<InlineKeyboardRow> rows = new ArrayList<>(buildCollectionsPageContent(newPage, callback));
 
         rows.add(buildDefaultNavigationRow(newPage));
         return new InlineKeyboardMarkup(rows);

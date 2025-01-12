@@ -142,6 +142,11 @@ public class TelegramUpdateHandler {
                 user.setState(STAND_BY);
                 sendWelcomeMessage(user);
             }
+            case "/menu" -> {
+                user.setState(STAND_BY);
+                var text = messageProvider.getText("main_menu");
+                client.sendMessage(text, keyboardProvider.getMainMenu());
+            }
         }
     }
 
