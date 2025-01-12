@@ -2,7 +2,7 @@ package com.totergott.memcards.telegram.callback;
 
 import static com.totergott.memcards.telegram.callback.CallbackMapper.readCallback;
 
-import com.totergott.memcards.telegram.TelegramClientWrapper;
+import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
 import com.totergott.memcards.user.TelegramUser;
@@ -22,7 +22,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 @Slf4j
 public class TelegramCallbackDelegate {
 
-    private final TelegramClientWrapper client;
+    private final MessageService client;
     private final Set<CallbackHandler> callbackHandlers;
     private Map<CallbackSource, Optional<CallbackHandler>> callbackHandlerMap;
 
@@ -44,6 +44,6 @@ public class TelegramCallbackDelegate {
 
         var callbackId = callbackQuery.getId();
         AnswerCallbackQuery answer = new AnswerCallbackQuery(callbackId);
-        client.execute(answer);
+        client.answerCallback(answer);
     }
 }

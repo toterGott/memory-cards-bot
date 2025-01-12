@@ -56,6 +56,7 @@ public class TelegramUser {
     public static class Payload {
         UUID defaultCollection;
         Schedule schedule;
+        List<Integer> chatMessages = new ArrayList<>();
 
         @Data
         @NoArgsConstructor

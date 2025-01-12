@@ -157,6 +157,19 @@ public class KeyboardProvider {
         return keyboardMarkup;
     }
 
+    public ReplyKeyboardMarkup getKeyboardPlaceholder() {
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
+
+        KeyboardRow row = new KeyboardRow();
+        row.add(messageProvider.getText("keyboard_placeholder"));
+        keyboard.add(row);
+
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setResizeKeyboard(true);
+        return keyboardMarkup;
+    }
+
     public InlineKeyboardMarkup getInlineShowAnswerKeyboard(UUID id) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         InlineKeyboardRow row = new InlineKeyboardRow();
