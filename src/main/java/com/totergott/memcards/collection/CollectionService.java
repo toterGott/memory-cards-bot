@@ -41,13 +41,6 @@ public class CollectionService {
             defaultCollection = repository.save(defaultCollection);
             user.getPayload().setDefaultCollection(defaultCollection.getId());
         }
-
-        for (int i = 0; i < 9; i++) {
-            var stubCollection = new CardCollection();
-            stubCollection.setName("Stub collection " + i);
-            stubCollection.setOwner(user);
-            repository.save(stubCollection);
-        }
     }
 
     public Page<CardCollection> getCollectionsPage(UUID id, int page) {
