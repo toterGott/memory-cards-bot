@@ -157,12 +157,12 @@ public class KeyboardProvider {
         return keyboardMarkup;
     }
 
-    public ReplyKeyboardMarkup getKeyboardPlaceholder() {
+    public ReplyKeyboardMarkup getCardPlaceholder() {
         List<KeyboardRow> keyboard = new ArrayList<>();
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
 
         KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getText("keyboard_placeholder"));
+        row.add(messageProvider.getText("card_placeholder"));
         keyboard.add(row);
 
         keyboardMarkup.setKeyboard(keyboard);
@@ -456,13 +456,11 @@ public class KeyboardProvider {
         if (page.hasNext()) {
             var index = String.valueOf(page.getNumber() + 1);
             var nextPageNum = String.valueOf(page.getNumber() + 1 + 1);
-            var total = String.valueOf(page.getTotalPages());
             navigationCallback.setAction(PageNavigationCallbackAction.NEXT);
             navigationCallback.setData(index);
             var forwardButton = new InlineKeyboardButton(messageProvider.getText(
                 "button.next_page",
-                nextPageNum,
-                total
+                nextPageNum
             ));
             forwardButton.setCallbackData(writeCallback(navigationCallback));
             pageNavigationRow.add(forwardButton);
@@ -501,5 +499,31 @@ public class KeyboardProvider {
         row.add(backButton);
 
         return new InlineKeyboardMarkup(rows);
+    }
+
+    public ReplyKeyboardMarkup getCollectionsPlaceholder() {
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
+
+        KeyboardRow row = new KeyboardRow();
+        row.add(messageProvider.getText("collections_placeholder"));
+        keyboard.add(row);
+
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setResizeKeyboard(true);
+        return keyboardMarkup;
+    }
+
+    public ReplyKeyboardMarkup getSingleButton(String text) {
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
+
+        KeyboardRow row = new KeyboardRow();
+        row.add(text);
+        keyboard.add(row);
+
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setResizeKeyboard(true);
+        return keyboardMarkup;
     }
 }

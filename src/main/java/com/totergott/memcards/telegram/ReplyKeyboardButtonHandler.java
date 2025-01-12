@@ -37,15 +37,15 @@ public class ReplyKeyboardButtonHandler {
     @Value("${app.version}")
     private String version;
 
-    private final KeyboardProvider keyboardProvider;
-    private final MessageProvider messageProvider;
+    private final KeyboardProvider kp;
+    private final MessageProvider mp;
     private final MessageService client;
     private final CollectionService collectionService;
     private final CardService cardService;
 
     public void handleButton(Update update, TelegramUser user) {
         var text = update.getMessage().getText();
-        var key = messageProvider.resolveCode(text);
+        var key = mp.resolveCode(text);
         if (key == null) {
             key = "Key not found";
         }
@@ -53,7 +53,7 @@ public class ReplyKeyboardButtonHandler {
         switch (key) {
             case "button.schedule" -> handleSchedule();
             case "button.settings" -> sendSettingsMessage(user);
-            case "button.collections" -> handleCollectionsButton(user);
+            case "button.collections" -> collections();
             case "button.create_card" -> createCard(user);
             case "button.create_collection" -> createCollection();
             case "button.get_card" -> getCard(user);
@@ -63,25 +63,34 @@ public class ReplyKeyboardButtonHandler {
             case "button.easy" -> setCardGrade(user, update, 3);
             case "button.show_answer" -> showAnswer(user);
             case "button.remove_focus" -> removeFocus(user);
+            case "button.back_to_main_menu" -> mainMenu();
             default -> handleUnknownMessage(user, text);
         }
+    }
+
+    private void mainMenu() {
+        client.sendMessage(
+            mp.getText("main_menu"),
+            kp.getMainMenu()
+        );
+        client.deleteMessagesExceptLast(1);
     }
 
     private void handleSchedule() {
         var schedule = getUser().getPayload().getSchedule();
         String text;
         if (schedule != null) {
-            text = messageProvider.getText("schedule.enabled", schedule.getHours().toString());
+            text = mp.getText("schedule.enabled", schedule.getHours().toString());
         } else {
-            text = messageProvider.getText("schedule");
+            text = mp.getText("schedule");
         }
-        var keyboard = keyboardProvider.getScheduleKeyboard();
+        var keyboard = kp.getScheduleKeyboard();
         client.sendMessage(text, keyboard);
     }
 
     private void showAnswer(TelegramUser user) {
         var card = cardService.getCard(user.getCurrentCardId());
-        var keyboard = keyboardProvider.getKnowledgeCheckKeyboard(user.getLanguage());
+        var keyboard = kp.getKnowledgeCheckKeyboard(user.getLanguage());
         user.setState(EVALUATE_ANSWER);
         client.sendMessage(user, card.getAnswer(), keyboard);
     }
@@ -95,7 +104,7 @@ public class ReplyKeyboardButtonHandler {
         // todo improve
         switch (grade) {
             default -> {
-                text = messageProvider.getMessage(
+                text = mp.getMessage(
                     "card_answered",
                     user.getLanguage(),
                     "1",
@@ -105,7 +114,7 @@ public class ReplyKeyboardButtonHandler {
             }
             case 1 -> {
                 appearTime = appearTime.plus(10, MINUTES);
-                text = messageProvider.getMessage(
+                text = mp.getMessage(
                     "card_answered",
                     user.getLanguage(),
                     "10",
@@ -115,7 +124,7 @@ public class ReplyKeyboardButtonHandler {
             }
             case 2 -> {
                 appearTime = appearTime.plus(1, DAYS);
-                text = messageProvider.getMessage(
+                text = mp.getMessage(
                     "card_answered",
                     user.getLanguage(),
                     "1",
@@ -125,7 +134,7 @@ public class ReplyKeyboardButtonHandler {
             }
             case 3 -> {
                 appearTime = appearTime.plus(4, DAYS);
-                text = messageProvider.getMessage(
+                text = mp.getMessage(
                     "card_answered",
                     user.getLanguage(),
                     "4",
@@ -138,12 +147,12 @@ public class ReplyKeyboardButtonHandler {
         if (user.getFocusedOnCollection() != null) {
             var collectionName = collectionService.getById(user.getFocusedOnCollection().getId()).orElseThrow()
                 .getName();
-            text += " " + messageProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
+            text += " " + mp.getMessage("collections.focus_on", user.getLanguage(), collectionName);
         }
 
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
-        var mainMenu = keyboardProvider.getMainMenu(user);
+        var mainMenu = kp.getMainMenu(user);
         client.sendMessage(user, text, mainMenu);
 
         if (user.getPayload().getSchedule() != null) {
@@ -152,8 +161,8 @@ public class ReplyKeyboardButtonHandler {
             schedule.setNextRun(nextRun);
         }
 
-        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(card.getId());
-        text = messageProvider.getText("card.actions");
+        InlineKeyboardMarkup keyboard = kp.getCardMenuAfterAnswer(card.getId());
+        text = mp.getText("card.actions");
         client.sendMessage(text, keyboard);
     }
 
@@ -161,14 +170,14 @@ public class ReplyKeyboardButtonHandler {
         if (user.getFocusedOnCollection() == null) {
             cardService.getCardToLearn(user.getId()).ifPresentOrElse(
                 card -> sendCard(card, user),
-                () -> client.sendMessage(user, messageProvider.getMessage("no_cards", user.getLanguage()))
+                () -> client.sendMessage(user, mp.getMessage("no_cards", user.getLanguage()))
             );
         } else {
             cardService.getCardToLearn(user.getId(), user.getFocusedOnCollection().getId()).ifPresentOrElse(
                 card -> sendCard(card, user),
                 () -> client.sendMessage(
                     user,
-                    messageProvider.getMessage(
+                    mp.getMessage(
                         "no_cards_for_focus",
                         user.getLanguage(),
                         user.getFocusedOnCollection().getName()
@@ -180,11 +189,13 @@ public class ReplyKeyboardButtonHandler {
 
     private void sendCard(Card card, TelegramUser user) {
         var collectionName = card.getCollection().getName();
-        var replyKeyboard = keyboardProvider.getKeyboardPlaceholder();
-        client.sendMessage(collectionName, replyKeyboard);
+        client.sendMessage(
+            mp.getText("button.collections.emoji") + collectionName,
+            kp.getSingleButton(mp.getText("button.back_to_main_menu"))
+        );
 
-        var keyboard = keyboardProvider.getInlineShowAnswerKeyboard(card.getId());
-        client.sendMessage(user, card.getQuestion(), keyboard);
+        var keyboard = kp.getInlineShowAnswerKeyboard(card.getId());
+        client.sendMessage(user, mp.getText("button.card.emoji") + card.getQuestion(), keyboard);
         user.setCurrentCardId(card.getId());
         user.setState(QUESTION_SHOWED);
 
@@ -193,38 +204,40 @@ public class ReplyKeyboardButtonHandler {
 
     private void removeFocus(TelegramUser user) {
         user.setFocusedOnCollection(null);
-        var keyboard = keyboardProvider.getMainMenu(user);
-        client.sendMessage(user, messageProvider.getMessage("focus_removed", user.getLanguage()), keyboard);
+        var keyboard = kp.getMainMenu(user);
+        client.sendMessage(user, mp.getMessage("focus_removed", user.getLanguage()), keyboard);
     }
 
-    private void handleCollectionsButton(TelegramUser user) {
-        var page = collectionService.getCollectionsPage(user.getId(), 0);
-        var text = messageProvider.getMessage(
-            "collections",
-            user.getLanguage()
+    private void collections() {
+        client.sendMessage(
+            mp.getText("button.collections.emoji"),
+            kp.getSingleButton(mp.getText("button.back_to_main_menu"))
         );
+        var page = collectionService.getCollectionsPage(getUser().getId(), 0);
+        var text = mp.getText("collections");
+
         CollectionsCallback callback = new CollectionsCallback();
         callback.setAction(CollectionCallbackAction.SELECT);
-        var pageKeyboard = keyboardProvider.buildPage(page, callback);
-        text = messageProvider.appendPageInfo(text, page);
-        client.sendMessage(user, text, pageKeyboard);
-//        client.deleteMessagesExceptLast(1);
+        var pageKeyboard = kp.buildPage(page, callback);
+        text = mp.appendPageInfo(text, page);
+        client.sendMessage(getUser(), text, pageKeyboard);
+        client.deleteMessagesExceptLast(2);
     }
 
     private void sendSettingsMessage(TelegramUser user) {
-        var text = "v." + version + "\n" + messageProvider.getText("settings");
-        var settingsKeyboard = keyboardProvider.getSettingsMenu(user);
+        var text = "v." + version + "\n" + mp.getText("settings");
+        var settingsKeyboard = kp.getSettingsMenu(user);
         client.sendMessage(user, text, settingsKeyboard);
     }
 
     private void handleUnknownMessage(TelegramUser user, String key) {
-        var text = messageProvider.getMessage("unknown_request", user.getLanguage(), key);
+        var text = mp.getMessage("unknown_request", user.getLanguage(), key);
         client.deleteMessage(getChatId(), getMessage().getMessageId());
     }
 
     private void createCollection() {
         getUser().setState(COLLECTION_CREATION);
-        var text = messageProvider.getText("collections.create");
+        var text = mp.getText("collections.create");
         client.sendMessage(text, new ReplyKeyboardRemove(true));
     }
 
@@ -232,8 +245,8 @@ public class ReplyKeyboardButtonHandler {
         user.setState(FILL_CARD_QUESTION);
         client.sendMessage(
             user,
-            messageProvider.getMessage("create_card.question", user.getLanguage()),
-            keyboardProvider.hideKeyboard()
+            mp.getMessage("create_card.question", user.getLanguage()),
+            kp.hideKeyboard()
         );
     }
 }
