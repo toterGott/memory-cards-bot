@@ -3,15 +3,19 @@ package com.totergott.memcards.telegram;
 import static com.totergott.memcards.telegram.TelegramUtils.getCallback;
 import static com.totergott.memcards.telegram.TelegramUtils.getCallbackMessageId;
 import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
+import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 
 import com.totergott.memcards.user.TelegramUser;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessages;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -19,10 +23,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-@Component
+@Service
 @RequiredArgsConstructor
 @Slf4j
-public class TelegramClientWrapper {
+public class MessageService {
+    private static final int CHUNK_SIZE = 100;
 
     private final TelegramClient telegramClient;
 
@@ -31,7 +36,9 @@ public class TelegramClientWrapper {
 
         sendMessage.setReplyMarkup(replyKeyboard);
         try {
-            return telegramClient.execute(sendMessage);
+            var message = telegramClient.execute(sendMessage);
+            getUser().getPayload().getChatMessages().add(message.getMessageId());
+            return message;
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
@@ -42,21 +49,14 @@ public class TelegramClientWrapper {
     }
 
     public Message sendMessage(String text, ReplyKeyboard replyKeyboard) {
-        SendMessage sendMessage = new SendMessage(getChatId().toString(), text);
-
-        sendMessage.setReplyMarkup(replyKeyboard);
-        try {
-            return telegramClient.execute(sendMessage);
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        }
+        return sendMessage(getUser(), text, replyKeyboard);
     }
 
     public void sendMessage(TelegramUser user, String text) {
         sendMessage(user, text, null);
     }
 
-    public void execute(AnswerCallbackQuery answer) {
+    public void answerCallback(AnswerCallbackQuery answer) {
         try {
             telegramClient.execute(answer);
         } catch (TelegramApiException e) {
@@ -114,18 +114,31 @@ public class TelegramClientWrapper {
         AnswerCallbackQuery answer = new AnswerCallbackQuery(callbackId);
         answer.setShowAlert(true);
         answer.setText(text);
-        execute(answer);
+        answerCallback(answer);
     }
 
     public void showAlertNotImplemented() {
         AnswerCallbackQuery answer = new AnswerCallbackQuery(getCallback().getId());
         answer.setShowAlert(true);
         answer.setText("NOT IMPLEMENTED");
-        execute(answer);
+        answerCallback(answer);
     }
 
     public void clearCallbackKeyboard() {
         var sameText = ((Message) (getCallback().getMessage())).getText();
         editMessage(sameText, getCallbackMessageId(), null);
+    }
+
+    public void deleteMessagesExceptLast(Integer keepLast) {
+        AtomicInteger counter = new AtomicInteger(0);
+        var chatMessages = getUser().getPayload().getChatMessages();
+        chatMessages.subList(0, chatMessages.size() - keepLast)
+            .stream()
+            .collect(Collectors.groupingBy(_ -> counter.getAndIncrement() / CHUNK_SIZE))
+            .values()
+            .forEach(messageIds -> {
+                var request = new DeleteMessages(getChatId().toString(), messageIds);
+                execute(request);
+            });
     }
 }

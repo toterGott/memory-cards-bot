@@ -7,7 +7,7 @@ import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.i18n.MessageProvider;
 import com.totergott.memcards.telegram.KeyboardProvider;
-import com.totergott.memcards.telegram.TelegramClientWrapper;
+import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.user.TelegramUser;
 import com.totergott.memcards.user.UserService;
 import jakarta.transaction.Transactional;
@@ -23,7 +23,7 @@ public class CardSenderScheduler {
 
     private final CardService cardService;
     private final UserService userService;
-    private final TelegramClientWrapper client;
+    private final MessageService client;
     private final KeyboardProvider keyboardProvider;
     private final MessageProvider messageProvider;
 

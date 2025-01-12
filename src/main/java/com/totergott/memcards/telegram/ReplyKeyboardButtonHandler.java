@@ -1,6 +1,7 @@
 package com.totergott.memcards.telegram;
 
 import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
+import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
 import static com.totergott.memcards.user.UserState.EVALUATE_ANSWER;
@@ -32,12 +33,13 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 @Slf4j
 public class ReplyKeyboardButtonHandler {
 
+    private final MessageService messageService;
     @Value("${app.version}")
     private String version;
 
     private final KeyboardProvider keyboardProvider;
     private final MessageProvider messageProvider;
-    private final TelegramClientWrapper client;
+    private final MessageService client;
     private final CollectionService collectionService;
     private final CardService cardService;
 
@@ -177,12 +179,16 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void sendCard(Card card, TelegramUser user) {
+        var collectionName = card.getCollection().getName();
+        var replyKeyboard = keyboardProvider.getKeyboardPlaceholder();
+        client.sendMessage(collectionName, replyKeyboard);
+
         var keyboard = keyboardProvider.getInlineShowAnswerKeyboard(card.getId());
-        var message = client.sendMessage("remove keyboard", new ReplyKeyboardRemove(true));
-        client.deleteMessage(getChatId(), message.getMessageId());
         client.sendMessage(user, card.getQuestion(), keyboard);
         user.setCurrentCardId(card.getId());
         user.setState(QUESTION_SHOWED);
+
+        messageService.deleteMessagesExceptLast(2);
     }
 
     private void removeFocus(TelegramUser user) {
@@ -211,9 +217,9 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void handleUnknownMessage(TelegramUser user, String key) {
-        getUser().setState(STAND_BY);
+//        getUser().setState(STAND_BY);
         var text = messageProvider.getMessage("unknown_request", user.getLanguage(), key);
-        client.sendMessage(user, text, keyboardProvider.getMainMenu(user));
+        client.deleteMessage(getChatId(), getMessage().getMessageId());
     }
 
     private void createCollection() {

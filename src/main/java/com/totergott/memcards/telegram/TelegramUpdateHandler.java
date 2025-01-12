@@ -29,7 +29,7 @@ import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 @Slf4j
 public class TelegramUpdateHandler {
 
-    private final TelegramClientWrapper client;
+    private final MessageService client;
     private final UserService userService;
     private final KeyboardProvider keyboardProvider;
     private final MessageProvider messageProvider;
@@ -45,10 +45,10 @@ public class TelegramUpdateHandler {
         var user = welcomeOrGetUser(update);
         telegramUserThreadLocal.set(user);
         updateThreadLocal.set(update);
-
         if (update.hasCallbackQuery()) {
             callbackHandler.handleCallback(update.getCallbackQuery(), user);
         } else if (update.hasMessage()) {
+            user.getPayload().getChatMessages().add(update.getMessage().getMessageId());
             handleUpdateByUserState(update, user);
         }
 
@@ -58,10 +58,9 @@ public class TelegramUpdateHandler {
 
     private void handleUpdateByUserState(Update update, TelegramUser user) {
         switch (user.getState()) {
-            case STAND_BY -> handleStandBy(update, user);
+            case STAND_BY, QUESTION_SHOWED, EVALUATE_ANSWER -> handleStandBy(update, user);
             case FILL_CARD_QUESTION -> fillCardQuest(update, user);
             case FILL_CARD_ANSWER -> fillCardAnswer(update, user);
-            case QUESTION_SHOWED, EVALUATE_ANSWER -> buttonHandler.handleButton(update, user);
             case COLLECTION_CREATION -> createCollection();
             default -> log.warn("Unhandled state: {} and command: {}", user.getState(), getMessage().getText());
         }
@@ -146,6 +145,7 @@ public class TelegramUpdateHandler {
                 user.setState(STAND_BY);
                 var text = messageProvider.getText("main_menu");
                 client.sendMessage(text, keyboardProvider.getMainMenu());
+                client.deleteMessagesExceptLast(1);
             }
         }
     }

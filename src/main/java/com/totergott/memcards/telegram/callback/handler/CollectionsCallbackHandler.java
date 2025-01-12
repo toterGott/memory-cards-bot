@@ -9,7 +9,7 @@ import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
 import com.totergott.memcards.telegram.KeyboardProvider;
-import com.totergott.memcards.telegram.TelegramClientWrapper;
+import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
 import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
@@ -37,7 +37,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
     private final CardService cardService;
     private final MessageProvider messageProvider;
     private final KeyboardProvider keyboardProvider;
-    private final TelegramClientWrapper client;
+    private final MessageService client;
     CallbackSource callbackSource = CallbackSource.COLLECTIONS;
 
     @Override
