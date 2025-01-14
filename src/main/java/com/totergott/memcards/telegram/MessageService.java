@@ -5,7 +5,7 @@ import static com.totergott.memcards.telegram.TelegramUtils.getCallbackMessageId
 import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 
-import com.totergott.memcards.user.TelegramUser;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +31,15 @@ public class MessageService {
 
     private final TelegramClient telegramClient;
 
-    public Message sendMessage(TelegramUser user, String text, ReplyKeyboard replyKeyboard) {
-        SendMessage sendMessage = new SendMessage(user.getChatId().toString(), text);
+    public Message sendMessage(Long chatId, String text, ReplyKeyboard replyKeyboard) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), text);
 
         sendMessage.setReplyMarkup(replyKeyboard);
         try {
             var message = telegramClient.execute(sendMessage);
-            getUser().getPayload().getChatMessages().add(message.getMessageId());
+            if (getUser() != null) { // todo remove
+                getUser().getPayload().getChatMessages().add(message.getMessageId());
+            }
             return message;
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
@@ -49,11 +51,11 @@ public class MessageService {
     }
 
     public Message sendMessage(String text, ReplyKeyboard replyKeyboard) {
-        return sendMessage(getUser(), text, replyKeyboard);
+        return sendMessage(getUser().getChatId(), text, replyKeyboard);
     }
 
-    public void sendMessage(TelegramUser user, String text) {
-        sendMessage(user, text, null);
+    public void sendMessage(Long chatId, String text) {
+        sendMessage(chatId, text, null);
     }
 
     public void answerCallback(AnswerCallbackQuery answer) {
@@ -130,9 +132,21 @@ public class MessageService {
     }
 
     public void deleteMessagesExceptLast(Integer keepLast) {
-        AtomicInteger counter = new AtomicInteger(0);
         var chatMessages = getUser().getPayload().getChatMessages();
         var chatMessagesToRemove = chatMessages.subList(0, chatMessages.size() - keepLast);
+        deleteMessages(chatMessagesToRemove);
+        chatMessages.removeAll(chatMessagesToRemove);
+    }
+
+    public void deleteMessagesExceptFirst(Integer keepFirst) {
+        var chatMessages = getUser().getPayload().getChatMessages();
+        var chatMessagesToRemove = chatMessages.subList(keepFirst, chatMessages.size());
+        deleteMessages(chatMessagesToRemove);
+        chatMessages.removeAll(chatMessagesToRemove);
+    }
+
+    private void deleteMessages(List<Integer>  chatMessagesToRemove) {
+        AtomicInteger counter = new AtomicInteger(0);
         chatMessagesToRemove
             .stream()
             .collect(Collectors.groupingBy(_ -> counter.getAndIncrement() / CHUNK_SIZE))
@@ -141,7 +155,6 @@ public class MessageService {
                 var request = new DeleteMessages(getChatId().toString(), messageIds);
                 execute(request);
             });
-        chatMessages.removeAll(chatMessagesToRemove);
     }
 
     public void editCallbackKeyboard(InlineKeyboardMarkup keyboard) {

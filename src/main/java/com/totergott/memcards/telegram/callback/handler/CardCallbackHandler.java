@@ -124,7 +124,7 @@ public class CardCallbackHandler implements CallbackHandler {
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
         var mainMenu = keyboardProvider.getMainMenu(user);
-        client.sendMessage(user, text, mainMenu);
+        client.sendMessage(text, mainMenu);
 
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
@@ -164,7 +164,7 @@ public class CardCallbackHandler implements CallbackHandler {
         card.setCollection(collection);
         var text = messageProvider.getText("card.collections.changed", collection.getName());
         var keyboard = keyboardProvider.getMainMenu(user);
-        client.sendMessage(user, text, keyboard);
+        client.sendMessage(text, keyboard);
 
         client.deleteCallbackMessage();
 
