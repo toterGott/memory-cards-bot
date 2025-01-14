@@ -61,4 +61,19 @@ public class CardService {
     public void saveAll(ArrayList<Card> cards) {
         repository.saveAll(cards);
     }
+
+    public void deleteIfUnfinished(UUID currentCardId) {
+        if (currentCardId == null) {
+            return;
+        }
+        findById(currentCardId).ifPresent(
+            card -> {
+                if (card.getQuestion() == null
+                    || card.getAnswer() == null
+                    || card.getCollection() == null) {
+                    deleteById(currentCardId);
+                }
+            }
+        );
+    }
 }

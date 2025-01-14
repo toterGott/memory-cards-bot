@@ -1,6 +1,7 @@
 package com.totergott.memcards.telegram.callback.model;
 
 import java.util.Arrays;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -13,6 +14,9 @@ import lombok.experimental.SuperBuilder;
 public class NewCardCallback extends Callback {
 
     private NewCardCallbackAction action;
+
+    @Builder.Default
+    protected CallbackSource source = CallbackSource.NEW_CARD;
 
     @Override
     public void setAction(String actionName) {
@@ -33,7 +37,10 @@ public class NewCardCallback extends Callback {
         CONFIRM("c"),
         CHANGE_COLLECTION("C"),
         SET_COLLECTION("S"),
-        CHANGE_PAGE("P");
+        CHANGE_PAGE("P"),
+        EDIT_QUESTION("E"),
+        EDIT_ANSWER("e"),
+        ;
 
         @Getter
         private final String code;

@@ -124,7 +124,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         user.setFocusedOnCollection(collection);
         var keyboard = keyboardProvider.getMainMenu(user);
 
-        client.sendMessage(user, text, keyboard);
+        client.sendMessage( text, keyboard);
         client.deleteMessage(user.getChatId(), messageId);
     }
 

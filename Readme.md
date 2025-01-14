@@ -7,6 +7,10 @@ This is a telegram bot with memory cards.
 - Clean up messages
 - Add Grafana loki for logs
 - Todo make cards unavailable if it's not time yet
+- Handle OK after card creation. Remove callback buttons
+- After card deletion clean everything
+- Add "create a card" in collection's options
+
 
 ```shell
 docker network create tg_bot_network

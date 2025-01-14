@@ -46,7 +46,7 @@ public class CardSenderScheduler {
     // todo reuse this method
     private void sendCard(Card card, TelegramUser user) {
         var keyboard = keyboardProvider.getShowAnswerKeyboard();
-        client.sendMessage(user, card.getQuestion(), keyboard);
+        client.sendMessage(card.getQuestion(), keyboard);
         user.setCurrentCardId(card.getId());
         user.setState(QUESTION_SHOWED);
     }

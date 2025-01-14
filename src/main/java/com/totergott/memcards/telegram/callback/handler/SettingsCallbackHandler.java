@@ -46,7 +46,7 @@ public class SettingsCallbackHandler implements CallbackHandler {
         var text = messageProvider.getMessage("settings.language.updated", newLanguage, newLanguage.getReadableName());
         var keyboard = keyboardProvider.getMainMenu(user);
 
-        client.sendMessage(user, text, keyboard);
+        client.sendMessage( text, keyboard);
         client.deleteMessage(user.getChatId(), messageId);
     }
 
