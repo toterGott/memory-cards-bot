@@ -110,7 +110,7 @@ public class ReplyKeyboardButtonHandler {
         String text;
         Instant appearTime = Instant.now();
 
-        // todo improve
+        // todo improve, get rid of bulky switch, simplify
         switch (grade) {
             default -> {
                 text = messageProvider.getMessage(

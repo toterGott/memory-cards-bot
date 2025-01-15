@@ -40,6 +40,7 @@ public class CardCallback extends Callback {
         CHANGE_COLLECTION("C"),
         SET_COLLECTION("S"),
         CANCEL("c"),
+        EDIT("E"),
         CHANGE_PAGE("P"),
         SELECT("s"),
         BACK("b"),

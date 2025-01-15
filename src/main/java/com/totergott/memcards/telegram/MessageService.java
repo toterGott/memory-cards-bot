@@ -5,6 +5,7 @@ import static com.totergott.memcards.telegram.TelegramUtils.getCallbackMessageId
 import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 
+import com.totergott.memcards.i18n.MessageProvider;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ public class MessageService {
     private static final int CHUNK_SIZE = 100;
 
     private final TelegramClient telegramClient;
+    private final MessageProvider messageProvider;
 
     public Message sendMessage(Long chatId, String text, ReplyKeyboard replyKeyboard) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), text);
@@ -119,10 +121,10 @@ public class MessageService {
         answerCallback(answer);
     }
 
-    public void showAlertNotImplemented() {
+    public void notImplementedAlert() {
         AnswerCallbackQuery answer = new AnswerCallbackQuery(getCallback().getId());
         answer.setShowAlert(true);
-        answer.setText("NOT IMPLEMENTED");
+        answer.setText(messageProvider.getText("not_implemented"));
         answerCallback(answer);
     }
 

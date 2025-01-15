@@ -75,7 +75,7 @@ public class PageNavigationCallbackHandler implements CallbackHandler {
                 );
             }
             default -> {
-                client.showAlertNotImplemented();
+                client.notImplementedAlert();
                 throw new RuntimeException("Not implemented");
             }
         }
