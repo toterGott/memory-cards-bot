@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
@@ -60,7 +59,7 @@ public class KeyboardProvider {
             row.add(messageProvider.getMessage("button.remove_focus", languageCode));
         }
         row.add(messageProvider.getMessage("button.new_card", languageCode));
-        row.add(messageProvider.getMessage("button.create_collection", languageCode));
+        row.add(messageProvider.getMessage("button.new_collection", languageCode));
         keyboard.add(row);
 
         row = new KeyboardRow();
@@ -82,34 +81,12 @@ public class KeyboardProvider {
             .action(SettingsCallbackAction.LANGUAGE)
             .build();
 
-        var text = messageProvider.getMessage("button.settings.language", user.getLanguage());
+        var text = messageProvider.getText("emoji.language")
+            + messageProvider.getText("button.settings.language");
         var languageChangeButton = new InlineKeyboardButton(text);
         languageChangeButton.setCallbackData(writeCallback(callback));
         keyboard.add(new InlineKeyboardRow(languageChangeButton));
         return new InlineKeyboardMarkup(keyboard);
-    }
-
-    public ReplyKeyboardRemove hideKeyboard() {
-        return new ReplyKeyboardRemove(true);
-    }
-
-    public ReplyKeyboardMarkup getKnowledgeCheckKeyboard(AvailableLocale languageCode) {
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
-
-        KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getMessage("button.again", languageCode));
-        row.add(messageProvider.getMessage("button.hard", languageCode));
-        keyboard.add(row);
-
-        row = new KeyboardRow();
-        row.add(messageProvider.getMessage("button.good", languageCode));
-        row.add(messageProvider.getMessage("button.easy", languageCode));
-        keyboard.add(row);
-
-        keyboardMarkup.setKeyboard(keyboard);
-        keyboardMarkup.setResizeKeyboard(true);
-        return keyboardMarkup;
     }
 
     public InlineKeyboardMarkup getInlineKnowledgeCheckKeyboard(UUID cardId) {
@@ -150,7 +127,7 @@ public class KeyboardProvider {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
 
         KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getText("button.show_answer"));
+        row.add(messageProvider.getText("emoji.answer"));
         keyboard.add(row);
 
         keyboardMarkup.setKeyboard(keyboard);
@@ -163,7 +140,7 @@ public class KeyboardProvider {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
 
         KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getText("card_placeholder"));
+        row.add(messageProvider.getText("emoji.card"));
         keyboard.add(row);
 
         keyboardMarkup.setKeyboard(keyboard);
@@ -178,7 +155,10 @@ public class KeyboardProvider {
 
         CardCallback callback =
             CardCallback.builder().action(CardCallbackAction.SHOW_ANSWER).data(id.toString()).build();
-        InlineKeyboardButton showAnswerButton = new InlineKeyboardButton(messageProvider.getText("button.show_answer"));
+        InlineKeyboardButton showAnswerButton = new InlineKeyboardButton(
+            messageProvider.getText("emoji.answer")
+                + messageProvider.getText("card.show_answer")
+        );
         showAnswerButton.setCallbackData(writeCallback(callback));
         row.add(showAnswerButton);
 
@@ -213,25 +193,28 @@ public class KeyboardProvider {
             .build();
 
         callback.setAction(CollectionCallbackAction.FOCUS_ON_COLLECTION);
-        var choose = new InlineKeyboardButton(messageProvider.getMessage("button.collection.choose", language));
+        var choose = new InlineKeyboardButton(messageProvider.getMessage("collection.button.choose", language));
         choose.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(choose));
 
         callback.setAction(CollectionCallbackAction.EDIT_CARDS);
-        var editCards = new InlineKeyboardButton(messageProvider.getMessage("button.collection.edit", language));
+        var editCards = new InlineKeyboardButton(messageProvider.getMessage("collection.button.edit", language));
         editCards.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(editCards));
 
-        callback.setAction(CollectionCallbackAction.DELETE);
-        var delete = new InlineKeyboardButton(messageProvider.getMessage("button.collection.delete", language));
-        delete.setCallbackData(writeCallback(callback));
-        rows.add(new InlineKeyboardRow(delete));
-
         callback.setAction(CollectionCallbackAction.BACK);
         callback.setAdditionalData(pageNumber);
-        var back = new InlineKeyboardButton(messageProvider.getMessage("button.collection.back", language));
+        var back = new InlineKeyboardButton(messageProvider.getMessage("collection.button.back", language));
         back.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(back));
+
+        callback.setAction(CollectionCallbackAction.DELETE);
+        var delete = new InlineKeyboardButton(
+            messageProvider.getText("emoji.delete")
+                + messageProvider.getText("button.delete")
+        );
+        delete.setCallbackData(writeCallback(callback));
+        rows.add(new InlineKeyboardRow(delete));
 
         return new InlineKeyboardMarkup(rows);
     }
@@ -281,10 +264,9 @@ public class KeyboardProvider {
             .data(collectionId.toString())
             .build();
 
-        var confirmDelete = new InlineKeyboardButton(messageProvider.getMessage(
-            "button.collection.delete.confirm",
-            user.getLanguage()
-        ));
+        var confirmDelete = new InlineKeyboardButton(
+            messageProvider.getText("emoji.delete")
+                + messageProvider.getText("button.delete"));
         confirmDelete.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(confirmDelete));
 
@@ -519,7 +501,7 @@ public class KeyboardProvider {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
 
         KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getText("collections_placeholder"));
+        row.add(messageProvider.getText("emoji.collection"));
         keyboard.add(row);
 
         keyboardMarkup.setKeyboard(keyboard);

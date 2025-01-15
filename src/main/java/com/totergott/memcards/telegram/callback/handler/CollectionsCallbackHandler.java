@@ -1,13 +1,13 @@
 package com.totergott.memcards.telegram.callback.handler;
 
-import static com.totergott.memcards.telegram.TelegramUtils.getCallbackMessageId;
-import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
+import static com.totergott.memcards.telegram.TelegramUtils.getCallback;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
 
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.telegram.CommonHandler;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
@@ -38,6 +38,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
     private final MessageProvider messageProvider;
     private final KeyboardProvider keyboardProvider;
     private final MessageService client;
+    private final CommonHandler commonHandler;
     CallbackSource callbackSource = CallbackSource.COLLECTIONS;
 
     @Override
@@ -82,14 +83,14 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         CardCallback cardCallback = new CardCallback();
         cardCallback.setAction(CardCallbackAction.SELECT);
         var keyboard = keyboardProvider.buildPage(cardPage, cardCallback);
-        var text = messageProvider.getText("cards", collectionName);
+        var text = messageProvider.getText("collections.cards", collectionName);
         text = messageProvider.appendPageInfo(text, cardPage);
         client.editCallbackMessage(text, keyboard);
     }
 
     private void createCollection() {
         getUser().setState(COLLECTION_CREATION);
-        var text = messageProvider.getText("collections.create");
+        var text = messageProvider.getText("create.collection.name_prompt");
         client.deleteCallbackMessage();
         client.sendMessage(text, new ReplyKeyboardRemove(true));
     }
@@ -103,15 +104,14 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         var collectionName = collectionService.findById(collectionId).orElseThrow().getName();
         collectionService.deleteById(collectionId);
 
-        client.deleteMessage(getChatId(), getCallbackMessageId());
-        var menu = keyboardProvider.getMainMenu(user);
         var text = messageProvider.getText("collections.deleted", collectionName);
-        client.sendMessage(text, menu);
+        client.showAlert(getCallback().getId(), text);
+        commonHandler.collectionsScreen();
     }
 
     private void handleSelectCollection(UUID collectionId, String pageNumber, Integer messageId, TelegramUser user) {
         var collection = collectionService.findById(collectionId).orElseThrow();
-        var text = messageProvider.getMessage("collections.select", user.getLanguage(), collection.getName());
+        var text = messageProvider.getMessage("collections.selected", user.getLanguage(), collection.getName());
         var inlineKeyboard = keyboardProvider.buildCollectionSelectedOptionsKeyboard(user.getLanguage(), collectionId
             , pageNumber);
 
