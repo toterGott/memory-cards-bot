@@ -36,7 +36,7 @@ public class ReplyKeyboardButtonHandler {
     @Value("${app.version}")
     private String version;
 
-    private final KeyboardProvider kp;
+    private final KeyboardProvider keyboardProvider;
     private final MessageProvider messageProvider;
     private final MessageService messageService;
     private final CollectionService collectionService;
@@ -65,11 +65,7 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void mainMenu() {
-        messageService.sendMessage(
-            messageProvider.getText("main_menu"),
-            kp.getMainMenu()
-        );
-        messageService.deleteMessagesExceptLast(1);
+        messageService.checkoutMainMenu();
         getUser().setState(STAND_BY);
         var cardId = getUser().getCurrentCardId();
         if (cardId != null) {
@@ -93,13 +89,18 @@ public class ReplyKeyboardButtonHandler {
         } else {
             text = messageProvider.getText("schedule");
         }
-        var keyboard = kp.getScheduleKeyboard();
+        var keyboard = keyboardProvider.getScheduleKeyboard();
+        messageService.sendMessage(
+            messageProvider.getText("schedule.emoji"),
+            keyboardProvider.getBackToMainMenuReply()
+        );
         messageService.sendMessage(text, keyboard);
+        messageService.deleteMessagesExceptLast(2);
     }
 
     private void showAnswer(TelegramUser user) {
         var card = cardService.getCard(user.getCurrentCardId());
-        var keyboard = kp.getKnowledgeCheckKeyboard(user.getLanguage());
+        var keyboard = keyboardProvider.getKnowledgeCheckKeyboard(user.getLanguage());
         user.setState(EVALUATE_ANSWER);
         messageService.sendMessage( card.getAnswer(), keyboard);
     }
@@ -161,7 +162,7 @@ public class ReplyKeyboardButtonHandler {
 
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
-        var mainMenu = kp.getMainMenu(user);
+        var mainMenu = keyboardProvider.getMainMenu(user);
         messageService.sendMessage( text, mainMenu);
 
         if (user.getPayload().getSchedule() != null) {
@@ -170,7 +171,7 @@ public class ReplyKeyboardButtonHandler {
             schedule.setNextRun(nextRun);
         }
 
-        InlineKeyboardMarkup keyboard = kp.getCardMenuAfterAnswer(card.getId());
+        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(card.getId());
         text = messageProvider.getText("card.actions");
         messageService.sendMessage(text, keyboard);
     }
@@ -200,10 +201,10 @@ public class ReplyKeyboardButtonHandler {
         var collectionName = card.getCollection().getName();
         messageService.sendMessage(
             messageProvider.getText("button.collections.emoji") + collectionName,
-            kp.getOneReplyButton(messageProvider.getText("button.back_to_main_menu"))
+            keyboardProvider.getBackToMainMenuReply()
         );
 
-        var keyboard = kp.getInlineShowAnswerKeyboard(card.getId());
+        var keyboard = keyboardProvider.getInlineShowAnswerKeyboard(card.getId());
         messageService.sendMessage(messageProvider.getText("button.card.question_emoji") + card.getQuestion(), keyboard);
         user.setCurrentCardId(card.getId());
         user.setState(QUESTION_SHOWED);
@@ -213,21 +214,21 @@ public class ReplyKeyboardButtonHandler {
 
     private void removeFocus(TelegramUser user) {
         user.setFocusedOnCollection(null);
-        var keyboard = kp.getMainMenu(user);
+        var keyboard = keyboardProvider.getMainMenu(user);
         messageService.sendMessage( messageProvider.getMessage("focus_removed", user.getLanguage()), keyboard);
     }
 
     private void collections() {
         messageService.sendMessage(
             messageProvider.getText("button.collections.emoji"),
-            kp.getOneReplyButton(messageProvider.getText("button.back_to_main_menu"))
+            keyboardProvider.getBackToMainMenuReply()
         );
         var page = collectionService.getCollectionsPage(getUser().getId(), 0);
         var text = messageProvider.getText("collections");
 
         CollectionsCallback callback = new CollectionsCallback();
         callback.setAction(CollectionCallbackAction.SELECT);
-        var pageKeyboard = kp.buildPage(page, callback);
+        var pageKeyboard = keyboardProvider.buildPage(page, callback);
         text = messageProvider.appendPageInfo(text, page);
         messageService.sendMessage(text, pageKeyboard);
         messageService.deleteMessagesExceptLast(2);
@@ -236,10 +237,10 @@ public class ReplyKeyboardButtonHandler {
     private void sendSettingsMessage(TelegramUser user) {
         messageService.sendMessage(
             messageProvider.getText("emoji.settings"),
-            kp.getOneReplyButton(messageProvider.getText("button.back_to_main_menu"))
+            keyboardProvider.getBackToMainMenuReply()
         );
         var text = "v." + version + "\n" + messageProvider.getText("settings");
-        var settingsKeyboard = kp.getSettingsMenu(user);
+        var settingsKeyboard = keyboardProvider.getSettingsMenu(user);
         messageService.sendMessage(text, settingsKeyboard);
         messageService.deleteMessagesExceptLast(2);
     }

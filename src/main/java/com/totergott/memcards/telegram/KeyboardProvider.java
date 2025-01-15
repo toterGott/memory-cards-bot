@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -526,7 +527,7 @@ public class KeyboardProvider {
         return keyboardMarkup;
     }
 
-    public ReplyKeyboardMarkup getOneReplyButton(String text) {
+    public ReplyKeyboardMarkup getOneSingleButton(String text) {
         List<KeyboardRow> keyboard = new ArrayList<>();
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
 
@@ -549,5 +550,9 @@ public class KeyboardProvider {
         row.add(button);
 
         return new InlineKeyboardMarkup(rows);
+    }
+
+    public ReplyKeyboard getBackToMainMenuReply() {
+        return getOneSingleButton(messageProvider.getText("button.back_to_main_menu"));
     }
 }

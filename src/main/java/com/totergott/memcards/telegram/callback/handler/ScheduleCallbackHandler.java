@@ -3,6 +3,7 @@ package com.totergott.memcards.telegram.callback.handler;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 
 import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
 import com.totergott.memcards.telegram.callback.model.Callback;
@@ -24,6 +25,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 public class ScheduleCallbackHandler implements CallbackHandler {
 
     private final MessageProvider messageProvider;
+    private final KeyboardProvider keyboardProvider;
     private final MessageService client;
 
     @Getter
@@ -42,7 +44,9 @@ public class ScheduleCallbackHandler implements CallbackHandler {
         getUser().getPayload().setSchedule(null);
 
         var text = messageProvider.getText("schedule.disabled");
-        client.editCallbackMessage(text);
+        var keyboard = keyboardProvider.getScheduleKeyboard();
+        client.deleteMessagesExceptFirst(1);
+        client.sendMessage(text, keyboard);
     }
 
     private void enableSchelling(String data) {
@@ -53,6 +57,8 @@ public class ScheduleCallbackHandler implements CallbackHandler {
         getUser().getPayload().setSchedule(schedule);
 
         var text = messageProvider.getText("schedule.enabled", data);
-        client.editCallbackMessage(text);
+        var keyboard = keyboardProvider.getScheduleKeyboard();
+        client.deleteMessagesExceptFirst(1);
+        client.sendMessage(text, keyboard);
     }
 }

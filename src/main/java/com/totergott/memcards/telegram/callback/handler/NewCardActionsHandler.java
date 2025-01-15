@@ -153,12 +153,9 @@ public class NewCardActionsHandler implements CallbackHandler {
     }
 
     private void confirmCardCreation(UUID cardId) {
-        var keyboard = keyboardProvider.getMainMenu();
         var card = cardService.getCard(cardId);
         var collectionName = card.getCollection().getName();
-        var text = messageProvider.getText("main_menu", collectionName);
-        messageService.sendMessage(text, keyboard);
-        messageService.deleteMessagesExceptLast(1);
+        messageService.checkoutMainMenu();
 
         getUser().setCurrentCardId(null);
     }
