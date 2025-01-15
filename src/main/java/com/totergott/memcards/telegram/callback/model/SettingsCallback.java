@@ -1,6 +1,7 @@
 package com.totergott.memcards.telegram.callback.model;
 
 import java.util.Arrays;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -11,6 +12,9 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 public class SettingsCallback extends Callback {
+
+    @Builder.Default
+    private CallbackSource source = CallbackSource.SETTINGS;
 
     private SettingsCallbackAction action;
 
@@ -32,6 +36,7 @@ public class SettingsCallback extends Callback {
     public enum SettingsCallbackAction implements EncodedEnum {
         LANGUAGE("l"),
         CHANNEL_LANGUAGE("L"),
+        INFO("i"),
         ;
 
         @Getter

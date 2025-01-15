@@ -77,15 +77,22 @@ public class KeyboardProvider {
         List<InlineKeyboardRow> keyboard = new ArrayList<>();
 
         SettingsCallback callback = SettingsCallback.builder()
-            .source(CallbackSource.SETTINGS)
-            .action(SettingsCallbackAction.LANGUAGE)
+            .action(SettingsCallbackAction.INFO)
             .build();
 
+        var aboutText = messageProvider.getText("emoji.info")
+            + messageProvider.getText("button.settings.info");
+        var aboutButton = new InlineKeyboardButton(aboutText);
+        aboutButton.setCallbackData(writeCallback(callback));
+        keyboard.add(new InlineKeyboardRow(aboutButton));
+
+        callback.setAction(SettingsCallbackAction.LANGUAGE);
         var text = messageProvider.getText("emoji.language")
             + messageProvider.getText("button.settings.language");
         var languageChangeButton = new InlineKeyboardButton(text);
         languageChangeButton.setCallbackData(writeCallback(callback));
         keyboard.add(new InlineKeyboardRow(languageChangeButton));
+
         return new InlineKeyboardMarkup(keyboard);
     }
 
