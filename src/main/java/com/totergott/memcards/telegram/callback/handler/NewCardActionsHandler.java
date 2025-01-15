@@ -108,8 +108,6 @@ public class NewCardActionsHandler implements CallbackHandler {
                 answerMessageText,
                 ForceReplyKeyboard.builder().forceReply(true).inputFieldPlaceholder(answerMessageText).build()
             );
-        } else {
-            printFinalMessage(card);
         }
     }
 
@@ -137,7 +135,6 @@ public class NewCardActionsHandler implements CallbackHandler {
 
         messageService.deleteMessagesExceptFirst(1);
         printCard(card);
-        printFinalMessage(card);
     }
 
     private void editAnswer(String data) {
@@ -159,8 +156,9 @@ public class NewCardActionsHandler implements CallbackHandler {
         var keyboard = keyboardProvider.getMainMenu();
         var card = cardService.getCard(cardId);
         var collectionName = card.getCollection().getName();
-        var text = messageProvider.getText("create_card.created", collectionName);
+        var text = messageProvider.getText("main_menu", collectionName);
         messageService.sendMessage(text, keyboard);
+        messageService.deleteMessagesExceptLast(1);
 
         getUser().setCurrentCardId(null);
     }
@@ -179,7 +177,7 @@ public class NewCardActionsHandler implements CallbackHandler {
         card.setCollection(collection);
         var text = messageProvider.getMessage("card.collections.changed", user.getLanguage(), collection.getName());
         var keyboard = keyboardProvider.getMainMenu(user);
-        messageService.sendMessage( text, keyboard);
+        messageService.sendMessage(text, keyboard);
 
         messageService.deleteMessage(user.getChatId(), messageId);
 
@@ -230,11 +228,17 @@ public class NewCardActionsHandler implements CallbackHandler {
             messageService.sendMessage(card.getQuestion(), keyboardProvider.getOneInlineButton(buttonText, callback));
         }
         if (card.getAnswer() != null) {
-            messageService.sendMessage(messageProvider.getText("create_card.answer"));
+            messageService.sendMessage(
+                messageProvider.getText("create_card.answer"),
+                keyboardProvider.getMainMenu()
+            );
 
             var buttonText = messageProvider.getText("button.card.edit_answer");
             var callback = NewCardCallback.builder().action(EDIT_ANSWER).data(card.getId().toString()).build();
             messageService.sendMessage(card.getAnswer(), keyboardProvider.getOneInlineButton(buttonText, callback));
+        }
+        if (card.getQuestion() != null && card.getAnswer() != null) {
+            printFinalMessage(card);
         }
     }
 

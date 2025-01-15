@@ -142,7 +142,10 @@ public class CardCallbackHandler implements CallbackHandler {
         var card = cardService.findById(cardId).orElseThrow();
         client.clearCallbackKeyboard();
         var answerKeyboard = keyboardProvider.getInlineKnowledgeCheckKeyboard(cardId);
-        client.sendMessage(card.getAnswer(), answerKeyboard);
+        client.sendMessage(
+            messageProvider.getText("button.card.answer_emoji") + card.getAnswer(),
+            answerKeyboard
+        );
     }
 
     private void selectCard(UUID cardId, String additionalData) {

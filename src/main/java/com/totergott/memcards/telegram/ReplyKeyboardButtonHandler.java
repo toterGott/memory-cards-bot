@@ -196,7 +196,7 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void sendCard(Card card, TelegramUser user) {
-        messageService.sendMessage(messageProvider.getText("button.card.emoji"));
+        messageService.sendMessage(messageProvider.getText("card_placeholder"));
         var collectionName = card.getCollection().getName();
         messageService.sendMessage(
             messageProvider.getText("button.collections.emoji") + collectionName,
@@ -204,7 +204,7 @@ public class ReplyKeyboardButtonHandler {
         );
 
         var keyboard = kp.getInlineShowAnswerKeyboard(card.getId());
-        messageService.sendMessage(messageProvider.getText("button.card.emoji") + card.getQuestion(), keyboard);
+        messageService.sendMessage(messageProvider.getText("button.card.question_emoji") + card.getQuestion(), keyboard);
         user.setCurrentCardId(card.getId());
         user.setState(QUESTION_SHOWED);
 
@@ -234,9 +234,14 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void sendSettingsMessage(TelegramUser user) {
+        messageService.sendMessage(
+            messageProvider.getText("emoji.settings"),
+            kp.getOneReplyButton(messageProvider.getText("button.back_to_main_menu"))
+        );
         var text = "v." + version + "\n" + messageProvider.getText("settings");
         var settingsKeyboard = kp.getSettingsMenu(user);
         messageService.sendMessage(text, settingsKeyboard);
+        messageService.deleteMessagesExceptLast(2);
     }
 
     private void handleUnknownMessage() {
