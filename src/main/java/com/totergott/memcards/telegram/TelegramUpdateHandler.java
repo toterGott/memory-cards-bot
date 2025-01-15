@@ -108,7 +108,7 @@ public class TelegramUpdateHandler {
 
         getUser().setState(STAND_BY);
 
-        var text = messageProvider.getText("collections.created");
+        var text = messageProvider.getText("create.collection.created");
         messageService.sendMessage(text, keyboardProvider.getMainMenu());
     }
 

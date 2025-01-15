@@ -4,29 +4,21 @@ import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
 import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
-import static com.totergott.memcards.user.UserState.EVALUATE_ANSWER;
 import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
 import static com.totergott.memcards.user.UserState.STAND_BY;
-import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.MINUTES;
 
 import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
 import com.totergott.memcards.telegram.callback.handler.NewCardActionsHandler;
-import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
-import com.totergott.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import com.totergott.memcards.user.TelegramUser;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
 
 @Component
 @RequiredArgsConstructor
@@ -42,6 +34,7 @@ public class ReplyKeyboardButtonHandler {
     private final CollectionService collectionService;
     private final CardService cardService;
     private final NewCardActionsHandler newCardActionsHandler;
+    private final CommonHandler commonHandler;
 
     public void handleButton(Update update, TelegramUser user) {
         var text = update.getMessage().getText();
@@ -53,11 +46,10 @@ public class ReplyKeyboardButtonHandler {
         switch (key) {
             case "button.schedule" -> handleSchedule();
             case "button.settings" -> sendSettingsMessage(user);
-            case "button.collections" -> collections();
+            case "button.collections" -> commonHandler.collectionsScreen();
             case "button.new_card" -> newCardActionsHandler.startCreateCardDialog();
-            case "button.create_collection" -> createCollection();
+            case "button.new_collection" -> createCollection();
             case "button.get_card" -> getCard(user);
-            case "button.show_answer" -> showAnswer(user);
             case "button.remove_focus" -> removeFocus(user);
             case "button.back_to_main_menu" -> mainMenu();
             default -> handleUnknownMessage();
@@ -91,89 +83,11 @@ public class ReplyKeyboardButtonHandler {
         }
         var keyboard = keyboardProvider.getScheduleKeyboard();
         messageService.sendMessage(
-            messageProvider.getText("schedule.emoji"),
+            messageProvider.getText("emoji.schedule"),
             keyboardProvider.getBackToMainMenuReply()
         );
         messageService.sendMessage(text, keyboard);
         messageService.deleteMessagesExceptLast(2);
-    }
-
-    private void showAnswer(TelegramUser user) {
-        var card = cardService.getCard(user.getCurrentCardId());
-        var keyboard = keyboardProvider.getKnowledgeCheckKeyboard(user.getLanguage());
-        user.setState(EVALUATE_ANSWER);
-        messageService.sendMessage( card.getAnswer(), keyboard);
-    }
-
-    private void setCardGrade(TelegramUser user, Update update, int grade) {
-        var card = cardService.getCard(user.getCurrentCardId());
-
-        String text;
-        Instant appearTime = Instant.now();
-
-        // todo improve, get rid of bulky switch, simplify
-        switch (grade) {
-            default -> {
-                text = messageProvider.getMessage(
-                    "card_answered",
-                    user.getLanguage(),
-                    "1",
-                    MINUTES.toString().toLowerCase(),
-                    card.getCollection().getName()
-                );
-            }
-            case 1 -> {
-                appearTime = appearTime.plus(10, MINUTES);
-                text = messageProvider.getMessage(
-                    "card_answered",
-                    user.getLanguage(),
-                    "10",
-                    MINUTES.toString().toLowerCase(),
-                    card.getCollection().getName()
-                );
-            }
-            case 2 -> {
-                appearTime = appearTime.plus(1, DAYS);
-                text = messageProvider.getMessage(
-                    "card_answered",
-                    user.getLanguage(),
-                    "1",
-                    DAYS.toString().toLowerCase(),
-                    card.getCollection().getName()
-                );
-            }
-            case 3 -> {
-                appearTime = appearTime.plus(4, DAYS);
-                text = messageProvider.getMessage(
-                    "card_answered",
-                    user.getLanguage(),
-                    "4",
-                    DAYS.toString().toLowerCase(),
-                    card.getCollection().getName()
-                );
-            }
-        }
-
-        if (user.getFocusedOnCollection() != null) {
-            var collectionName = collectionService.getById(user.getFocusedOnCollection().getId()).orElseThrow()
-                .getName();
-            text += " " + messageProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
-        }
-
-        card.setAppearTime(appearTime);
-        user.setState(STAND_BY);
-        var mainMenu = keyboardProvider.getMainMenu(user);
-        messageService.sendMessage( text, mainMenu);
-
-        if (user.getPayload().getSchedule() != null) {
-            var schedule = user.getPayload().getSchedule();
-            var nextRun = schedule.getNextRun().plus(schedule.getHours(), ChronoUnit.HOURS);
-            schedule.setNextRun(nextRun);
-        }
-
-        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(card.getId());
-        text = messageProvider.getText("card.actions");
-        messageService.sendMessage(text, keyboard);
     }
 
     private void getCard(TelegramUser user) {
@@ -197,15 +111,15 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void sendCard(Card card, TelegramUser user) {
-        messageService.sendMessage(messageProvider.getText("card_placeholder"));
+        messageService.sendMessage(messageProvider.getText("emoji.card"));
         var collectionName = card.getCollection().getName();
         messageService.sendMessage(
-            messageProvider.getText("button.collections.emoji") + collectionName,
+            messageProvider.getText("emoji.collection") + collectionName,
             keyboardProvider.getBackToMainMenuReply()
         );
 
         var keyboard = keyboardProvider.getInlineShowAnswerKeyboard(card.getId());
-        messageService.sendMessage(messageProvider.getText("button.card.question_emoji") + card.getQuestion(), keyboard);
+        messageService.sendMessage(messageProvider.getText("emoji.card") + card.getQuestion(), keyboard);
         user.setCurrentCardId(card.getId());
         user.setState(QUESTION_SHOWED);
 
@@ -215,23 +129,7 @@ public class ReplyKeyboardButtonHandler {
     private void removeFocus(TelegramUser user) {
         user.setFocusedOnCollection(null);
         var keyboard = keyboardProvider.getMainMenu(user);
-        messageService.sendMessage( messageProvider.getMessage("focus_removed", user.getLanguage()), keyboard);
-    }
-
-    private void collections() {
-        messageService.sendMessage(
-            messageProvider.getText("button.collections.emoji"),
-            keyboardProvider.getBackToMainMenuReply()
-        );
-        var page = collectionService.getCollectionsPage(getUser().getId(), 0);
-        var text = messageProvider.getText("collections");
-
-        CollectionsCallback callback = new CollectionsCallback();
-        callback.setAction(CollectionCallbackAction.SELECT);
-        var pageKeyboard = keyboardProvider.buildPage(page, callback);
-        text = messageProvider.appendPageInfo(text, page);
-        messageService.sendMessage(text, pageKeyboard);
-        messageService.deleteMessagesExceptLast(2);
+        messageService.sendMessage(messageProvider.getMessage("collections.focus_removed", user.getLanguage()), keyboard);
     }
 
     private void sendSettingsMessage(TelegramUser user) {
@@ -251,7 +149,12 @@ public class ReplyKeyboardButtonHandler {
 
     private void createCollection() {
         getUser().setState(COLLECTION_CREATION);
-        var text = messageProvider.getText("collections.create");
-        messageService.sendMessage(text, new ReplyKeyboardRemove(true));
+        messageService.sendMessage(messageProvider.getText("emoji.create"));
+        var text = messageProvider.getText("create.collection.name_prompt");
+        messageService.sendMessage(
+            text,
+            ForceReplyKeyboard.builder().forceReply(true).inputFieldPlaceholder(text).build()
+        );
+        messageService.deleteMessagesExceptLast(2);
     }
 }

@@ -61,7 +61,7 @@ public class PageNavigationCallbackHandler implements CallbackHandler {
             case CARD -> {
                 CardCallback cardCallback = (CardCallback) pageCallback;
                 var collection = cardService.getCard(UUID.fromString(cardCallback.getData())).getCollection();
-                text = messageProvider.getText("cards", collection.getName());
+                text = messageProvider.getText("collections.cards", collection.getName());
                 newPage = cardService.getCardPageByCollectionId(
                     collection.getId(),
                     Integer.parseInt(pageNavigationCallback.getData())

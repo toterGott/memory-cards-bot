@@ -67,8 +67,8 @@ public class NewCardActionsHandler implements CallbackHandler {
             cardService.deleteIfUnfinished(getUser().getCurrentCardId());
             getUser().setCurrentCardId(null);
         }
-        messageService.sendMessage(messageProvider.getText("button.create.emoji"));
-        var text = messageProvider.getText("create_card.question_prompt");
+        messageService.sendMessage(messageProvider.getText("emoji.create"));
+        var text = messageProvider.getText("create.card.question_prompt");
         messageService.sendMessage(
             text,
             ForceReplyKeyboard.builder().forceReply(true).inputFieldPlaceholder(text).build()
@@ -103,7 +103,7 @@ public class NewCardActionsHandler implements CallbackHandler {
 
         if (card.getAnswer() == null) {
             getUser().setState(UserState.WAIT_CARD_ANSWER_INPUT);
-            var answerMessageText = messageProvider.getText("create_card.answer_prompt");
+            var answerMessageText = messageProvider.getText("create.card.answer_prompt");
             messageService.sendMessage(
                 answerMessageText,
                 ForceReplyKeyboard.builder().forceReply(true).inputFieldPlaceholder(answerMessageText).build()
@@ -119,7 +119,7 @@ public class NewCardActionsHandler implements CallbackHandler {
         messageService.deleteMessagesExceptFirst(1);
         printCard(card);
 
-        var text = messageProvider.getText("create_card.question_prompt");
+        var text = messageProvider.getText("create.card.question_prompt");
         messageService.sendMessage(
             text,
             ForceReplyKeyboard.builder().forceReply(true).inputFieldPlaceholder(text).build()
@@ -145,7 +145,7 @@ public class NewCardActionsHandler implements CallbackHandler {
         messageService.deleteMessagesExceptFirst(1);
         printCard(card);
 
-        var text = messageProvider.getText("create_card.answer_prompt");
+        var text = messageProvider.getText("create.card.answer_prompt");
         messageService.sendMessage(
             text,
             ForceReplyKeyboard.builder().forceReply(true).inputFieldPlaceholder(text).build()
@@ -218,7 +218,10 @@ public class NewCardActionsHandler implements CallbackHandler {
 
     private void printCard(Card card) {
         if (card.getQuestion() != null) {
-            messageService.sendMessage(messageProvider.getText("create_card.question"));
+            messageService.sendMessage(
+                messageProvider.getText("emoji.card")
+                + messageProvider.getText("create.card.question")
+            );
 
             var buttonText = messageProvider.getText("button.card.edit_question");
             var callback = NewCardCallback.builder().action(EDIT_QUESTION).data(card.getId().toString()).build();
@@ -226,7 +229,8 @@ public class NewCardActionsHandler implements CallbackHandler {
         }
         if (card.getAnswer() != null) {
             messageService.sendMessage(
-                messageProvider.getText("create_card.answer"),
+                messageProvider.getText("emoji.answer")
+                + messageProvider.getText("create.card.answer"),
                 keyboardProvider.getMainMenu()
             );
 
@@ -241,7 +245,7 @@ public class NewCardActionsHandler implements CallbackHandler {
 
     private void printFinalMessage(Card card) {
         var cardCreatedText = messageProvider.getText(
-            "create_card.created",
+            "create.card.created",
             card.getCollection().getName()
         );
         var cardCreatedInlineKeyboard = keyboardProvider.getCardCreatedInlineKeyboard(card.getId());

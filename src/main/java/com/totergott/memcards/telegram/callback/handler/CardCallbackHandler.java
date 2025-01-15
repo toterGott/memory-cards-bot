@@ -149,14 +149,14 @@ public class CardCallbackHandler implements CallbackHandler {
         messageService.clearCallbackKeyboard();
         var answerKeyboard = keyboardProvider.getInlineKnowledgeCheckKeyboard(cardId);
         messageService.sendMessage(
-            messageProvider.getText("button.card.answer_emoji") + card.getAnswer(),
+            messageProvider.getText("emoji.answer") + card.getAnswer(),
             answerKeyboard
         );
     }
 
     private void selectCard(UUID cardId, String additionalData) {
         var card = cardService.findById(cardId).orElseThrow();
-        var text = messageProvider.getText("card.selected", card.getQuestion(), card.getAnswer());
+        var text = messageProvider.getText("collections.cards.selected", card.getQuestion(), card.getAnswer());
         var keyboard = keyboardProvider.buildCardKeyboard(cardId, additionalData);
 
         messageService.editCallbackMessage(text, keyboard);
@@ -171,7 +171,8 @@ public class CardCallbackHandler implements CallbackHandler {
         }
 
         card.setCollection(collection);
-        var text = messageProvider.getText("card.collections.changed", collection.getName());
+        var text = messageProvider.getText("emoji.collection") +
+            messageProvider.getText("card.collections.changed", collection.getName());
         var keyboard = keyboardProvider.getMainMenu(user);
         messageService.sendMessage(text, keyboard);
 
@@ -255,7 +256,7 @@ public class CardCallbackHandler implements CallbackHandler {
         CardCallback cardCallback = new CardCallback();
         cardCallback.setAction(CardCallbackAction.SELECT);
         var keyboard = keyboardProvider.buildPage(cardPage, cardCallback);
-        var text = messageProvider.getText("cards", collectionName);
+        var text = messageProvider.getText("collections.cards", collectionName);
         text = messageProvider.appendPageInfo(text, cardPage);
         messageService.editCallbackMessage(text, keyboard);
     }

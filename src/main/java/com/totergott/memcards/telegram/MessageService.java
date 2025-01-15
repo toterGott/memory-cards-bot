@@ -171,7 +171,7 @@ public class MessageService {
     // todo should be somewhere else but not in the message service
     public void checkoutMainMenu() {
         getUser().setState(UserState.STAND_BY);
-        sendMessage(messageProvider.getText("main_menu.emoji"));
+        sendMessage(messageProvider.getText("emoji.main_menu"));
         var keyboard = keyboardProvider.getMainMenu();
         var text = messageProvider.getText("main_menu");
         sendMessage(text, keyboard);
