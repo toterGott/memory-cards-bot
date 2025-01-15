@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -16,6 +17,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class CardService {
+
+    @Value("${app.page_size}")
+    private Integer pageSize;
 
     private final CardRepository repository;
 
@@ -54,7 +58,7 @@ public class CardService {
     }
 
     public Page<Card> getCardPageByCollectionId(UUID collectionId, int pageIdx) {
-        var pageRequest = PageRequest.of(pageIdx, 3, Sort.by(Order.desc("createdAt")));
+        var pageRequest = PageRequest.of(pageIdx, pageSize, Sort.by(Order.desc("createdAt")));
         return repository.findAllByCollectionId(collectionId, pageRequest);
     }
 

@@ -6,6 +6,7 @@ import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 
 import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.user.UserState;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -32,6 +33,7 @@ public class MessageService {
 
     private final TelegramClient telegramClient;
     private final MessageProvider messageProvider;
+    private final KeyboardProvider keyboardProvider;
 
     public Message sendMessage(Long chatId, String text, ReplyKeyboard replyKeyboard) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), text);
@@ -39,8 +41,10 @@ public class MessageService {
         sendMessage.setReplyMarkup(replyKeyboard);
         try {
             var message = telegramClient.execute(sendMessage);
-            if (getUser() != null) { // todo remove
+            if (getUser() != null) {
                 getUser().getPayload().getChatMessages().add(message.getMessageId());
+            } else {
+                log.error("Message id could not be saved dut to missing user in the context");
             }
             return message;
         } catch (TelegramApiException e) {
@@ -162,5 +166,15 @@ public class MessageService {
     public void editCallbackKeyboard(InlineKeyboardMarkup keyboard) {
         var sameText = ((Message) (getCallback().getMessage())).getText();
         editCallbackMessage(sameText, keyboard);
+    }
+
+    // todo should be somewhere else but not in the message service
+    public void checkoutMainMenu() {
+        getUser().setState(UserState.STAND_BY);
+        sendMessage(messageProvider.getText("main_menu.emoji"));
+        var keyboard = keyboardProvider.getMainMenu();
+        var text = messageProvider.getText("main_menu");
+        sendMessage(text, keyboard);
+        deleteMessagesExceptLast(2);
     }
 }

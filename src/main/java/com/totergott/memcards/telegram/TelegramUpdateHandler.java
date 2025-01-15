@@ -55,10 +55,12 @@ public class TelegramUpdateHandler {
             log.debug("User {} state before {}", user.getUsername(), user.getState());
             telegramUserThreadLocal.set(user);
 
-            SendChatAction sendChatAction = SendChatAction.builder()
-                .action("typing")
-                .chatId(getUser().getChatId()).build();
-            messageService.execute(sendChatAction);
+            if (!update.hasCallbackQuery()) {
+                SendChatAction sendChatAction = SendChatAction.builder()
+                    .action("typing")
+                    .chatId(getUser().getChatId()).build();
+                messageService.execute(sendChatAction);
+            }
 
             if (update.hasCallbackQuery()) {
                 callbackHandler.handleCallback(update.getCallbackQuery(), user);
@@ -120,13 +122,7 @@ public class TelegramUpdateHandler {
                 user.setState(STAND_BY);
                 sendWelcomeMessage(user);
             }
-            case "/menu" -> {
-                user.setState(STAND_BY);
-                var text = messageProvider.getText("main_menu");
-                messageService.sendMessage(text, keyboardProvider.getMainMenu());
-                messageService.deleteMessagesExceptLast(1);
-                cardService.deleteIfUnfinished(getUser().getCurrentCardId());
-            }
+            case "/menu" -> messageService.checkoutMainMenu();
         }
     }
 
