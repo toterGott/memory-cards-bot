@@ -37,6 +37,7 @@ public class SettingsCallbackHandler implements CallbackHandler {
         switch (settingsCallback.getAction()) {
             case LANGUAGE -> languageSettings(settingsCallback, user, messageId);
             case CHANNEL_LANGUAGE -> changeLanguage(settingsCallback, user, messageId);
+            case INFO -> info();
         }
     }
 
@@ -54,5 +55,10 @@ public class SettingsCallbackHandler implements CallbackHandler {
         var text = messageProvider.getMessage("settings.language", user.getLanguage());
         var keyboard = keyboardProvider.buildLanguageKeyboard();
         client.editMessage(user.getChatId(), messageId, text, keyboard);
+    }
+
+    private void info() {
+        client.deleteMessagesExceptFirst(1);
+        client.sendMessage(messageProvider.getText("about_url"));
     }
 }
