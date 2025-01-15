@@ -370,6 +370,14 @@ public class KeyboardProvider {
         row.add(changeCollection);
         keyboard.add(row);
 
+        row = new InlineKeyboardRow();
+        callback.setAction(CardCallbackAction.EDIT);
+        text = messageProvider.getText("button.card.edit");
+        var editCard = new InlineKeyboardButton(text);
+        editCard.setCallbackData(writeCallback(callback));
+        row.add(editCard);
+        keyboard.add(row);
+
         return new InlineKeyboardMarkup(keyboard);
     }
 

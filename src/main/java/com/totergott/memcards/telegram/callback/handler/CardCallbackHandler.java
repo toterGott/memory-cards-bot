@@ -36,7 +36,7 @@ public class CardCallbackHandler implements CallbackHandler {
     private final CardService cardService;
     private final MessageProvider messageProvider;
     private final KeyboardProvider keyboardProvider;
-    private final MessageService client;
+    private final MessageService messageService;
 
     @Getter
     CallbackSource callbackSource = CallbackSource.CARD;
@@ -56,12 +56,18 @@ public class CardCallbackHandler implements CallbackHandler {
             case SHOW_ANSWER -> showAnswer(UUID.fromString(callback.getData()));
             case CHECK_KNOWLEDGE -> checkKnowledge(UUID.fromString(callback.getData()), callback.getAdditionalData());
             case CONFIGS -> showConfigOptions(UUID.fromString(callback.getData()));
+            case EDIT -> editCard(callback.getData());
         }
+    }
+
+    private void editCard(String data) {
+        // todo introduce common component to edit card on creation, after answer and in cards browser
+        messageService.notImplementedAlert();
     }
 
     private void showConfigOptions(UUID uuid) {
         InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswerWithOptions(uuid);
-        client.editCallbackKeyboard(keyboard);
+        messageService.editCallbackKeyboard(keyboard);
     }
 
     private void checkKnowledge(UUID uuid, String additionalData) {
@@ -124,7 +130,7 @@ public class CardCallbackHandler implements CallbackHandler {
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
         var mainMenu = keyboardProvider.getMainMenu(user);
-        client.sendMessage(text, mainMenu);
+        messageService.sendMessage(text, mainMenu);
 
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
@@ -134,15 +140,15 @@ public class CardCallbackHandler implements CallbackHandler {
 
         InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(card.getId());
         text = messageProvider.getText("card.actions");
-        client.clearCallbackKeyboard();
-        client.sendMessage(text, keyboard);
+        messageService.clearCallbackKeyboard();
+        messageService.sendMessage(text, keyboard);
     }
 
     private void showAnswer(UUID cardId) {
         var card = cardService.findById(cardId).orElseThrow();
-        client.clearCallbackKeyboard();
+        messageService.clearCallbackKeyboard();
         var answerKeyboard = keyboardProvider.getInlineKnowledgeCheckKeyboard(cardId);
-        client.sendMessage(
+        messageService.sendMessage(
             messageProvider.getText("button.card.answer_emoji") + card.getAnswer(),
             answerKeyboard
         );
@@ -153,7 +159,7 @@ public class CardCallbackHandler implements CallbackHandler {
         var text = messageProvider.getText("card.selected", card.getQuestion(), card.getAnswer());
         var keyboard = keyboardProvider.buildCardKeyboard(cardId, additionalData);
 
-        client.editCallbackMessage(text, keyboard);
+        messageService.editCallbackMessage(text, keyboard);
     }
 
     private void setCollection(UUID id) {
@@ -167,9 +173,9 @@ public class CardCallbackHandler implements CallbackHandler {
         card.setCollection(collection);
         var text = messageProvider.getText("card.collections.changed", collection.getName());
         var keyboard = keyboardProvider.getMainMenu(user);
-        client.sendMessage(text, keyboard);
+        messageService.sendMessage(text, keyboard);
 
-        client.deleteCallbackMessage();
+        messageService.deleteCallbackMessage();
 
         user.setCurrentCardId(null);
     }
@@ -194,7 +200,7 @@ public class CardCallbackHandler implements CallbackHandler {
         );
 
         text = messageProvider.appendPageInfo(text, page);
-        client.editCallbackMessage(text, pageKeyboard);
+        messageService.editCallbackMessage(text, pageKeyboard);
     }
 
     private void changePage(String pageNumber) {
@@ -216,26 +222,26 @@ public class CardCallbackHandler implements CallbackHandler {
         );
 
         text = messageProvider.appendPageInfo(text, page);
-        client.editCallbackMessage(text, pageKeyboard);
+        messageService.editCallbackMessage(text, pageKeyboard);
     }
 
     private void cancel(UUID cardId) {
         InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(cardId);
         var text = messageProvider.getText("card.actions");
-        client.editCallbackMessage(text, keyboard);
+        messageService.editCallbackMessage(text, keyboard);
     }
 
     private void confirmDelete(UUID cardId) {
         cardService.deleteById(cardId);
 
-        client.editCallbackMessage(
+        messageService.editCallbackMessage(
             messageProvider.getText("card.delete.deleted"),
             null
         );
     }
 
     private void deleteCard(UUID cardId) {
-        client.editCallbackMessage(
+        messageService.editCallbackMessage(
             messageProvider.getText("card.delete.confirm"),
             keyboardProvider.getCardDeleteConfirmation(cardId.toString())
         );
@@ -251,6 +257,6 @@ public class CardCallbackHandler implements CallbackHandler {
         var keyboard = keyboardProvider.buildPage(cardPage, cardCallback);
         var text = messageProvider.getText("cards", collectionName);
         text = messageProvider.appendPageInfo(text, cardPage);
-        client.editCallbackMessage(text, keyboard);
+        messageService.editCallbackMessage(text, keyboard);
     }
 }
