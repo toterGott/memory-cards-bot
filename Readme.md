@@ -3,13 +3,11 @@
 This is a telegram bot with memory cards.
 
  ## TODOs
-- Hide edit card options after card answer inside a menu
-- Clean up messages
 - Add Grafana loki for logs
-- Todo make cards unavailable if it's not time yet
-- Handle OK after card creation. Remove callback buttons
-- After card deletion clean everything
+- Add liquibase
+- Todo make cards unavailable if it's not time yet (should I?)
 - Add "create a card" in collection's options
+- Change default collections names on a language change
 
 
 ```shell

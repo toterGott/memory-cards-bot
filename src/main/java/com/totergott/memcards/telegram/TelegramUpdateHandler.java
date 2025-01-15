@@ -19,6 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
@@ -53,6 +54,12 @@ public class TelegramUpdateHandler {
             var user = welcomeOrGetUser(update);
             log.debug("User {} state before {}", user.getUsername(), user.getState());
             telegramUserThreadLocal.set(user);
+
+            SendChatAction sendChatAction = SendChatAction.builder()
+                .action("typing")
+                .chatId(getUser().getChatId()).build();
+            messageService.execute(sendChatAction);
+
             if (update.hasCallbackQuery()) {
                 callbackHandler.handleCallback(update.getCallbackQuery(), user);
             } else if (update.hasMessage()) {
@@ -63,7 +70,6 @@ public class TelegramUpdateHandler {
         } catch (Exception e) {
             if (update.hasMessage()) {
                 messageService.deleteMessage(getUpdate().getMessage().getChatId(), getMessage().getMessageId());
-                messageService.sendMessage(getUpdate().getMessage().getChatId(), "ERROR");
             }
             log.error("Error in update handler", e);
         } finally {
