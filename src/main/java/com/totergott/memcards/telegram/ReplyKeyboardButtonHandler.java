@@ -74,6 +74,13 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void handleSchedule() {
+        if (true) { // todo fix card sending by the scheduler
+            messageService.sendMessage(
+                messageProvider.getText("not_implemented"),
+                keyboardProvider.getBackToMainMenuReply());
+            messageService.deleteMessagesExceptLast(1);
+            return;
+        }
         var schedule = getUser().getPayload().getSchedule();
         String text;
         if (schedule != null) {
@@ -129,7 +136,10 @@ public class ReplyKeyboardButtonHandler {
     private void removeFocus(TelegramUser user) {
         user.setFocusedOnCollection(null);
         var keyboard = keyboardProvider.getMainMenu(user);
-        messageService.sendMessage(messageProvider.getMessage("collections.focus_removed", user.getLanguage()), keyboard);
+        messageService.sendMessage(
+            messageProvider.getMessage("collections.focus_removed", user.getLanguage()),
+            keyboard
+        );
     }
 
     private void sendSettingsMessage(TelegramUser user) {
