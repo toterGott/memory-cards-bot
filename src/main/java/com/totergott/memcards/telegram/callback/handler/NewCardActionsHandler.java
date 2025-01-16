@@ -218,25 +218,24 @@ public class NewCardActionsHandler implements CallbackHandler {
 
     private void printCard(Card card) {
         if (card.getQuestion() != null) {
-            messageService.sendMessage(
-                messageProvider.getText("emoji.card")
-                + messageProvider.getText("create.card.question")
-            );
-
             var buttonText = messageProvider.getText("button.card.edit_question");
             var callback = NewCardCallback.builder().action(EDIT_QUESTION).data(card.getId().toString()).build();
-            messageService.sendMessage(card.getQuestion(), keyboardProvider.getOneInlineButton(buttonText, callback));
+
+            messageService.sendMessage(
+                messageProvider.getText("emoji.card")
+                + card.getQuestion(),
+                keyboardProvider.getOneInlineButton(buttonText, callback)
+            );
         }
         if (card.getAnswer() != null) {
-            messageService.sendMessage(
-                messageProvider.getText("emoji.answer")
-                + messageProvider.getText("create.card.answer"),
-                keyboardProvider.getMainMenu()
-            );
-
             var buttonText = messageProvider.getText("button.card.edit_answer");
             var callback = NewCardCallback.builder().action(EDIT_ANSWER).data(card.getId().toString()).build();
-            messageService.sendMessage(card.getAnswer(), keyboardProvider.getOneInlineButton(buttonText, callback));
+
+            messageService.sendMessage(
+                messageProvider.getText("emoji.answer")
+                + card.getAnswer(),
+                keyboardProvider.getOneInlineButton(buttonText, callback)
+            );
         }
         if (card.getQuestion() != null && card.getAnswer() != null) {
             printFinalMessage(card);
