@@ -214,15 +214,12 @@ public class KeyboardProvider {
         rows.add(new InlineKeyboardRow(choose));
 
         callback.setAction(CollectionCallbackAction.EDIT_CARDS);
-        var editCards = new InlineKeyboardButton(messageProvider.getMessage("collection.button.edit", language));
+        var editCards = new InlineKeyboardButton(
+            messageProvider.getText("emoji.card")
+            + messageProvider.getText("collection.button.edit_cards")
+        );
         editCards.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(editCards));
-
-        callback.setAction(CollectionCallbackAction.BACK);
-        callback.setAdditionalData(pageNumber);
-        var back = new InlineKeyboardButton(messageProvider.getMessage("collection.button.back", language));
-        back.setCallbackData(writeCallback(callback));
-        rows.add(new InlineKeyboardRow(back));
 
         callback.setAction(CollectionCallbackAction.DELETE);
         var delete = new InlineKeyboardButton(
@@ -231,6 +228,15 @@ public class KeyboardProvider {
         );
         delete.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(delete));
+
+        callback.setAction(CollectionCallbackAction.BACK);
+        callback.setAdditionalData(pageNumber);
+        var back = new InlineKeyboardButton(
+            messageProvider.getText("emoji.back")
+                + messageProvider.getText("button.back")
+        );
+        back.setCallbackData(writeCallback(callback));
+        rows.add(new InlineKeyboardRow(back));
 
         return new InlineKeyboardMarkup(rows);
     }
@@ -287,10 +293,10 @@ public class KeyboardProvider {
         rows.add(new InlineKeyboardRow(confirmDelete));
 
         callback.setAction(CollectionCallbackAction.SELECT);
-        var back = new InlineKeyboardButton(messageProvider.getMessage(
-            "button.back",
-            user.getLanguage()
-        ));
+        var back = new InlineKeyboardButton(
+            messageProvider.getText("emoji.back")
+                + messageProvider.getText("button.back")
+        );
         back.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(back));
 
@@ -304,7 +310,7 @@ public class KeyboardProvider {
 
         SettingsCallback callback = SettingsCallback.builder()
             .source(CallbackSource.SETTINGS)
-            .action(SettingsCallbackAction.CHANNEL_LANGUAGE)
+            .action(SettingsCallbackAction.CHANGE_LANGUAGE)
             .build();
 
         callback.setData(AvailableLocale.EN.name());
@@ -505,24 +511,13 @@ public class KeyboardProvider {
         row.add(deleteButton);
 
         callback.setAction(CardCallbackAction.BACK);
-        var backButton = new InlineKeyboardButton(messageProvider.getText("button.back"));
+        var backButton = new InlineKeyboardButton(
+            messageProvider.getText("emoji.back")
+                + messageProvider.getText("button.back"));
         backButton.setCallbackData(writeCallback(callback));
         row.add(backButton);
 
         return new InlineKeyboardMarkup(rows);
-    }
-
-    public ReplyKeyboardMarkup getCollectionsPlaceholder() {
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
-
-        KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getText("emoji.collection"));
-        keyboard.add(row);
-
-        keyboardMarkup.setKeyboard(keyboard);
-        keyboardMarkup.setResizeKeyboard(true);
-        return keyboardMarkup;
     }
 
     public ReplyKeyboardMarkup getOneSingleButton(String text) {
