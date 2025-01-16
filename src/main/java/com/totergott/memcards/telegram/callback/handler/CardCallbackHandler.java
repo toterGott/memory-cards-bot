@@ -9,6 +9,7 @@ import static java.time.temporal.ChronoUnit.MINUTES;
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.telegram.CommonHandler;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
@@ -38,6 +39,7 @@ public class CardCallbackHandler implements CallbackHandler {
     private final MessageProvider messageProvider;
     private final KeyboardProvider keyboardProvider;
     private final MessageService messageService;
+    private final CommonHandler commonHandler;
 
     @Getter
     CallbackSource callbackSource = CallbackSource.CARD;
@@ -59,7 +61,12 @@ public class CardCallbackHandler implements CallbackHandler {
             case CONFIGS -> showConfigOptions(UUID.fromString(callback.getData()));
             case EDIT -> editCard(callback.getData());
             case CHECK_INFO -> checkInfo();
+            case NEXT_CARD -> nextCard();
         }
+    }
+
+    private void nextCard() {
+        commonHandler.cardScreen();
     }
 
     private void checkInfo() {
@@ -138,8 +145,6 @@ public class CardCallbackHandler implements CallbackHandler {
 
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
-        var mainMenu = keyboardProvider.getMainMenu(user);
-        messageService.sendMessage(text, mainMenu);
 
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
@@ -147,10 +152,13 @@ public class CardCallbackHandler implements CallbackHandler {
             schedule.setNextRun(nextRun);
         }
 
-        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(card.getId());
-        text = messageProvider.getText("card.actions");
         messageService.clearCallbackKeyboard();
+
+        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(card.getId());
+        text += " " + messageProvider.getText("card.actions");
         messageService.sendMessage(text, keyboard);
+        // todo add a button to show another card
+        // todo save last collection where the card was added and save next card in it
     }
 
     private void showAnswer(UUID cardId) {
@@ -246,7 +254,7 @@ public class CardCallbackHandler implements CallbackHandler {
 
         messageService.editCallbackMessage(
             messageProvider.getText("card.delete.deleted"),
-            null
+            keyboardProvider.getAfterCardDeleted()
         );
     }
 

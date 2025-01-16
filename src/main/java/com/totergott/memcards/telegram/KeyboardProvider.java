@@ -216,7 +216,7 @@ public class KeyboardProvider {
         callback.setAction(CollectionCallbackAction.EDIT_CARDS);
         var editCards = new InlineKeyboardButton(
             messageProvider.getText("emoji.card")
-            + messageProvider.getText("collection.button.edit_cards")
+                + messageProvider.getText("collection.button.edit_cards")
         );
         editCards.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(editCards));
@@ -397,10 +397,21 @@ public class KeyboardProvider {
             .data(cardId.toString())
             .build();
 
-        var text = messageProvider.getText("button.card.configure");
+        var text = messageProvider.getText("emoji.config")
+            + messageProvider.getText("button.card.configure");
         var configureButton = new InlineKeyboardButton(text);
         configureButton.setCallbackData(writeCallback(callback));
         row.add(configureButton);
+
+        row = new InlineKeyboardRow();
+        keyboard.add(row);
+        callback.setAction(CardCallbackAction.NEXT_CARD);
+        var nextCard = new InlineKeyboardButton(
+            messageProvider.getText("emoji.card")
+                + messageProvider.getText("card.get_another")
+        );
+        nextCard.setCallbackData(writeCallback(callback));
+        row.add(nextCard);
 
         return new InlineKeyboardMarkup(keyboard);
     }
@@ -547,5 +558,29 @@ public class KeyboardProvider {
 
     public ReplyKeyboard getBackToMainMenuReply() {
         return getOneSingleButton(messageProvider.getText("button.back_to_main_menu"));
+    }
+
+    public InlineKeyboardMarkup getAfterCardDeleted() {
+
+        var row = new InlineKeyboardRow();
+        List<InlineKeyboardRow> keyboard = new ArrayList<>();
+        keyboard.add(row);
+
+        var callback = CardCallback.builder()
+            .source(CallbackSource.CARD)
+            .action(CardCallbackAction.CONFIGS)
+            .build();
+
+        row = new InlineKeyboardRow();
+        keyboard.add(row);
+        callback.setAction(CardCallbackAction.NEXT_CARD);
+        var nextCard = new InlineKeyboardButton(
+            messageProvider.getText("emoji.card")
+                + messageProvider.getText("card.get_another")
+        );
+        nextCard.setCallbackData(writeCallback(callback));
+        row.add(nextCard);
+
+        return new InlineKeyboardMarkup(keyboard);
     }
 }

@@ -4,10 +4,8 @@ import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
 import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
-import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 
-import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
@@ -98,39 +96,7 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void getCard(TelegramUser user) {
-        if (user.getFocusedOnCollection() == null) {
-            cardService.getCardToLearn(user.getId()).ifPresentOrElse(
-                card -> sendCard(card, user),
-                () -> messageService.sendMessage(messageProvider.getMessage("no_cards", user.getLanguage()))
-            );
-        } else {
-            cardService.getCardToLearn(user.getId(), user.getFocusedOnCollection().getId()).ifPresentOrElse(
-                card -> sendCard(card, user),
-                () -> messageService.sendMessage(
-                    messageProvider.getMessage(
-                        "no_cards_for_focus",
-                        user.getLanguage(),
-                        user.getFocusedOnCollection().getName()
-                    )
-                )
-            );
-        }
-    }
-
-    private void sendCard(Card card, TelegramUser user) {
-        messageService.sendMessage(messageProvider.getText("emoji.card"));
-        var collectionName = card.getCollection().getName();
-        messageService.sendMessage(
-            messageProvider.getText("emoji.collection") + collectionName,
-            keyboardProvider.getBackToMainMenuReply()
-        );
-
-        var keyboard = keyboardProvider.getInlineShowAnswerKeyboard(card.getId());
-        messageService.sendMessage(messageProvider.getText("emoji.card") + card.getQuestion(), keyboard);
-        user.setCurrentCardId(card.getId());
-        user.setState(QUESTION_SHOWED);
-
-        messageService.deleteMessagesExceptLast(3);
+        commonHandler.cardScreen();
     }
 
     private void removeFocus(TelegramUser user) {
