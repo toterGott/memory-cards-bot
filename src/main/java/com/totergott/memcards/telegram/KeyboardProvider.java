@@ -101,8 +101,17 @@ public class KeyboardProvider {
         InlineKeyboardRow row = new InlineKeyboardRow();
         rows.add(row);
         CardCallback callback =
-            CardCallback.builder().action(CardCallbackAction.CHECK_KNOWLEDGE).data(cardId.toString()).build();
+            CardCallback.builder().action(CardCallbackAction.CHECK_INFO).data(cardId.toString()).build();
 
+        InlineKeyboardButton checkInfo = new InlineKeyboardButton(messageProvider.getText(
+            "button.knowledge_check_info"));
+        checkInfo.setCallbackData(writeCallback(callback));
+        row.add(checkInfo);
+
+        row = new InlineKeyboardRow();
+        rows.add(row);
+
+        callback.setAction(CardCallbackAction.CHECK_KNOWLEDGE);
         InlineKeyboardButton againButton = new InlineKeyboardButton(messageProvider.getText("button.again"));
         callback.setAdditionalData("0");
         againButton.setCallbackData(writeCallback(callback));
