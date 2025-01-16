@@ -36,11 +36,12 @@ public class SettingsCallbackHandler implements CallbackHandler {
         Integer messageId = callbackQuery.getMessage().getMessageId();
         switch (settingsCallback.getAction()) {
             case LANGUAGE -> languageSettings(settingsCallback, user, messageId);
-            case CHANNEL_LANGUAGE -> changeLanguage(settingsCallback, user, messageId);
+            case CHANGE_LANGUAGE -> changeLanguage(settingsCallback, user, messageId);
             case INFO -> info();
         }
     }
 
+    // todo change default collections names and content
     private void changeLanguage(SettingsCallback settingsCallback, TelegramUser user, Integer messageId) {
         var newLanguage = AvailableLocale.valueOf(settingsCallback.getData());
         user.setLanguage(newLanguage);

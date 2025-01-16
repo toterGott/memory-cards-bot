@@ -35,7 +35,7 @@ public class SettingsCallback extends Callback {
     @RequiredArgsConstructor
     public enum SettingsCallbackAction implements EncodedEnum {
         LANGUAGE("l"),
-        CHANNEL_LANGUAGE("L"),
+        CHANGE_LANGUAGE("L"),
         INFO("i"),
         ;
 
