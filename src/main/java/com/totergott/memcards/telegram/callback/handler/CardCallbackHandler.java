@@ -1,5 +1,6 @@
 package com.totergott.memcards.telegram.callback.handler;
 
+import static com.totergott.memcards.telegram.TelegramUtils.getCallback;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -57,7 +58,15 @@ public class CardCallbackHandler implements CallbackHandler {
             case CHECK_KNOWLEDGE -> checkKnowledge(UUID.fromString(callback.getData()), callback.getAdditionalData());
             case CONFIGS -> showConfigOptions(UUID.fromString(callback.getData()));
             case EDIT -> editCard(callback.getData());
+            case CHECK_INFO -> checkInfo();
         }
+    }
+
+    private void checkInfo() {
+        messageService.showAlert(
+            getCallback().getId(),
+            messageProvider.getText("knowledge_check_info")
+        );
     }
 
     private void editCard(String data) {
