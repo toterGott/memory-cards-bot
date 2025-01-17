@@ -49,6 +49,7 @@ public class CardCallback extends Callback {
         CONFIGS("O"),
         CHECK_INFO("i"),
         NEXT_CARD("N"),
+        BACK_TO_CARD("B"),
         ;
 
         @Getter

@@ -358,30 +358,43 @@ public class KeyboardProvider {
 
         var callback = CardCallback.builder()
             .source(CallbackSource.CARD)
-            .action(CardCallbackAction.DELETE)
             .data(cardId.toString())
             .build();
 
-        var text = messageProvider.getText("button.card.delete");
+
+        callback.setAction(CardCallbackAction.CHANGE_COLLECTION);
+        var text = messageProvider.getText("emoji.collection")
+            + messageProvider.getText("button.card.change_collection");
+        var changeCollection = new InlineKeyboardButton(text);
+        changeCollection.setCallbackData(writeCallback(callback));
+        row.add(changeCollection);
+
+        row = new InlineKeyboardRow();
+        callback.setAction(CardCallbackAction.EDIT);
+        text = messageProvider.getText("emoji.edit")
+            + messageProvider.getText("button.card.edit");
+        var editCard = new InlineKeyboardButton(text);
+        editCard.setCallbackData(writeCallback(callback));
+        row.add(editCard);
+        keyboard.add(row);
+
+        row = new InlineKeyboardRow();
+        keyboard.add(row);
+        callback.setAction(CardCallbackAction.DELETE);
+        text = messageProvider.getText("emoji.delete")
+            + messageProvider.getText("button.card.delete");
         var delete = new InlineKeyboardButton(text);
         delete.setCallbackData(writeCallback(callback));
         row.add(delete);
 
         row = new InlineKeyboardRow();
-        callback.setAction(CardCallbackAction.CHANGE_COLLECTION);
-        text = messageProvider.getText("button.card.change_collection");
-        var changeCollection = new InlineKeyboardButton(text);
-        changeCollection.setCallbackData(writeCallback(callback));
-        row.add(changeCollection);
         keyboard.add(row);
-
-        row = new InlineKeyboardRow();
-        callback.setAction(CardCallbackAction.EDIT);
-        text = messageProvider.getText("button.card.edit");
-        var editCard = new InlineKeyboardButton(text);
-        editCard.setCallbackData(writeCallback(callback));
-        row.add(editCard);
-        keyboard.add(row);
+        callback.setAction(CardCallbackAction.BACK_TO_CARD);
+        text = messageProvider.getText("emoji.back")
+            + messageProvider.getText("button.back");
+        var back = new InlineKeyboardButton(text);
+        back.setCallbackData(writeCallback(callback));
+        row.add(back);
 
         return new InlineKeyboardMarkup(keyboard);
     }

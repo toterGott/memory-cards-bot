@@ -19,7 +19,6 @@ import com.totergott.memcards.telegram.callback.model.CallbackSource;
 import com.totergott.memcards.telegram.callback.model.NewCardCallback;
 import com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
 import com.totergott.memcards.user.TelegramUser;
-import com.totergott.memcards.user.UserService;
 import com.totergott.memcards.user.UserState;
 import java.time.Instant;
 import java.util.UUID;
@@ -41,7 +40,6 @@ public class NewCardActionsHandler implements CallbackHandler {
     private final MessageProvider messageProvider;
     private final KeyboardProvider keyboardProvider;
     private final MessageService messageService;
-    private final UserService userService;
 
     @Getter
     CallbackSource callbackSource = CallbackSource.NEW_CARD;
