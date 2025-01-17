@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 // todo rename
 public class CommonHandler {
+
     private final KeyboardProvider keyboardProvider;
     private final MessageProvider messageProvider;
     private final MessageService messageService;
@@ -66,22 +67,23 @@ public class CommonHandler {
     }
 
     private void sendCard(Card card, TelegramUser user) {
-        messageService.sendMessage(
-            messageProvider.getText("emoji.card"),
-            keyboardProvider.getBackToMainMenuReply()
-        );
+        messageService.sendMessage(messageProvider.getText("emoji.card"));
 
         var now = Instant.now();
         if (card.getAppearTime().isAfter(now)) {
             var diff = getDiff(now, card.getAppearTime());
             messageService.sendMessage(
-              messageProvider.getText("no_cards_yet", diff)
+                messageProvider.getText("no_cards_yet", diff),
+                keyboardProvider.getBackToMainMenuReply()
             );
             messageService.deleteMessagesExceptLast(2);
             return;
         }
         var collectionName = card.getCollection().getName();
-        messageService.sendMessage(messageProvider.getText("emoji.collection") + collectionName);
+        messageService.sendMessage(
+            messageProvider.getText("emoji.collection") + collectionName,
+            keyboardProvider.getBackToMainMenuReply()
+        );
 
         var keyboard = keyboardProvider.getInlineShowAnswerKeyboard(card.getId());
         messageService.sendMessage(messageProvider.getText("emoji.card") + card.getQuestion(), keyboard);
