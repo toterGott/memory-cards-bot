@@ -62,7 +62,15 @@ public class CardCallbackHandler implements CallbackHandler {
             case EDIT -> editCard(callback.getData());
             case CHECK_INFO -> checkInfo();
             case NEXT_CARD -> nextCard();
+            case BACK_TO_CARD -> backToCard(callback.getData());
         }
+    }
+
+    private void backToCard(String data) {
+        var cardId = UUID.fromString(data);
+        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(cardId);
+        var text = messageProvider.getText("card.actions");
+        messageService.editCallbackKeyboard( keyboard);
     }
 
     private void nextCard() {
