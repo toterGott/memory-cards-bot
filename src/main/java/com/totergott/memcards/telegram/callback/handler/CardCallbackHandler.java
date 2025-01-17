@@ -5,6 +5,7 @@ import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
@@ -70,7 +71,7 @@ public class CardCallbackHandler implements CallbackHandler {
         var cardId = UUID.fromString(data);
         InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(cardId);
         var text = messageProvider.getText("card.actions");
-        messageService.editCallbackKeyboard( keyboard);
+        messageService.editCallbackKeyboard(keyboard);
     }
 
     private void nextCard() {
@@ -101,58 +102,46 @@ public class CardCallbackHandler implements CallbackHandler {
 
         String text;
         Instant appearTime = Instant.now();
+        int chronoUnitsAmount;
+        ChronoUnit chronoUnit;
 
-        // todo improve
         switch (grade) {
-            default -> {
-                text = messageProvider.getMessage(
-                    "card_answered",
-                    user.getLanguage(),
-                    "1",
-                    MINUTES.toString().toLowerCase(),
-                    card.getCollection().getName()
-                );
+            case 0 -> {
+                chronoUnitsAmount = 10;
+                chronoUnit = ChronoUnit.SECONDS;
             }
             case 1 -> {
-                appearTime = appearTime.plus(10, MINUTES);
-                text = messageProvider.getMessage(
-                    "card_answered",
-                    user.getLanguage(),
-                    "10",
-                    MINUTES.toString().toLowerCase(),
-                    card.getCollection().getName()
-                );
+                chronoUnitsAmount = 10;
+                chronoUnit = MINUTES;
             }
             case 2 -> {
-                appearTime = appearTime.plus(1, DAYS);
-                text = messageProvider.getMessage(
-                    "card_answered",
-                    user.getLanguage(),
-                    "1",
-                    DAYS.toString().toLowerCase(),
-                    card.getCollection().getName()
-                );
+                chronoUnitsAmount = 1;
+                chronoUnit = DAYS;
             }
             case 3 -> {
-                appearTime = appearTime.plus(4, DAYS);
-                text = messageProvider.getMessage(
-                    "card_answered",
-                    user.getLanguage(),
-                    "4",
-                    DAYS.toString().toLowerCase(),
-                    card.getCollection().getName()
-                );
+                chronoUnitsAmount = 4;
+                chronoUnit = DAYS;
+            }
+            default -> {
+                chronoUnitsAmount = 1;
+                chronoUnit = SECONDS;
             }
         }
 
+        appearTime = appearTime.plus(chronoUnitsAmount, chronoUnit);
+        card.setAppearTime(appearTime);
+        user.setState(STAND_BY);
+
+
+        text = messageProvider.getText(
+            "card_answered",
+            Integer.toString(chronoUnitsAmount), chronoUnit.toString()
+        );
         if (user.getFocusedOnCollection() != null) {
             var collectionName = collectionService.getById(user.getFocusedOnCollection().getId()).orElseThrow()
                 .getName();
             text += " " + messageProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
         }
-
-        card.setAppearTime(appearTime);
-        user.setState(STAND_BY);
 
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
@@ -163,9 +152,7 @@ public class CardCallbackHandler implements CallbackHandler {
         messageService.clearCallbackKeyboard();
 
         InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(card.getId());
-        text += " " + messageProvider.getText("card.actions");
         messageService.sendMessage(text, keyboard);
-        // todo add a button to show another card
         // todo save last collection where the card was added and save next card in it
     }
 

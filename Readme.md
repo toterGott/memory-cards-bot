@@ -3,15 +3,13 @@
 This is a telegram bot with memory cards.
 
  ## TODOs
-- Fix and cleanup messages texts
-- Add Grafana loki for logs
-- After a collection has been deleted, return to collections pages with page number keeping (handle page could not exist)
+- Split CardHandler into CardScreenHandler and CollectionCardHandler
 - Add emojis in buttons in collections buttons
 - Add liquibase
-- Todo make cards unavailable if it's not time yet (should I?)
 - Add "create a card" in collection's options
+- Add Grafana loki for logs
+- Add some tests
 - Change default collections names on a language change
-- OMG add some tests
 
 
 ```shell
