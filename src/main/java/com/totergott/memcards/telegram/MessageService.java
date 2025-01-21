@@ -8,8 +8,6 @@ import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import com.totergott.memcards.i18n.MessageProvider;
 import com.totergott.memcards.user.UserState;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +15,6 @@ import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessages;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -29,6 +26,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 @RequiredArgsConstructor
 @Slf4j
 public class MessageService {
+
     private static final int CHUNK_SIZE = 100;
 
     private final TelegramClient telegramClient;
@@ -151,15 +149,19 @@ public class MessageService {
         chatMessages.removeAll(chatMessagesToRemove);
     }
 
-    private void deleteMessages(List<Integer>  chatMessagesToRemove) {
-        AtomicInteger counter = new AtomicInteger(0);
+    private void deleteMessages(List<Integer> chatMessagesToRemove) {
         chatMessagesToRemove
-            .stream()
-            .collect(Collectors.groupingBy(_ -> counter.getAndIncrement() / CHUNK_SIZE))
-            .values()
-            .forEach(messageIds -> {
-                var request = new DeleteMessages(getChatId().toString(), messageIds);
-                execute(request);
+            .forEach(messageId -> {
+                var deleteMessage = new DeleteMessage(getChatId().toString(), messageId);
+                try {
+                    telegramClient.execute(deleteMessage);
+                } catch (TelegramApiException e) {
+                    if (e.getMessage() != null && e.getMessage().contains("400")) {
+                        log.error("Message {} could not be deleted for user {}", messageId, getUser().getUsername(), e);
+                    } else {
+                        throw new RuntimeException(e);
+                    }
+                }
             });
     }
 

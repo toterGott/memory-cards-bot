@@ -49,11 +49,12 @@ public class TelegramUpdateHandler {
         if (update.hasCallbackQuery()) {
             log.debug("Handling callback {}", update.getCallbackQuery().getData());
         }
+
         try {
             updateThreadLocal.set(update);
             var user = welcomeOrGetUser(update);
-            log.debug("User {} state before {}", user.getUsername(), user.getState());
             telegramUserThreadLocal.set(user);
+            log.debug("User {} state before {}", user.getUsername(), user.getState());
 
             if (!update.hasCallbackQuery()) {
                 SendChatAction sendChatAction = SendChatAction.builder()

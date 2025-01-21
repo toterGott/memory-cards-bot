@@ -33,7 +33,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 @RequiredArgsConstructor
 @Slf4j
 
-public class CardCallbackHandler implements CallbackHandler {
+public class CardScreenHandler implements CallbackHandler {
 
     private final CollectionService collectionService;
     private final CardService cardService;
