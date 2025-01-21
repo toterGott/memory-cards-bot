@@ -5,6 +5,7 @@ This is a telegram bot with memory cards.
  ## TODOs
 - Split CardHandler into CardScreenHandler and CollectionCardHandler
 - Add emojis in buttons in collections buttons
+- Enable force mode for 10 m even if there are no cards for now 
 - Add liquibase
 - Add "create a card" in collection's options
 - Add Grafana loki for logs
