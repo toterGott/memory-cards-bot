@@ -8,12 +8,10 @@ import com.totergott.memcards.common.PageableEntity;
 import com.totergott.memcards.i18n.MessageProvider;
 import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
-import com.totergott.memcards.telegram.callback.model.CardCallback;
-import com.totergott.memcards.telegram.callback.model.CardCallback.CardCallbackAction;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
-import com.totergott.memcards.telegram.callback.model.NewCardCallback;
-import com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
+import com.totergott.memcards.telegram.callback.model.GetCardCallback;
+import com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction;
 import com.totergott.memcards.telegram.callback.model.PageNavigationCallback;
 import com.totergott.memcards.telegram.callback.model.PageNavigationCallback.PageNavigationCallbackAction;
 import com.totergott.memcards.telegram.callback.model.ScheduleCallback;
@@ -100,8 +98,8 @@ public class KeyboardProvider {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         InlineKeyboardRow row = new InlineKeyboardRow();
         rows.add(row);
-        CardCallback callback =
-            CardCallback.builder().action(CardCallbackAction.CHECK_INFO).data(cardId.toString()).build();
+        GetCardCallback callback =
+            GetCardCallback.builder().action(GetCardCallbackAction.CHECK_INFO).data(cardId.toString()).build();
 
         InlineKeyboardButton checkInfo = new InlineKeyboardButton(messageProvider.getText(
             "button.knowledge_check_info"));
@@ -111,7 +109,7 @@ public class KeyboardProvider {
         row = new InlineKeyboardRow();
         rows.add(row);
 
-        callback.setAction(CardCallbackAction.CHECK_KNOWLEDGE);
+        callback.setAction(GetCardCallbackAction.CHECK_KNOWLEDGE);
         InlineKeyboardButton againButton = new InlineKeyboardButton(messageProvider.getText("button.again"));
         callback.setAdditionalData("0");
         againButton.setCallbackData(writeCallback(callback));
@@ -151,26 +149,13 @@ public class KeyboardProvider {
         return keyboardMarkup;
     }
 
-    public ReplyKeyboardMarkup getCardPlaceholder() {
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
-
-        KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getText("emoji.card"));
-        keyboard.add(row);
-
-        keyboardMarkup.setKeyboard(keyboard);
-        keyboardMarkup.setResizeKeyboard(true);
-        return keyboardMarkup;
-    }
-
     public InlineKeyboardMarkup getInlineShowAnswerKeyboard(UUID id) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         InlineKeyboardRow row = new InlineKeyboardRow();
         rows.add(row);
 
-        CardCallback callback =
-            CardCallback.builder().action(CardCallbackAction.SHOW_ANSWER).data(id.toString()).build();
+        GetCardCallback callback =
+            GetCardCallback.builder().action(GetCardCallbackAction.SHOW_ANSWER).data(id.toString()).build();
         InlineKeyboardButton showAnswerButton = new InlineKeyboardButton(
             messageProvider.getText("emoji.answer")
                 + messageProvider.getText("card.show_answer")
@@ -241,42 +226,6 @@ public class KeyboardProvider {
         return new InlineKeyboardMarkup(rows);
     }
 
-    public InlineKeyboardMarkup getCardCreatedInlineKeyboard(UUID cardId) {
-        List<InlineKeyboardRow> rows = new ArrayList<>();
-        var row = new InlineKeyboardRow();
-        rows.add(row);
-
-        NewCardCallback callback = NewCardCallback.builder()
-            .source(CallbackSource.NEW_CARD)
-            .build();
-        callback.setData(cardId.toString());
-
-        var cardCallback = new CardCallback();
-        cardCallback.setData(cardId.toString());
-
-        cardCallback.setAction(CardCallbackAction.DELETE_DIALOG);
-        var text = messageProvider.getText("button.card.delete");
-        var delete = new InlineKeyboardButton(text);
-        delete.setCallbackData(writeCallback(cardCallback));
-        row.add(delete);
-
-        callback.setAction(NewCardCallbackAction.CHANGE_COLLECTION);
-        var changeCollectionButton = new InlineKeyboardButton(messageProvider.getText(
-            "button.card.change_collection"
-        ));
-        changeCollectionButton.setCallbackData(writeCallback(callback));
-        row.add(changeCollectionButton);
-
-        rows.add(row = new InlineKeyboardRow());
-        callback.setAction(NewCardCallbackAction.CONFIRM);
-        var confirmText = messageProvider.getText("button.card.confirm_creation");
-        var okButton = new InlineKeyboardButton(confirmText);
-        okButton.setCallbackData(writeCallback(callback));
-        row.add(okButton);
-
-        return new InlineKeyboardMarkup(rows);
-    }
-
     public InlineKeyboardMarkup buildDeleteConfirmationDialog(TelegramUser user, UUID collectionId) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
 
@@ -326,55 +275,25 @@ public class KeyboardProvider {
         return new InlineKeyboardMarkup(keyboard);
     }
 
-    public InlineKeyboardMarkup getCardDeleteConfirmation(String cardId) {
-        var row = new InlineKeyboardRow();
-        List<InlineKeyboardRow> keyboard = new ArrayList<>();
-        keyboard.add(row);
-
-        var callback = CardCallback.builder()
-            .source(CallbackSource.CARD)
-            .action(CardCallbackAction.CONFIRM_DELETE)
-            .data(cardId)
-            .build();
-
-        var delete = new InlineKeyboardButton(
-            messageProvider.getText("emoji.delete")
-            + messageProvider.getText("button.card.delete"));
-        delete.setCallbackData(writeCallback(callback));
-        row.add(delete);
-
-        row = new InlineKeyboardRow();
-        keyboard.add(row);
-
-        callback.setAction(CardCallbackAction.CANCEL_DELETE);
-        var cancel = new InlineKeyboardButton(
-            messageProvider.getText("emoji.back")
-                + messageProvider.getText("button.card.cancel"));
-        cancel.setCallbackData(writeCallback(callback));
-        row.add(cancel);
-
-        return new InlineKeyboardMarkup(keyboard);
-    }
-
     public InlineKeyboardMarkup getCardMenuAfterAnswerWithOptions(UUID cardId) {
         var row = new InlineKeyboardRow();
         List<InlineKeyboardRow> keyboard = new ArrayList<>();
         keyboard.add(row);
 
-        var callback = CardCallback.builder()
-            .source(CallbackSource.CARD)
+        var callback = GetCardCallback.builder()
+            .source(CallbackSource.GET_CARD)
             .data(cardId.toString())
             .build();
 
-        callback.setAction(CardCallbackAction.CHANGE_COLLECTION);
+        callback.setAction(GetCardCallbackAction.CHOOSE_ANOTHER_COLLECTION);
         var text = messageProvider.getText("emoji.collection")
-            + messageProvider.getText("button.card.change_collection");
+            + messageProvider.getText("button.card.edit_collection");
         var changeCollection = new InlineKeyboardButton(text);
         changeCollection.setCallbackData(writeCallback(callback));
         row.add(changeCollection);
 
         row = new InlineKeyboardRow();
-        callback.setAction(CardCallbackAction.EDIT);
+        callback.setAction(GetCardCallbackAction.EDIT);
         text = messageProvider.getText("emoji.edit")
             + messageProvider.getText("button.card.edit");
         var editCard = new InlineKeyboardButton(text);
@@ -382,18 +301,18 @@ public class KeyboardProvider {
         row.add(editCard);
         keyboard.add(row);
 
-        row = new InlineKeyboardRow();
-        keyboard.add(row);
-        callback.setAction(CardCallbackAction.DELETE_DIALOG);
-        text = messageProvider.getText("emoji.delete")
-            + messageProvider.getText("button.card.delete");
-        var delete = new InlineKeyboardButton(text);
-        delete.setCallbackData(writeCallback(callback));
-        row.add(delete);
+//        row = new InlineKeyboardRow();
+//        keyboard.add(row);
+//        callback.setAction(GetCardCallbackAction.DELETE_DIALOG);
+//        text = messageProvider.getText("emoji.delete")
+//            + messageProvider.getText("button.card.delete");
+//        var delete = new InlineKeyboardButton(text);
+//        delete.setCallbackData(writeCallback(callback));
+//        row.add(delete);
 
         row = new InlineKeyboardRow();
         keyboard.add(row);
-        callback.setAction(CardCallbackAction.BACK_TO_CARD);
+        callback.setAction(GetCardCallbackAction.BACK_TO_CARD);
         text = messageProvider.getText("emoji.back")
             + messageProvider.getText("button.back");
         var back = new InlineKeyboardButton(text);
@@ -408,9 +327,9 @@ public class KeyboardProvider {
         List<InlineKeyboardRow> keyboard = new ArrayList<>();
         keyboard.add(row);
 
-        var callback = CardCallback.builder()
-            .source(CallbackSource.CARD)
-            .action(CardCallbackAction.CONFIGS)
+        var callback = GetCardCallback.builder()
+            .source(CallbackSource.GET_CARD)
+            .action(GetCardCallbackAction.CONFIGS)
             .data(cardId.toString())
             .build();
 
@@ -422,7 +341,7 @@ public class KeyboardProvider {
 
         row = new InlineKeyboardRow();
         keyboard.add(row);
-        callback.setAction(CardCallbackAction.NEXT_CARD);
+        callback.setAction(GetCardCallbackAction.NEXT_CARD);
         var nextCard = new InlineKeyboardButton(
             messageProvider.getText("emoji.card")
                 + messageProvider.getText("card.get_another")
@@ -529,16 +448,17 @@ public class KeyboardProvider {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         var row = new InlineKeyboardRow();
         rows.add(row);
-        var callback = new CardCallback();
+        var callback = new GetCardCallback();
         callback.setAdditionalData(pageNumber);
         callback.setData(cardId.toString());
 
-        callback.setAction(CardCallbackAction.DELETE_DIALOG);
-        var deleteButton = new InlineKeyboardButton(messageProvider.getText("button.card.delete"));
-        deleteButton.setCallbackData(writeCallback(callback));
-        row.add(deleteButton);
+        // todo may be add edit
+//        callback.setAction(GetCardCallbackAction.DELETE_DIALOG);
+//        var deleteButton = new InlineKeyboardButton(messageProvider.getText("button.card.delete"));
+//        deleteButton.setCallbackData(writeCallback(callback));
+//        row.add(deleteButton);
 
-        callback.setAction(CardCallbackAction.BACK);
+        callback.setAction(GetCardCallbackAction.BACK);
         var backButton = new InlineKeyboardButton(
             messageProvider.getText("emoji.back")
                 + messageProvider.getText("button.back"));
@@ -578,19 +498,18 @@ public class KeyboardProvider {
     }
 
     public InlineKeyboardMarkup getAfterCardDeleted() {
-
         var row = new InlineKeyboardRow();
         List<InlineKeyboardRow> keyboard = new ArrayList<>();
         keyboard.add(row);
 
-        var callback = CardCallback.builder()
-            .source(CallbackSource.CARD)
-            .action(CardCallbackAction.CONFIGS)
+        var callback = GetCardCallback.builder()
+            .source(CallbackSource.GET_CARD)
+            .action(GetCardCallbackAction.CONFIGS)
             .build();
 
         row = new InlineKeyboardRow();
         keyboard.add(row);
-        callback.setAction(CardCallbackAction.NEXT_CARD);
+        callback.setAction(GetCardCallbackAction.NEXT_CARD);
         var nextCard = new InlineKeyboardButton(
             messageProvider.getText("emoji.card")
                 + messageProvider.getText("card.get_another")

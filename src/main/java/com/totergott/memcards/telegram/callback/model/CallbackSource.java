@@ -9,10 +9,11 @@ import lombok.RequiredArgsConstructor;
 public enum CallbackSource implements EncodedEnum {
     COLLECTIONS("C"),
     NEW_CARD("N"),
-    CARD("c"),
+    GET_CARD("c"),
     SETTINGS("S"),
     SCHEDULE("s"),
     PAGE_NAVIGATION("P"),
+    DELETE("D")
     ;
 
     @Getter

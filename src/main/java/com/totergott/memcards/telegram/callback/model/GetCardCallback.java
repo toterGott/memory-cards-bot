@@ -13,15 +13,15 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @NoArgsConstructor
-public class CardCallback extends Callback {
+public class GetCardCallback extends Callback {
 
     @Builder.Default
-    protected CallbackSource source = CallbackSource.CARD;
-    private CardCallbackAction action;
+    protected CallbackSource source = CallbackSource.GET_CARD;
+    private GetCardCallbackAction action;
 
     @Override
     public void setAction(String actionName) {
-        this.action = CardCallbackAction.valueOf(actionName);
+        this.action = GetCardCallbackAction.valueOf(actionName);
     }
 
     @Override
@@ -29,17 +29,14 @@ public class CardCallback extends Callback {
         return action.getCode();
     }
 
-    public void setAction(CardCallbackAction action) {
+    public void setAction(GetCardCallbackAction action) {
         this.action = action;
     }
 
     @RequiredArgsConstructor
-    public enum CardCallbackAction implements EncodedEnum {
-        DELETE_DIALOG("d"),
-        CONFIRM_DELETE("D"),
-        CHANGE_COLLECTION("C"),
+    public enum GetCardCallbackAction implements EncodedEnum {
+        CHOOSE_ANOTHER_COLLECTION("C"),
         SET_COLLECTION("S"),
-        CANCEL_DELETE("c"),
         EDIT("E"),
         CHANGE_PAGE("P"),
         SELECT("s"),
@@ -56,8 +53,8 @@ public class CardCallback extends Callback {
         private final String code;
 
         // todo could be type parameterized util method
-        public static CardCallbackAction fromCode(String code) {
-            return Arrays.stream(CardCallbackAction.values()).filter(it -> it.getCode().equals(code)).findFirst()
+        public static GetCardCallbackAction fromCode(String code) {
+            return Arrays.stream(GetCardCallbackAction.values()).filter(it -> it.getCode().equals(code)).findFirst()
                 .orElse(null);
         }
     }

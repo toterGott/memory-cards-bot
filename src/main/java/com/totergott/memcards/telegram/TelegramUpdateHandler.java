@@ -12,7 +12,7 @@ import com.totergott.memcards.collection.CardCollection;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
 import com.totergott.memcards.telegram.callback.TelegramCallbackDelegate;
-import com.totergott.memcards.telegram.callback.handler.NewCardActionsHandler;
+import com.totergott.memcards.telegram.callback.handler.CreateEditCardScreenHandler;
 import com.totergott.memcards.user.TelegramUser;
 import com.totergott.memcards.user.UserService;
 import jakarta.transaction.Transactional;
@@ -37,7 +37,7 @@ public class TelegramUpdateHandler {
     private final CardService cardService;
     private final TelegramCallbackDelegate callbackHandler;
     private final ReplyKeyboardButtonHandler buttonHandler;
-    private final NewCardActionsHandler newCardActionsHandler;
+    private final CreateEditCardScreenHandler createEditCardScreenHandler;
 
     public static final String COMMAND_TYPE = "bot_command";
 
@@ -93,8 +93,8 @@ public class TelegramUpdateHandler {
         }
         switch (user.getState()) {
             case STAND_BY, QUESTION_SHOWED, EVALUATE_ANSWER -> handleStandBy(update, user);
-            case WAIT_CARD_QUESTION_INPUT -> newCardActionsHandler.handleQuestionInput();
-            case WAIT_CARD_ANSWER_INPUT -> newCardActionsHandler.handleAnswerInput();
+            case WAIT_CARD_QUESTION_INPUT -> createEditCardScreenHandler.handleQuestionInput();
+            case WAIT_CARD_ANSWER_INPUT -> createEditCardScreenHandler.handleAnswerInput();
             case COLLECTION_CREATION -> createCollection();
             default -> log.warn("Unhandled state: {} and command: {}", user.getState(), getMessage().getText());
         }
