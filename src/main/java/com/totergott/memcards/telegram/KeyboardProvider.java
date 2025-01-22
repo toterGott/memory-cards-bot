@@ -254,7 +254,7 @@ public class KeyboardProvider {
         var cardCallback = new CardCallback();
         cardCallback.setData(cardId.toString());
 
-        cardCallback.setAction(CardCallbackAction.DELETE);
+        cardCallback.setAction(CardCallbackAction.DELETE_DIALOG);
         var text = messageProvider.getText("button.card.delete");
         var delete = new InlineKeyboardButton(text);
         delete.setCallbackData(writeCallback(cardCallback));
@@ -333,18 +333,23 @@ public class KeyboardProvider {
 
         var callback = CardCallback.builder()
             .source(CallbackSource.CARD)
-            .action(CardCallbackAction.DELETE_CONFIRM)
+            .action(CardCallbackAction.CONFIRM_DELETE)
             .data(cardId)
             .build();
 
-        var text = messageProvider.getText("button.card.delete");
-        var delete = new InlineKeyboardButton(text);
+        var delete = new InlineKeyboardButton(
+            messageProvider.getText("emoji.delete")
+            + messageProvider.getText("button.card.delete"));
         delete.setCallbackData(writeCallback(callback));
         row.add(delete);
 
-        callback.setAction(CardCallbackAction.CANCEL);
-        text = messageProvider.getText("button.card.cancel");
-        var cancel = new InlineKeyboardButton(text);
+        row = new InlineKeyboardRow();
+        keyboard.add(row);
+
+        callback.setAction(CardCallbackAction.CANCEL_DELETE);
+        var cancel = new InlineKeyboardButton(
+            messageProvider.getText("emoji.back")
+                + messageProvider.getText("button.card.cancel"));
         cancel.setCallbackData(writeCallback(callback));
         row.add(cancel);
 
@@ -360,7 +365,6 @@ public class KeyboardProvider {
             .source(CallbackSource.CARD)
             .data(cardId.toString())
             .build();
-
 
         callback.setAction(CardCallbackAction.CHANGE_COLLECTION);
         var text = messageProvider.getText("emoji.collection")
@@ -380,7 +384,7 @@ public class KeyboardProvider {
 
         row = new InlineKeyboardRow();
         keyboard.add(row);
-        callback.setAction(CardCallbackAction.DELETE);
+        callback.setAction(CardCallbackAction.DELETE_DIALOG);
         text = messageProvider.getText("emoji.delete")
             + messageProvider.getText("button.card.delete");
         var delete = new InlineKeyboardButton(text);
@@ -529,7 +533,7 @@ public class KeyboardProvider {
         callback.setAdditionalData(pageNumber);
         callback.setData(cardId.toString());
 
-        callback.setAction(CardCallbackAction.DELETE);
+        callback.setAction(CardCallbackAction.DELETE_DIALOG);
         var deleteButton = new InlineKeyboardButton(messageProvider.getText("button.card.delete"));
         deleteButton.setCallbackData(writeCallback(callback));
         row.add(deleteButton);

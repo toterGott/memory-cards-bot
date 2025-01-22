@@ -1,16 +1,15 @@
 package com.totergott.memcards.telegram;
 
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
-import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
+import static com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction.EDIT_ANSWER;
+import static com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction.EDIT_QUESTION;
 
 import com.totergott.memcards.card.Card;
-import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
-import com.totergott.memcards.telegram.callback.handler.NewCardActionsHandler;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
-import com.totergott.memcards.user.TelegramUser;
+import com.totergott.memcards.telegram.callback.model.NewCardCallback;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -26,8 +25,6 @@ public class CommonHandler {
     private final MessageProvider messageProvider;
     private final MessageService messageService;
     private final CollectionService collectionService;
-    private final CardService cardService;
-    private final NewCardActionsHandler newCardActionsHandler;
 
     public void collectionsScreen() {
         messageService.sendMessage(
@@ -45,55 +42,7 @@ public class CommonHandler {
         messageService.deleteMessagesExceptLast(2);
     }
 
-    public void cardScreen() {
-        var user = getUser();
-        if (user.getFocusedOnCollection() == null) {
-            cardService.getCardToLearn(user.getId()).ifPresentOrElse(
-                card -> sendCard(card, user),
-                () -> messageService.sendMessage(messageProvider.getMessage("no_cards", user.getLanguage()))
-            );
-        } else {
-            cardService.getCardToLearn(user.getId(), user.getFocusedOnCollection().getId()).ifPresentOrElse(
-                card -> sendCard(card, user),
-                () -> messageService.sendMessage(
-                    messageProvider.getMessage(
-                        "no_cards_for_focus",
-                        user.getLanguage(),
-                        user.getFocusedOnCollection().getName()
-                    )
-                )
-            );
-        }
-    }
-
-    private void sendCard(Card card, TelegramUser user) {
-        messageService.sendMessage(messageProvider.getText("emoji.card"));
-
-        var now = Instant.now();
-        if (card.getAppearTime().isAfter(now)) {
-            var diff = getDiff(now, card.getAppearTime());
-            messageService.sendMessage(
-                messageProvider.getText("no_cards_yet", diff),
-                keyboardProvider.getBackToMainMenuReply()
-            );
-            messageService.deleteMessagesExceptLast(2);
-            return;
-        }
-        var collectionName = card.getCollection().getName();
-        messageService.sendMessage(
-            messageProvider.getText("emoji.collection") + collectionName,
-            keyboardProvider.getBackToMainMenuReply()
-        );
-
-        var keyboard = keyboardProvider.getInlineShowAnswerKeyboard(card.getId());
-        messageService.sendMessage(messageProvider.getText("emoji.card") + card.getQuestion(), keyboard);
-        user.setCurrentCardId(card.getId());
-        user.setState(QUESTION_SHOWED);
-
-        messageService.deleteMessagesExceptLast(3);
-    }
-
-    private String getDiff(Instant appearTime, Instant now) {
+    public String getDiff(Instant appearTime, Instant now) {
         Duration duration = Duration.between(appearTime, now);
         if (duration.isNegative()) {
             duration = duration.negated();
@@ -101,7 +50,6 @@ public class CommonHandler {
 
         long totalSeconds = duration.getSeconds();
 
-        // Если разница меньше минуты, показываем только секунды
         if (totalSeconds < 60) {
             return totalSeconds + " " + ChronoUnit.SECONDS;
         }
@@ -132,4 +80,40 @@ public class CommonHandler {
 
         return sb.toString();
     }
+
+    public void printCardWithEditButtons(Card card) {
+        if (card.getQuestion() != null) {
+            var buttonText = messageProvider.getText("button.card.edit_question");
+            var callback = NewCardCallback.builder().action(EDIT_QUESTION).data(card.getId().toString()).build();
+
+            messageService.sendMessage(
+                card.getQuestion(),
+                keyboardProvider.getOneInlineButton(buttonText, callback)
+            );
+        }
+        if (card.getAnswer() != null) {
+            var buttonText = messageProvider.getText("button.card.edit_answer");
+            var callback = NewCardCallback.builder().action(EDIT_ANSWER).data(card.getId().toString()).build();
+
+            messageService.sendMessage(
+                card.getAnswer(),
+                keyboardProvider.getOneInlineButton(buttonText, callback)
+            );
+        }
+        if (card.getQuestion() != null && card.getAnswer() != null) {
+            printFinalMessage(card);
+        }
+    }
+
+    private void printFinalMessage(Card card) {
+        var emoji = messageProvider.getText("emoji.collection");
+        var cardCreatedText = messageProvider.getText(
+            "create.card.created",
+            emoji,
+            card.getCollection().getName()
+        );
+        var cardCreatedInlineKeyboard = keyboardProvider.getCardCreatedInlineKeyboard(card.getId());
+        messageService.sendMessage(cardCreatedText, cardCreatedInlineKeyboard);
+    }
+
 }

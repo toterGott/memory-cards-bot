@@ -7,8 +7,8 @@ import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 
 import com.totergott.memcards.card.CardService;
-import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.telegram.callback.handler.CardScreenHandler;
 import com.totergott.memcards.telegram.callback.handler.NewCardActionsHandler;
 import com.totergott.memcards.user.TelegramUser;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +29,10 @@ public class ReplyKeyboardButtonHandler {
     private final KeyboardProvider keyboardProvider;
     private final MessageProvider messageProvider;
     private final MessageService messageService;
-    private final CollectionService collectionService;
     private final CardService cardService;
     private final NewCardActionsHandler newCardActionsHandler;
     private final CommonHandler commonHandler;
+    private final CardScreenHandler cardScreenHandler;
 
     public void handleButton(Update update, TelegramUser user) {
         var text = update.getMessage().getText();
@@ -42,12 +42,12 @@ public class ReplyKeyboardButtonHandler {
         }
 
         switch (key) {
+            case "button.get_card" -> cardScreenHandler.showCard();
+            case "button.new_card" -> newCardActionsHandler.startCreateCardDialog();
+            case "button.new_collection" -> createCollection();
             case "button.schedule" -> handleSchedule();
             case "button.settings" -> sendSettingsMessage(user);
             case "button.collections" -> commonHandler.collectionsScreen();
-            case "button.new_card" -> newCardActionsHandler.startCreateCardDialog();
-            case "button.new_collection" -> createCollection();
-            case "button.get_card" -> getCard(user);
             case "button.remove_focus" -> removeFocus(user);
             case "button.back_to_main_menu" -> mainMenu();
             default -> handleUnknownMessage();
@@ -93,10 +93,6 @@ public class ReplyKeyboardButtonHandler {
         );
         messageService.sendMessage(text, keyboard);
         messageService.deleteMessagesExceptLast(2);
-    }
-
-    private void getCard(TelegramUser user) {
-        commonHandler.cardScreen();
     }
 
     private void removeFocus(TelegramUser user) {
