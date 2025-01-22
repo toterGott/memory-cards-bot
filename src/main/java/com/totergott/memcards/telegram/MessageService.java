@@ -154,10 +154,12 @@ public class MessageService {
             .forEach(messageId -> {
                 var deleteMessage = new DeleteMessage(getChatId().toString(), messageId);
                 try {
+                    // todo use async
                     telegramClient.execute(deleteMessage);
                 } catch (TelegramApiException e) {
                     if (e.getMessage() != null && e.getMessage().contains("400")) {
-                        log.error("Message {} could not be deleted for user {}", messageId, getUser().getUsername(), e);
+                        log.warn("Message {} could not be deleted for user {}. Error message {}", messageId,
+                                 getUser().getUsername(), e.getMessage());
                     } else {
                         throw new RuntimeException(e);
                     }

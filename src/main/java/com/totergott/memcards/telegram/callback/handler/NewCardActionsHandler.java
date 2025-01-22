@@ -2,15 +2,16 @@ package com.totergott.memcards.telegram.callback.handler;
 
 import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
-import static com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction.EDIT_ANSWER;
-import static com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction.EDIT_QUESTION;
 import static com.totergott.memcards.user.UserState.WAIT_CARD_QUESTION_INPUT;
+import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.MINUTES;
 
 import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CardCollection;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.telegram.CommonHandler;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
@@ -20,7 +21,6 @@ import com.totergott.memcards.telegram.callback.model.NewCardCallback;
 import com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
 import com.totergott.memcards.user.TelegramUser;
 import com.totergott.memcards.user.UserState;
-import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboa
 @Component
 @RequiredArgsConstructor
 @Slf4j
-
 public class NewCardActionsHandler implements CallbackHandler {
 
     private final CollectionService collectionService;
@@ -40,6 +39,7 @@ public class NewCardActionsHandler implements CallbackHandler {
     private final MessageProvider messageProvider;
     private final KeyboardProvider keyboardProvider;
     private final MessageService messageService;
+    private final CommonHandler commonHandler;
 
     @Getter
     CallbackSource callbackSource = CallbackSource.NEW_CARD;
@@ -77,18 +77,13 @@ public class NewCardActionsHandler implements CallbackHandler {
     public void handleQuestionInput() {
         var question = getMessage().getText();
         var user = getUser();
-        CardCollection collection = user.getFocusedOnCollection();
-        if (collection == null) {
-            collection = collectionService.getById(user.getPayload().getDefaultCollection()).orElseThrow();
-        }
         Card card;
 
         if (getUser().getCurrentCardId() == null) {
             card = new Card();
             card.setQuestion(question);
-            card.setCollection(collection);
             card.setOwner(user);
-            card.setAppearTime(Instant.now());
+            card.setAppearTime(now());
             card = cardService.save(card);
             user.setCurrentCardId(card.getId());
         } else {
@@ -97,7 +92,7 @@ public class NewCardActionsHandler implements CallbackHandler {
         }
 
         messageService.deleteMessagesExceptFirst(1);
-        printCard(card);
+        commonHandler.printCardWithEditButtons(card);
 
         if (card.getAnswer() == null) {
             getUser().setState(UserState.WAIT_CARD_ANSWER_INPUT);
@@ -111,11 +106,10 @@ public class NewCardActionsHandler implements CallbackHandler {
 
     private void editQuestion(String data) {
         var card = cardService.getCard(UUID.fromString(data));
-        card.setQuestion(null);
         getUser().setState(UserState.WAIT_CARD_QUESTION_INPUT);
 
         messageService.deleteMessagesExceptFirst(1);
-        printCard(card);
+        commonHandler.printCardWithEditButtons(card);
 
         var text = messageProvider.getText("create.card.question_prompt");
         messageService.sendMessage(
@@ -131,17 +125,28 @@ public class NewCardActionsHandler implements CallbackHandler {
         Card card = cardService.getCard(getUser().getCurrentCardId());
         card.setAnswer(answer);
 
+        UUID collectionId;
+        var payload = getUser().getPayload();
+        if (payload.getLastChosenCollectionId() != null
+            && payload.getLastChosenCollectionTimestamp().isAfter(now().minus(1, MINUTES))) {
+            collectionId = payload.getLastChosenCollectionId();
+            payload.setLastChosenCollectionTimestamp(now());
+        } else {
+            collectionId = payload.getDefaultCollection();
+        }
+        CardCollection collection = collectionService.getById(collectionId).orElseThrow();
+        card.setCollection(collection);
+
         messageService.deleteMessagesExceptFirst(1);
-        printCard(card);
+        commonHandler.printCardWithEditButtons(card);
     }
 
     private void editAnswer(String data) {
         var card = cardService.getCard(UUID.fromString(data));
-        card.setAnswer(null);
         getUser().setState(UserState.WAIT_CARD_ANSWER_INPUT);
 
         messageService.deleteMessagesExceptFirst(1);
-        printCard(card);
+        commonHandler.printCardWithEditButtons(card);
 
         var text = messageProvider.getText("create.card.answer_prompt");
         messageService.sendMessage(
@@ -159,25 +164,24 @@ public class NewCardActionsHandler implements CallbackHandler {
     }
 
     private void setCollection(
-        String collectionId,
+        String rawCollectionId,
         TelegramUser user,
         Integer messageId
     ) {
+        UUID collectionId = UUID.fromString(rawCollectionId);
         var card = cardService.findById(user.getCurrentCardId()).orElseThrow();
-        var collection = collectionService.findById(UUID.fromString(collectionId)).orElseThrow();
+        var collection = collectionService.findById(collectionId).orElseThrow();
         if (card.getOwner().getId() != user.getId() || collection.getOwner().getId() != user.getId()) {
             throw new RuntimeException("Access violation");
         }
-
         card.setCollection(collection);
-        var text = messageProvider.getMessage("card.collections.changed", user.getLanguage(), collection.getName());
-        var keyboard = keyboardProvider.getMainMenu(user);
-        messageService.sendMessage(text, keyboard);
 
-        messageService.deleteMessage(user.getChatId(), messageId);
+        commonHandler.printCardWithEditButtons(card);
 
         user.setCurrentCardId(null);
         user.setState(UserState.STAND_BY);
+        user.getPayload().setLastChosenCollectionId(collectionId);
+        user.getPayload().setLastChosenCollectionTimestamp(now());
     }
 
     private void changePage(String pageNumber) {
@@ -212,40 +216,5 @@ public class NewCardActionsHandler implements CallbackHandler {
         );
 
         messageService.editMessage(user.getChatId(), messageId, text, pageKeyboard);
-    }
-
-    private void printCard(Card card) {
-        if (card.getQuestion() != null) {
-            var buttonText = messageProvider.getText("button.card.edit_question");
-            var callback = NewCardCallback.builder().action(EDIT_QUESTION).data(card.getId().toString()).build();
-
-            messageService.sendMessage(
-                messageProvider.getText("emoji.card")
-                + card.getQuestion(),
-                keyboardProvider.getOneInlineButton(buttonText, callback)
-            );
-        }
-        if (card.getAnswer() != null) {
-            var buttonText = messageProvider.getText("button.card.edit_answer");
-            var callback = NewCardCallback.builder().action(EDIT_ANSWER).data(card.getId().toString()).build();
-
-            messageService.sendMessage(
-                messageProvider.getText("emoji.answer")
-                + card.getAnswer(),
-                keyboardProvider.getOneInlineButton(buttonText, callback)
-            );
-        }
-        if (card.getQuestion() != null && card.getAnswer() != null) {
-            printFinalMessage(card);
-        }
-    }
-
-    private void printFinalMessage(Card card) {
-        var cardCreatedText = messageProvider.getText(
-            "create.card.created",
-            card.getCollection().getName()
-        );
-        var cardCreatedInlineKeyboard = keyboardProvider.getCardCreatedInlineKeyboard(card.getId());
-        messageService.sendMessage(cardCreatedText, cardCreatedInlineKeyboard);
     }
 }

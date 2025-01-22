@@ -35,11 +35,11 @@ public class CardCallback extends Callback {
 
     @RequiredArgsConstructor
     public enum CardCallbackAction implements EncodedEnum {
-        DELETE("d"),
-        DELETE_CONFIRM("D"),
+        DELETE_DIALOG("d"),
+        CONFIRM_DELETE("D"),
         CHANGE_COLLECTION("C"),
         SET_COLLECTION("S"),
-        CANCEL("c"),
+        CANCEL_DELETE("c"),
         EDIT("E"),
         CHANGE_PAGE("P"),
         SELECT("s"),
