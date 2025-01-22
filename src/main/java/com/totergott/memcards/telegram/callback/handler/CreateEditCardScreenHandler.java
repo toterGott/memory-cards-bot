@@ -2,6 +2,9 @@ package com.totergott.memcards.telegram.callback.handler;
 
 import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
+import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.CANCEL_DELETE;
+import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.CONFIRM_DELETE;
+import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.SET_COLLECTION;
 import static com.totergott.memcards.user.UserState.WAIT_CARD_QUESTION_INPUT;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
@@ -11,50 +14,70 @@ import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CardCollection;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
-import com.totergott.memcards.telegram.CommonHandler;
+import com.totergott.memcards.telegram.InlineKeyboardBuilder;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
 import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
-import com.totergott.memcards.telegram.callback.model.NewCardCallback;
-import com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
+import com.totergott.memcards.telegram.callback.model.CreateEditCardCallback;
+import com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction;
+import com.totergott.memcards.telegram.callback.model.GetCardCallback;
+import com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction;
 import com.totergott.memcards.user.TelegramUser;
 import com.totergott.memcards.user.UserState;
 import java.util.UUID;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
-public class NewCardActionsHandler implements CallbackHandler {
+public class CreateEditCardScreenHandler extends CardHandler implements CallbackHandler {
 
     private final CollectionService collectionService;
     private final CardService cardService;
-    private final MessageProvider messageProvider;
-    private final KeyboardProvider keyboardProvider;
-    private final MessageService messageService;
-    private final CommonHandler commonHandler;
 
     @Getter
     CallbackSource callbackSource = CallbackSource.NEW_CARD;
 
+    public CreateEditCardScreenHandler(
+        MessageProvider messageProvider,
+        MessageService messageService,
+        KeyboardProvider keyboardProvider,
+        CollectionService collectionService,
+        CardService cardService
+    ) {
+        super(messageProvider, messageService, keyboardProvider);
+        this.collectionService = collectionService;
+        this.cardService = cardService;
+    }
+
     @Override
     public void handle(Callback callback, CallbackQuery callbackQuery, TelegramUser user) {
-        NewCardCallback newCardCallback = (NewCardCallback) callback;
+        CreateEditCardCallback createEditCardCallback = (CreateEditCardCallback) callback;
         Integer messageId = callbackQuery.getMessage().getMessageId();
-        switch (newCardCallback.getAction()) {
-            case CHANGE_COLLECTION -> changeCardCollection(user, messageId);
-            case SET_COLLECTION -> setCollection(newCardCallback.getData(), user, messageId);
+        switch (createEditCardCallback.getAction()) {
+            case EDIT_COLLECTION -> changeCardCollection(createEditCardCallback.getData(), user, messageId);
+            case SET_COLLECTION -> setCollection(createEditCardCallback.getData(), user, messageId);
             case CHANGE_PAGE -> changePage(callback.getData());
             case EDIT_QUESTION -> editQuestion(callback.getData());
             case EDIT_ANSWER -> editAnswer(callback.getData());
-            case CONFIRM -> confirmCardCreation(UUID.fromString(callback.getData()));
+            case CONFIRM -> confirmCardCreation();
+            case DELETE_DIALOG -> deleteCardDialog(
+                UUID.fromString(callback.getData()),
+                CallbackSource.fromCode(callback.getAdditionalData())
+            );
+            case CANCEL_DELETE -> cancelDelete(
+                UUID.fromString(callback.getData()),
+                CallbackSource.fromCode(callback.getAdditionalData())
+            );
+            case CONFIRM_DELETE -> confirmDelete(
+                UUID.fromString(callback.getData()),
+                CallbackSource.fromCode(callback.getAdditionalData())
+            );
         }
     }
 
@@ -92,7 +115,7 @@ public class NewCardActionsHandler implements CallbackHandler {
         }
 
         messageService.deleteMessagesExceptFirst(1);
-        commonHandler.printCardWithEditButtons(card);
+        printCardWithEditButtons(card, callbackSource);
 
         if (card.getAnswer() == null) {
             getUser().setState(UserState.WAIT_CARD_ANSWER_INPUT);
@@ -109,7 +132,7 @@ public class NewCardActionsHandler implements CallbackHandler {
         getUser().setState(UserState.WAIT_CARD_QUESTION_INPUT);
 
         messageService.deleteMessagesExceptFirst(1);
-        commonHandler.printCardWithEditButtons(card);
+        printCardWithEditButtons(card, callbackSource);
 
         var text = messageProvider.getText("create.card.question_prompt");
         messageService.sendMessage(
@@ -138,7 +161,7 @@ public class NewCardActionsHandler implements CallbackHandler {
         card.setCollection(collection);
 
         messageService.deleteMessagesExceptFirst(1);
-        commonHandler.printCardWithEditButtons(card);
+        printCardWithEditButtons(card, callbackSource);
     }
 
     private void editAnswer(String data) {
@@ -146,7 +169,7 @@ public class NewCardActionsHandler implements CallbackHandler {
         getUser().setState(UserState.WAIT_CARD_ANSWER_INPUT);
 
         messageService.deleteMessagesExceptFirst(1);
-        commonHandler.printCardWithEditButtons(card);
+        printCardWithEditButtons(card, callbackSource);
 
         var text = messageProvider.getText("create.card.answer_prompt");
         messageService.sendMessage(
@@ -155,9 +178,7 @@ public class NewCardActionsHandler implements CallbackHandler {
         );
     }
 
-    private void confirmCardCreation(UUID cardId) {
-        var card = cardService.getCard(cardId);
-        var collectionName = card.getCollection().getName();
+    private void confirmCardCreation() {
         messageService.checkoutMainMenu();
 
         getUser().setCurrentCardId(null);
@@ -176,7 +197,8 @@ public class NewCardActionsHandler implements CallbackHandler {
         }
         card.setCollection(collection);
 
-        commonHandler.printCardWithEditButtons(card);
+        messageService.deleteMessagesExceptFirst(1);
+        printCardWithEditButtons(card, callbackSource);
 
         user.setCurrentCardId(null);
         user.setState(UserState.STAND_BY);
@@ -189,9 +211,9 @@ public class NewCardActionsHandler implements CallbackHandler {
         var page = collectionService.getCollectionsPage(user.getId(), Integer.parseInt(pageNumber));
         var text = messageProvider.getText("collections");
 
-        NewCardCallback pageCallback = NewCardCallback.builder()
+        CreateEditCardCallback pageCallback = CreateEditCardCallback.builder()
             .source(CallbackSource.NEW_CARD)
-            .action(NewCardCallbackAction.SET_COLLECTION)
+            .action(SET_COLLECTION)
             .build();
 
         var pageKeyboard = keyboardProvider.buildPage(page, pageCallback);
@@ -200,14 +222,15 @@ public class NewCardActionsHandler implements CallbackHandler {
         messageService.editCallbackMessage(text, pageKeyboard);
     }
 
-    private void changeCardCollection(TelegramUser user, Integer messageId) {
+    private void changeCardCollection(String cardId, TelegramUser user, Integer messageId) {
         var page = collectionService.getCollectionsPage(user.getId(), 0);
         var text = messageProvider.getText("card.collections.select");
         text = messageProvider.appendPageInfo(text, page);
+        getUser().setCurrentCardId(UUID.fromString(cardId));
 
-        NewCardCallback pageCallback = NewCardCallback.builder()
+        CreateEditCardCallback pageCallback = CreateEditCardCallback.builder()
             .source(CallbackSource.NEW_CARD)
-            .action(NewCardCallbackAction.SET_COLLECTION)
+            .action(SET_COLLECTION)
             .build();
 
         var pageKeyboard = keyboardProvider.buildPage(
@@ -216,5 +239,62 @@ public class NewCardActionsHandler implements CallbackHandler {
         );
 
         messageService.editMessage(user.getChatId(), messageId, text, pageKeyboard);
+    }
+
+    private void cancelDelete(UUID cardId, CallbackSource callbackSource) {
+        var card = cardService.findById(cardId).orElseThrow();
+        messageService.deleteMessagesExceptFirst(1);
+        printCardWithEditButtons(card, callbackSource);
+    }
+
+    private void confirmDelete(UUID cardId, CallbackSource callbackSource) {
+        cardService.deleteById(cardId);
+
+        var keyboardBuilder = new InlineKeyboardBuilder()
+            .addButton(
+                messageProvider.getText("button.back_to_main_menu"),
+                CreateEditCardCallback.builder().action(CreateEditCardCallbackAction.CONFIRM).build()
+            )
+            .addRow();
+
+        switch (callbackSource) {
+            case GET_CARD -> keyboardBuilder.addButton(
+                messageProvider.getText("emoji.card")
+                    + messageProvider.getText("card.get_another"),
+                GetCardCallback.builder().action(GetCardCallbackAction.NEXT_CARD).build()
+            );
+        }
+
+        messageService.deleteMessagesExceptFirst(1);
+        messageService.sendMessage(
+            messageProvider.getText("card.delete.deleted"),
+            keyboardBuilder.build()
+        );
+    }
+
+    private void deleteCardDialog(UUID cardId, CallbackSource breadcrumb) {
+        var keyboard = new InlineKeyboardBuilder()
+            .addButton(
+                messageProvider.getText("emoji.delete")
+                    + messageProvider.getText("button.card.delete"),
+                CreateEditCardCallback.builder()
+                    .action(CONFIRM_DELETE)
+                    .data(cardId.toString())
+                    .additionalData(breadcrumb.getCode())
+                    .build()
+            )
+            .addRow()
+            .addButton(
+                messageProvider.getText("emoji.back")
+                    + messageProvider.getText("button.card.cancel"),
+                CreateEditCardCallback.builder().
+                    action(CANCEL_DELETE)
+                    .data(cardId.toString())
+                    .additionalData(breadcrumb.getCode())
+                    .build()
+            )
+            .build();
+
+        messageService.editCallbackMessage(messageProvider.getText("card.delete.confirmation_dialog"), keyboard);
     }
 }

@@ -13,10 +13,10 @@ import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
 import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
-import com.totergott.memcards.telegram.callback.model.CardCallback;
-import com.totergott.memcards.telegram.callback.model.CardCallback.CardCallbackAction;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
+import com.totergott.memcards.telegram.callback.model.GetCardCallback;
+import com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction;
 import com.totergott.memcards.user.TelegramUser;
 import java.util.Objects;
 import java.util.UUID;
@@ -80,9 +80,9 @@ public class CollectionsCallbackHandler implements CallbackHandler {
     private void cardsPage(UUID collectionId) {
         var collectionName = collectionService.findById(collectionId).orElseThrow().getName();
         var cardPage = cardService.getCardPageByCollectionId(collectionId, 0);
-        CardCallback cardCallback = new CardCallback();
-        cardCallback.setAction(CardCallbackAction.SELECT);
-        var keyboard = keyboardProvider.buildPage(cardPage, cardCallback);
+        GetCardCallback getCardCallback = new GetCardCallback();
+        getCardCallback.setAction(GetCardCallbackAction.SELECT);
+        var keyboard = keyboardProvider.buildPage(cardPage, getCardCallback);
         var text = messageProvider.getText("collections.cards", collectionName);
         text = messageProvider.appendPageInfo(text, cardPage);
         client.editCallbackMessage(text, keyboard);

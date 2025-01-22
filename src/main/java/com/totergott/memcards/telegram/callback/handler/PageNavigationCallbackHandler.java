@@ -13,7 +13,7 @@ import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
 import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
-import com.totergott.memcards.telegram.callback.model.CardCallback;
+import com.totergott.memcards.telegram.callback.model.GetCardCallback;
 import com.totergott.memcards.telegram.callback.model.PageNavigationCallback;
 import com.totergott.memcards.user.TelegramUser;
 import java.util.UUID;
@@ -58,9 +58,9 @@ public class PageNavigationCallbackHandler implements CallbackHandler {
                     Integer.parseInt(pageNavigationCallback.getData())
                 );
             }
-            case CARD -> {
-                CardCallback cardCallback = (CardCallback) pageCallback;
-                var collection = cardService.getCard(UUID.fromString(cardCallback.getData())).getCollection();
+            case GET_CARD -> {
+                GetCardCallback getCardCallback = (GetCardCallback) pageCallback;
+                var collection = cardService.getCard(UUID.fromString(getCardCallback.getData())).getCollection();
                 text = messageProvider.getText("collections.cards", collection.getName());
                 newPage = cardService.getCardPageByCollectionId(
                     collection.getId(),

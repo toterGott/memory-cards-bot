@@ -1,15 +1,11 @@
 package com.totergott.memcards.telegram;
 
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
-import static com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction.EDIT_ANSWER;
-import static com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction.EDIT_QUESTION;
 
-import com.totergott.memcards.card.Card;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
-import com.totergott.memcards.telegram.callback.model.NewCardCallback;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -79,41 +75,6 @@ public class CommonHandler {
         }
 
         return sb.toString();
-    }
-
-    public void printCardWithEditButtons(Card card) {
-        if (card.getQuestion() != null) {
-            var buttonText = messageProvider.getText("button.card.edit_question");
-            var callback = NewCardCallback.builder().action(EDIT_QUESTION).data(card.getId().toString()).build();
-
-            messageService.sendMessage(
-                card.getQuestion(),
-                keyboardProvider.getOneInlineButton(buttonText, callback)
-            );
-        }
-        if (card.getAnswer() != null) {
-            var buttonText = messageProvider.getText("button.card.edit_answer");
-            var callback = NewCardCallback.builder().action(EDIT_ANSWER).data(card.getId().toString()).build();
-
-            messageService.sendMessage(
-                card.getAnswer(),
-                keyboardProvider.getOneInlineButton(buttonText, callback)
-            );
-        }
-        if (card.getQuestion() != null && card.getAnswer() != null) {
-            printFinalMessage(card);
-        }
-    }
-
-    private void printFinalMessage(Card card) {
-        var emoji = messageProvider.getText("emoji.collection");
-        var cardCreatedText = messageProvider.getText(
-            "create.card.created",
-            emoji,
-            card.getCollection().getName()
-        );
-        var cardCreatedInlineKeyboard = keyboardProvider.getCardCreatedInlineKeyboard(card.getId());
-        messageService.sendMessage(cardCreatedText, cardCreatedInlineKeyboard);
     }
 
 }

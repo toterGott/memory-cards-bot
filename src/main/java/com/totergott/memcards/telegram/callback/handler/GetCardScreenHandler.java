@@ -2,6 +2,8 @@ package com.totergott.memcards.telegram.callback.handler;
 
 import static com.totergott.memcards.telegram.TelegramUtils.getCallback;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
+import static com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction.EDIT;
+import static com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction.NEXT_CARD;
 import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -14,56 +16,61 @@ import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.MessageProvider;
 import com.totergott.memcards.telegram.CommonHandler;
+import com.totergott.memcards.telegram.InlineKeyboardBuilder;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
 import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
-import com.totergott.memcards.telegram.callback.model.CardCallback;
-import com.totergott.memcards.telegram.callback.model.NewCardCallback;
-import com.totergott.memcards.telegram.callback.model.NewCardCallback.NewCardCallbackAction;
+import com.totergott.memcards.telegram.callback.model.GetCardCallback;
+import com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction;
 import com.totergott.memcards.user.TelegramUser;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
-
-public class CardScreenHandler implements CallbackHandler {
+public class GetCardScreenHandler extends CardHandler implements CallbackHandler {
 
     private final CollectionService collectionService;
     private final CardService cardService;
-    private final MessageProvider messageProvider;
-    private final KeyboardProvider keyboardProvider;
-    private final MessageService messageService;
     private final CommonHandler commonHandler;
 
     @Getter
-    CallbackSource callbackSource = CallbackSource.CARD;
+    CallbackSource callbackSource = CallbackSource.GET_CARD;
+
+    public GetCardScreenHandler(
+        MessageProvider messageProvider,
+        MessageService messageService,
+        KeyboardProvider keyboardProvider,
+        CollectionService collectionService,
+        CardService cardService,
+        CommonHandler commonHandler
+    ) {
+        super(messageProvider, messageService, keyboardProvider);
+        this.collectionService = collectionService;
+        this.cardService = cardService;
+        this.commonHandler = commonHandler;
+    }
 
     @Override
     public void handle(Callback callback, CallbackQuery callbackQuery, TelegramUser user) {
-        CardCallback cardCallback = (CardCallback) callback;
-        switch (cardCallback.getAction()) {
+        GetCardCallback getCardCallback = (GetCardCallback) callback;
+        switch (getCardCallback.getAction()) {
             case SHOW_ANSWER -> showAnswer(UUID.fromString(callback.getData()));
 
             case CHECK_INFO -> checkInfo();
             case CHECK_KNOWLEDGE -> checkKnowledge(UUID.fromString(callback.getData()), callback.getAdditionalData());
 
-            case CONFIGS -> showConfigOptions(UUID.fromString(callback.getData()));
-            case CHANGE_COLLECTION -> changeCollection(UUID.fromString(callback.getData()));
+            case CONFIGS -> showConfigOptions(UUID.fromString(callback.getData())); // remove
+            case CHOOSE_ANOTHER_COLLECTION -> chooseAnotherCollection(UUID.fromString(callback.getData()));
             case SET_COLLECTION -> setCollection(UUID.fromString(callback.getData()));
-            case DELETE_DIALOG -> deleteCard(UUID.fromString(callback.getData()));
-            case CANCEL_DELETE -> cancelDelete(UUID.fromString(callback.getData()));
-            case CONFIRM_DELETE -> confirmDelete(UUID.fromString(callback.getData()));
             case NEXT_CARD -> nextCard();
             case BACK_TO_CARD -> backToCard(callback.getData());
 
@@ -159,16 +166,32 @@ public class CardScreenHandler implements CallbackHandler {
             schedule.setNextRun(nextRun);
         }
 
+        var keyboard = new InlineKeyboardBuilder()
+            .addButton(
+                messageProvider.getText("emoji.edit")
+                    + messageProvider.getText("button.edit"),
+                GetCardCallback.builder()
+                    .action(EDIT)
+                    .data(card.getId().toString())
+                    .build()
+            )
+            .addRow()
+            .addButton(
+                messageProvider.getText("emoji.card")
+                    + messageProvider.getText("card.get_another"),
+                GetCardCallback.builder()
+                    .action(NEXT_CARD)
+                    .data(card.getId().toString())
+                    .build()
+            )
+            .build();
         messageService.clearCallbackKeyboard();
-        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(card.getId());
         messageService.sendMessage(text, keyboard);
-        // todo save last collection where the card was added and save next card in it
     }
 
     private void backToCard(String data) {
         var cardId = UUID.fromString(data);
         InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(cardId);
-        var text = messageProvider.getText("card.actions");
         messageService.editCallbackKeyboard(keyboard);
     }
 
@@ -180,7 +203,7 @@ public class CardScreenHandler implements CallbackHandler {
         // todo introduce common component to edit card on creation, after answer and in cards browser
         var card = cardService.getCard(UUID.fromString(data));
         messageService.deleteMessagesExceptFirst(1);
-        commonHandler.printCardWithEditButtons(card);
+        printCardWithEditButtons(card, getCallbackSource());
     }
 
     private void showConfigOptions(UUID uuid) {
@@ -194,6 +217,28 @@ public class CardScreenHandler implements CallbackHandler {
         var keyboard = keyboardProvider.buildCardKeyboard(cardId, additionalData);
 
         messageService.editCallbackMessage(text, keyboard);
+    }
+
+    private void chooseAnotherCollection(UUID cardId) {
+        getUser().setCurrentCardId(cardId);
+        var page = collectionService.getCollectionsPage(getUser().getId(), 0);
+        var text = messageProvider.getText(
+            "card.collections.select",
+            String.valueOf(page.getNumber() + 1),
+            String.valueOf(page.getTotalPages())
+        );
+
+        GetCardCallback pageCallback = GetCardCallback.builder()
+            .action(GetCardCallbackAction.SET_COLLECTION)
+            .build();
+
+        var pageKeyboard = keyboardProvider.buildPage(
+            page,
+            pageCallback
+        );
+
+        text = messageProvider.appendPageInfo(text, page);
+        messageService.editCallbackMessage(text, pageKeyboard);
     }
 
     private void setCollection(UUID id) {
@@ -213,49 +258,6 @@ public class CardScreenHandler implements CallbackHandler {
         messageService.deleteCallbackMessage();
 
         user.setCurrentCardId(null);
-    }
-
-    private void changeCollection(UUID cardId) {
-        getUser().setCurrentCardId(cardId);
-        var page = collectionService.getCollectionsPage(getUser().getId(), 0);
-        var text = messageProvider.getText(
-            "card.collections.select",
-            String.valueOf(page.getNumber() + 1),
-            String.valueOf(page.getTotalPages())
-        );
-
-        // todho shouldn't be new card callback
-        NewCardCallback pageCallback = NewCardCallback.builder()
-            .action(NewCardCallbackAction.SET_COLLECTION)
-            .build();
-
-        var pageKeyboard = keyboardProvider.buildPage(
-            page,
-            pageCallback
-        );
-
-        text = messageProvider.appendPageInfo(text, page);
-        messageService.editCallbackMessage(text, pageKeyboard);
-    }
-
-    private void cancelDelete(UUID cardId) {
-        showConfigOptions(cardId);
-    }
-
-    private void confirmDelete(UUID cardId) {
-        cardService.deleteById(cardId);
-
-        messageService.editCallbackMessage(
-            messageProvider.getText("card.delete.deleted"),
-            keyboardProvider.getAfterCardDeleted()
-        );
-    }
-
-    private void deleteCard(UUID cardId) {
-        messageService.editCallbackMessage(
-            messageProvider.getText("card.delete.confirm"),
-            keyboardProvider.getCardDeleteConfirmation(cardId.toString())
-        );
     }
 
 //    private void back(UUID cardId, String pageNumber) {
