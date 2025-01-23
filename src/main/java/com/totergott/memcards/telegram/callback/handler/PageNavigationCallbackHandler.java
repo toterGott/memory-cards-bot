@@ -7,7 +7,7 @@ import static com.totergott.memcards.telegram.callback.CallbackMapper.readCallba
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.common.PageableEntity;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
@@ -34,7 +34,7 @@ public class PageNavigationCallbackHandler implements CallbackHandler {
 
     private final CollectionService collectionService;
     private final CardService cardService;
-    private final MessageProvider messageProvider;
+    private final TextProvider textProvider;
     private final KeyboardProvider keyboardProvider;
     private final MessageService client;
     CallbackSource callbackSource = CallbackSource.PAGE_NAVIGATION;
@@ -52,7 +52,7 @@ public class PageNavigationCallbackHandler implements CallbackHandler {
             case COLLECTIONS -> {
                 // todo might be also extracted from source
                 // page with create button
-                text = messageProvider.getText("collections");
+                text = textProvider.get("collections");
                 newPage = collectionService.getCollectionsPage(
                     getUser().getId(),
                     Integer.parseInt(pageNavigationCallback.getData())
@@ -61,14 +61,14 @@ public class PageNavigationCallbackHandler implements CallbackHandler {
             case GET_CARD -> {
                 GetCardCallback getCardCallback = (GetCardCallback) pageCallback;
                 var collection = cardService.getCard(UUID.fromString(getCardCallback.getData())).getCollection();
-                text = messageProvider.getText("collections.cards", collection.getName());
+                text = textProvider.get("collections.cards", collection.getName());
                 newPage = cardService.getCardPageByCollectionId(
                     collection.getId(),
                     Integer.parseInt(pageNavigationCallback.getData())
                 );
             }
             case NEW_CARD -> {
-                text = messageProvider.getText("collections");
+                text = textProvider.get("collections");
                 newPage = collectionService.getCollectionsPage(
                     getUser().getId(),
                     Integer.parseInt(pageNavigationCallback.getData())
@@ -79,7 +79,7 @@ public class PageNavigationCallbackHandler implements CallbackHandler {
                 throw new RuntimeException("Not implemented");
             }
         }
-        text = messageProvider.appendPageInfo(text, newPage);
+        text = textProvider.appendPageInfo(text, newPage);
         InlineKeyboardMarkup updatedKeyboard = keyboardProvider.updateKeyboard(sourceKeyboard, newPage);
         client.editCallbackMessage(text, updatedKeyboard);
     }

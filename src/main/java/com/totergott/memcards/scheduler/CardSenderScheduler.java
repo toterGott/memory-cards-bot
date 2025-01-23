@@ -5,7 +5,7 @@ import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
 
 import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.user.TelegramUser;
@@ -25,7 +25,7 @@ public class CardSenderScheduler {
     private final UserService userService;
     private final MessageService client;
     private final KeyboardProvider keyboardProvider;
-    private final MessageProvider messageProvider;
+    private final TextProvider textProvider;
 
     @Scheduled(cron = "0/5 * * * * ?")
     @Transactional

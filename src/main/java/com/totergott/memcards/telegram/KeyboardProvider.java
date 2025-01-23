@@ -5,7 +5,7 @@ import static com.totergott.memcards.telegram.callback.CallbackMapper.readCallba
 import static com.totergott.memcards.telegram.callback.CallbackMapper.writeCallback;
 
 import com.totergott.memcards.common.PageableEntity;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
@@ -37,7 +37,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 @RequiredArgsConstructor
 public class KeyboardProvider {
 
-    private final MessageProvider messageProvider;
+    private final TextProvider textProvider;
 
     public ReplyKeyboardMarkup getMainMenu() {
         return getMainMenu(getUser());
@@ -49,21 +49,21 @@ public class KeyboardProvider {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
 
         KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getMessage("button.get_card", languageCode));
+        row.add(textProvider.getMessage("button.get_card", languageCode));
         keyboard.add(row);
 
         row = new KeyboardRow();
         if (user.getFocusedOnCollection() != null) {
-            row.add(messageProvider.getMessage("button.remove_focus", languageCode));
+            row.add(textProvider.getMessage("button.remove_focus", languageCode));
         }
-        row.add(messageProvider.getMessage("button.new_card", languageCode));
-        row.add(messageProvider.getMessage("button.new_collection", languageCode));
+        row.add(textProvider.getMessage("button.new_card", languageCode));
+        row.add(textProvider.getMessage("button.new_collection", languageCode));
         keyboard.add(row);
 
         row = new KeyboardRow();
-        row.add(messageProvider.getMessage("button.collections", languageCode));
-        row.add(messageProvider.getMessage("button.schedule", languageCode));
-        row.add(messageProvider.getMessage("button.settings", languageCode));
+        row.add(textProvider.getMessage("button.collections", languageCode));
+        row.add(textProvider.getMessage("button.schedule", languageCode));
+        row.add(textProvider.getMessage("button.settings", languageCode));
         keyboard.add(row);
 
         keyboardMarkup.setKeyboard(keyboard);
@@ -78,15 +78,15 @@ public class KeyboardProvider {
             .action(SettingsCallbackAction.INFO)
             .build();
 
-        var aboutText = messageProvider.getText("emoji.info")
-            + messageProvider.getText("button.settings.info");
+        var aboutText = textProvider.get("emoji.info")
+            + textProvider.get("button.settings.info");
         var aboutButton = new InlineKeyboardButton(aboutText);
         aboutButton.setCallbackData(writeCallback(callback));
         keyboard.add(new InlineKeyboardRow(aboutButton));
 
         callback.setAction(SettingsCallbackAction.LANGUAGE);
-        var text = messageProvider.getText("emoji.language")
-            + messageProvider.getText("button.settings.language");
+        var text = textProvider.get("emoji.language")
+            + textProvider.get("button.settings.language");
         var languageChangeButton = new InlineKeyboardButton(text);
         languageChangeButton.setCallbackData(writeCallback(callback));
         keyboard.add(new InlineKeyboardRow(languageChangeButton));
@@ -101,7 +101,7 @@ public class KeyboardProvider {
         GetCardCallback callback =
             GetCardCallback.builder().action(GetCardCallbackAction.CHECK_INFO).data(cardId.toString()).build();
 
-        InlineKeyboardButton checkInfo = new InlineKeyboardButton(messageProvider.getText(
+        InlineKeyboardButton checkInfo = new InlineKeyboardButton(textProvider.get(
             "button.knowledge_check_info"));
         checkInfo.setCallbackData(writeCallback(callback));
         row.add(checkInfo);
@@ -110,12 +110,12 @@ public class KeyboardProvider {
         rows.add(row);
 
         callback.setAction(GetCardCallbackAction.CHECK_KNOWLEDGE);
-        InlineKeyboardButton againButton = new InlineKeyboardButton(messageProvider.getText("button.again"));
+        InlineKeyboardButton againButton = new InlineKeyboardButton(textProvider.get("button.again"));
         callback.setAdditionalData("0");
         againButton.setCallbackData(writeCallback(callback));
         row.add(againButton);
 
-        InlineKeyboardButton hardButton = new InlineKeyboardButton(messageProvider.getText("button.hard"));
+        InlineKeyboardButton hardButton = new InlineKeyboardButton(textProvider.get("button.hard"));
         callback.setAdditionalData("1");
         hardButton.setCallbackData(writeCallback(callback));
         row.add(hardButton);
@@ -123,12 +123,12 @@ public class KeyboardProvider {
         row = new InlineKeyboardRow();
         rows.add(row);
 
-        InlineKeyboardButton goodButton = new InlineKeyboardButton(messageProvider.getText("button.good"));
+        InlineKeyboardButton goodButton = new InlineKeyboardButton(textProvider.get("button.good"));
         callback.setAdditionalData("2");
         goodButton.setCallbackData(writeCallback(callback));
         row.add(goodButton);
 
-        InlineKeyboardButton easyButton = new InlineKeyboardButton(messageProvider.getText("button.easy"));
+        InlineKeyboardButton easyButton = new InlineKeyboardButton(textProvider.get("button.easy"));
         callback.setAdditionalData("3");
         easyButton.setCallbackData(writeCallback(callback));
         row.add(easyButton);
@@ -141,7 +141,7 @@ public class KeyboardProvider {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup(keyboard);
 
         KeyboardRow row = new KeyboardRow();
-        row.add(messageProvider.getText("emoji.answer"));
+        row.add(textProvider.get("emoji.answer"));
         keyboard.add(row);
 
         keyboardMarkup.setKeyboard(keyboard);
@@ -157,8 +157,8 @@ public class KeyboardProvider {
         GetCardCallback callback =
             GetCardCallback.builder().action(GetCardCallbackAction.SHOW_ANSWER).data(id.toString()).build();
         InlineKeyboardButton showAnswerButton = new InlineKeyboardButton(
-            messageProvider.getText("emoji.answer")
-                + messageProvider.getText("card.show_answer")
+            textProvider.get("emoji.answer")
+                + textProvider.get("card.show_answer")
         );
         showAnswerButton.setCallbackData(writeCallback(callback));
         row.add(showAnswerButton);
@@ -194,22 +194,22 @@ public class KeyboardProvider {
             .build();
 
         callback.setAction(CollectionCallbackAction.FOCUS_ON_COLLECTION);
-        var choose = new InlineKeyboardButton(messageProvider.getMessage("collection.button.choose", language));
+        var choose = new InlineKeyboardButton(textProvider.getMessage("collection.button.choose", language));
         choose.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(choose));
 
-        callback.setAction(CollectionCallbackAction.EDIT_CARDS);
+        callback.setAction(CollectionCallbackAction.BROWSE_CARDS);
         var editCards = new InlineKeyboardButton(
-            messageProvider.getText("emoji.card")
-                + messageProvider.getText("collection.button.edit_cards")
+            textProvider.get("emoji.card")
+                + textProvider.get("collection.button.browse_cards")
         );
         editCards.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(editCards));
 
         callback.setAction(CollectionCallbackAction.DELETE);
         var delete = new InlineKeyboardButton(
-            messageProvider.getText("emoji.delete")
-                + messageProvider.getText("button.delete")
+            textProvider.get("emoji.delete")
+                + textProvider.get("button.delete")
         );
         delete.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(delete));
@@ -217,8 +217,8 @@ public class KeyboardProvider {
         callback.setAction(CollectionCallbackAction.BACK);
         callback.setAdditionalData(pageNumber);
         var back = new InlineKeyboardButton(
-            messageProvider.getText("emoji.back")
-                + messageProvider.getText("button.back")
+            textProvider.get("emoji.back")
+                + textProvider.get("button.back")
         );
         back.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(back));
@@ -236,15 +236,15 @@ public class KeyboardProvider {
             .build();
 
         var confirmDelete = new InlineKeyboardButton(
-            messageProvider.getText("emoji.delete")
-                + messageProvider.getText("button.delete"));
+            textProvider.get("emoji.delete")
+                + textProvider.get("button.delete"));
         confirmDelete.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(confirmDelete));
 
         callback.setAction(CollectionCallbackAction.SELECT);
         var back = new InlineKeyboardButton(
-            messageProvider.getText("emoji.back")
-                + messageProvider.getText("button.back")
+            textProvider.get("emoji.back")
+                + textProvider.get("button.back")
         );
         back.setCallbackData(writeCallback(callback));
         rows.add(new InlineKeyboardRow(back));
@@ -286,16 +286,16 @@ public class KeyboardProvider {
             .build();
 
         callback.setAction(GetCardCallbackAction.CHOOSE_ANOTHER_COLLECTION);
-        var text = messageProvider.getText("emoji.collection")
-            + messageProvider.getText("button.card.edit_collection");
+        var text = textProvider.get("emoji.collection")
+            + textProvider.get("button.card.edit_collection");
         var changeCollection = new InlineKeyboardButton(text);
         changeCollection.setCallbackData(writeCallback(callback));
         row.add(changeCollection);
 
         row = new InlineKeyboardRow();
         callback.setAction(GetCardCallbackAction.EDIT);
-        text = messageProvider.getText("emoji.edit")
-            + messageProvider.getText("button.card.edit");
+        text = textProvider.get("emoji.edit")
+            + textProvider.get("button.card.edit");
         var editCard = new InlineKeyboardButton(text);
         editCard.setCallbackData(writeCallback(callback));
         row.add(editCard);
@@ -313,8 +313,8 @@ public class KeyboardProvider {
         row = new InlineKeyboardRow();
         keyboard.add(row);
         callback.setAction(GetCardCallbackAction.BACK_TO_CARD);
-        text = messageProvider.getText("emoji.back")
-            + messageProvider.getText("button.back");
+        text = textProvider.get("emoji.back")
+            + textProvider.get("button.back");
         var back = new InlineKeyboardButton(text);
         back.setCallbackData(writeCallback(callback));
         row.add(back);
@@ -333,8 +333,8 @@ public class KeyboardProvider {
             .data(cardId.toString())
             .build();
 
-        var text = messageProvider.getText("emoji.config")
-            + messageProvider.getText("button.card.configure");
+        var text = textProvider.get("emoji.config")
+            + textProvider.get("button.card.configure");
         var configureButton = new InlineKeyboardButton(text);
         configureButton.setCallbackData(writeCallback(callback));
         row.add(configureButton);
@@ -343,8 +343,8 @@ public class KeyboardProvider {
         keyboard.add(row);
         callback.setAction(GetCardCallbackAction.NEXT_CARD);
         var nextCard = new InlineKeyboardButton(
-            messageProvider.getText("emoji.card")
-                + messageProvider.getText("card.get_another")
+            textProvider.get("emoji.card")
+                + textProvider.get("card.get_another")
         );
         nextCard.setCallbackData(writeCallback(callback));
         row.add(nextCard);
@@ -363,13 +363,13 @@ public class KeyboardProvider {
             .build();
 
         callback.setData("1");
-        var text = messageProvider.getText("button.schedule.settings.time", callback.getData());
+        var text = textProvider.get("button.schedule.settings.time", callback.getData());
         var timeButton = new InlineKeyboardButton(text);
         timeButton.setCallbackData(writeCallback(callback));
         row.add(timeButton);
 
         callback.setData("3");
-        text = messageProvider.getText("button.schedule.settings.time", callback.getData());
+        text = textProvider.get("button.schedule.settings.time", callback.getData());
         timeButton = new InlineKeyboardButton(text);
         timeButton.setCallbackData(writeCallback(callback));
         row.add(timeButton);
@@ -378,14 +378,14 @@ public class KeyboardProvider {
         keyboard.add(row);
 
         callback.setData("6");
-        text = messageProvider.getText("button.schedule.settings.time", callback.getData());
+        text = textProvider.get("button.schedule.settings.time", callback.getData());
         timeButton = new InlineKeyboardButton(text);
         timeButton.setCallbackData(writeCallback(callback));
         row.add(timeButton);
 
         callback.setData(null);
         callback.setAction(ScheduleCallbackAction.DISABLE);
-        text = messageProvider.getText("button.schedule.settings.disable", callback.getData());
+        text = textProvider.get("button.schedule.settings.disable", callback.getData());
         timeButton = new InlineKeyboardButton(text);
         timeButton.setCallbackData(writeCallback(callback));
         row.add(timeButton);
@@ -412,7 +412,7 @@ public class KeyboardProvider {
             var prevPageNum = String.valueOf(page.getNumber() + 1 - 1);
             navigationCallback.setAction(PageNavigationCallbackAction.PREVIOUS);
             navigationCallback.setData(index);
-            var backButton = new InlineKeyboardButton(messageProvider.getText("button.previous_page", prevPageNum));
+            var backButton = new InlineKeyboardButton(textProvider.get("button.previous_page", prevPageNum));
             backButton.setCallbackData(writeCallback(navigationCallback));
             pageNavigationRow.add(backButton);
         }
@@ -422,7 +422,7 @@ public class KeyboardProvider {
             var nextPageNum = String.valueOf(page.getNumber() + 1 + 1);
             navigationCallback.setAction(PageNavigationCallbackAction.NEXT);
             navigationCallback.setData(index);
-            var forwardButton = new InlineKeyboardButton(messageProvider.getText(
+            var forwardButton = new InlineKeyboardButton(textProvider.get(
                 "button.next_page",
                 nextPageNum
             ));
@@ -460,8 +460,8 @@ public class KeyboardProvider {
 
         callback.setAction(GetCardCallbackAction.BACK);
         var backButton = new InlineKeyboardButton(
-            messageProvider.getText("emoji.back")
-                + messageProvider.getText("button.back"));
+            textProvider.get("emoji.back")
+                + textProvider.get("button.back"));
         backButton.setCallbackData(writeCallback(callback));
         row.add(backButton);
 
@@ -494,7 +494,7 @@ public class KeyboardProvider {
     }
 
     public ReplyKeyboard getBackToMainMenuReply() {
-        return getOneSingleButton(messageProvider.getText("button.back_to_main_menu"));
+        return getOneSingleButton(textProvider.get("button.back_to_main_menu"));
     }
 
     public InlineKeyboardMarkup getAfterCardDeleted() {
@@ -511,8 +511,8 @@ public class KeyboardProvider {
         keyboard.add(row);
         callback.setAction(GetCardCallbackAction.NEXT_CARD);
         var nextCard = new InlineKeyboardButton(
-            messageProvider.getText("emoji.card")
-                + messageProvider.getText("card.get_another")
+            textProvider.get("emoji.card")
+                + textProvider.get("card.get_another")
         );
         nextCard.setCallbackData(writeCallback(callback));
         row.add(nextCard);

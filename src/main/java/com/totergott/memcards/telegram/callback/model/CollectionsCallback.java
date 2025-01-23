@@ -38,10 +38,9 @@ public class CollectionsCallback extends Callback {
     public enum CollectionCallbackAction implements EncodedEnum {
         SELECT("S"),
         NEW_COLLECTION("N"),
-        CHANGE_PAGE("P"),
         FOCUS_ON_COLLECTION("F"),
         BACK("B"),
-        EDIT_CARDS("E"),
+        BROWSE_CARDS("E"),
         DELETE("d"),
         CONFIRM_DELETE("D");
 

@@ -14,7 +14,7 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.CommonHandler;
 import com.totergott.memcards.telegram.InlineKeyboardBuilder;
 import com.totergott.memcards.telegram.KeyboardProvider;
@@ -46,14 +46,14 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
     CallbackSource callbackSource = CallbackSource.GET_CARD;
 
     public GetCardScreenHandler(
-        MessageProvider messageProvider,
+        TextProvider textProvider,
         MessageService messageService,
         KeyboardProvider keyboardProvider,
         CollectionService collectionService,
         CardService cardService,
         CommonHandler commonHandler
     ) {
-        super(messageProvider, messageService, keyboardProvider);
+        super(textProvider, messageService, keyboardProvider);
         this.collectionService = collectionService;
         this.cardService = cardService;
         this.commonHandler = commonHandler;
@@ -73,6 +73,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
             case SET_COLLECTION -> setCollection(UUID.fromString(callback.getData()));
             case NEXT_CARD -> nextCard();
             case BACK_TO_CARD -> backToCard(callback.getData());
+            case OK_AFTER_EDIT -> commonHandler.mainMenu();
 
             case EDIT -> editCard(callback.getData());
         }
@@ -83,13 +84,13 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         if (user.getFocusedOnCollection() == null) {
             cardService.getCardToLearn(user.getId()).ifPresentOrElse(
                 card -> sendCard(card, user),
-                () -> messageService.sendMessage(messageProvider.getText("no_cards"))
+                () -> messageService.sendMessage(textProvider.get("no_cards"))
             );
         } else {
             cardService.getCardToLearn(user.getId(), user.getFocusedOnCollection().getId()).ifPresentOrElse(
                 card -> sendCard(card, user),
                 () -> messageService.sendMessage(
-                    messageProvider.getText("no_cards_for_focus", user.getFocusedOnCollection().getName())
+                    textProvider.get("no_cards_for_focus", user.getFocusedOnCollection().getName())
                 )
             );
         }
@@ -100,7 +101,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         messageService.clearCallbackKeyboard();
         var answerKeyboard = keyboardProvider.getInlineKnowledgeCheckKeyboard(cardId);
         messageService.sendMessage(
-            messageProvider.getText("emoji.answer") + card.getAnswer(),
+            textProvider.get("emoji.answer") + card.getAnswer(),
             answerKeyboard
         );
     }
@@ -108,7 +109,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
     private void checkInfo() {
         messageService.showAlert(
             getCallback().getId(),
-            messageProvider.getText("knowledge_check_info")
+            textProvider.get("knowledge_check_info")
         );
     }
 
@@ -150,14 +151,14 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
 
-        text = messageProvider.getText(
+        text = textProvider.get(
             "card_answered",
             Integer.toString(chronoUnitsAmount), chronoUnit.toString().toLowerCase()
         );
         if (user.getFocusedOnCollection() != null) {
             var collectionName = collectionService.getById(user.getFocusedOnCollection().getId()).orElseThrow()
                 .getName();
-            text += " " + messageProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
+            text += " " + textProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
         }
 
         if (user.getPayload().getSchedule() != null) {
@@ -168,8 +169,8 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
 
         var keyboard = new InlineKeyboardBuilder()
             .addButton(
-                messageProvider.getText("emoji.edit")
-                    + messageProvider.getText("button.edit"),
+                textProvider.get("emoji.edit")
+                    + textProvider.get("button.edit"),
                 GetCardCallback.builder()
                     .action(EDIT)
                     .data(card.getId().toString())
@@ -177,8 +178,8 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
             )
             .addRow()
             .addButton(
-                messageProvider.getText("emoji.card")
-                    + messageProvider.getText("card.get_another"),
+                textProvider.get("emoji.card")
+                    + textProvider.get("card.get_another"),
                 GetCardCallback.builder()
                     .action(NEXT_CARD)
                     .data(card.getId().toString())
@@ -213,7 +214,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
 
     private void selectCard(UUID cardId, String additionalData) {
         var card = cardService.findById(cardId).orElseThrow();
-        var text = messageProvider.getText("collections.cards.selected", card.getQuestion(), card.getAnswer());
+        var text = textProvider.get("collections.cards.selected", card.getQuestion(), card.getAnswer());
         var keyboard = keyboardProvider.buildCardKeyboard(cardId, additionalData);
 
         messageService.editCallbackMessage(text, keyboard);
@@ -222,7 +223,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
     private void chooseAnotherCollection(UUID cardId) {
         getUser().setCurrentCardId(cardId);
         var page = collectionService.getCollectionsPage(getUser().getId(), 0);
-        var text = messageProvider.getText(
+        var text = textProvider.get(
             "card.collections.select",
             String.valueOf(page.getNumber() + 1),
             String.valueOf(page.getTotalPages())
@@ -237,7 +238,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
             pageCallback
         );
 
-        text = messageProvider.appendPageInfo(text, page);
+        text = textProvider.appendPageInfo(text, page);
         messageService.editCallbackMessage(text, pageKeyboard);
     }
 
@@ -250,8 +251,8 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         }
 
         card.setCollection(collection);
-        var text = messageProvider.getText("emoji.collection") +
-            messageProvider.getText("card.collections.changed", collection.getName());
+        var text = textProvider.get("emoji.collection") +
+            textProvider.get("card.collections.changed", collection.getName());
         var keyboard = keyboardProvider.getMainMenu(user);
         messageService.sendMessage(text, keyboard);
 
@@ -274,13 +275,13 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
 //    }
 
     private void sendCard(Card card, TelegramUser user) {
-        messageService.sendMessage(messageProvider.getText("emoji.card"));
+        messageService.sendMessage(textProvider.get("emoji.card"));
 
         var now = Instant.now();
         if (card.getAppearTime().isAfter(now)) {
             var diff = commonHandler.getDiff(now, card.getAppearTime());
             messageService.sendMessage(
-                messageProvider.getText("no_cards_yet", diff),
+                textProvider.get("no_cards_yet", diff),
                 keyboardProvider.getBackToMainMenuReply()
             );
             messageService.deleteMessagesExceptLast(2);
@@ -288,12 +289,12 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         }
         var collectionName = card.getCollection().getName();
         messageService.sendMessage(
-            messageProvider.getText("emoji.collection") + collectionName,
+            textProvider.get("emoji.collection") + collectionName,
             keyboardProvider.getBackToMainMenuReply()
         );
 
         var keyboard = keyboardProvider.getInlineShowAnswerKeyboard(card.getId());
-        messageService.sendMessage(messageProvider.getText("emoji.card") + card.getQuestion(), keyboard);
+        messageService.sendMessage(textProvider.get("emoji.card") + card.getQuestion(), keyboard);
         user.setCurrentCardId(card.getId());
         user.setState(QUESTION_SHOWED);
 

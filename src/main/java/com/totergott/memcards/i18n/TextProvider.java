@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class MessageProvider {
+public class TextProvider {
 
     private final MessageSource messageSource;
 
@@ -37,7 +37,7 @@ public class MessageProvider {
     }
 
     public String appendPageInfo(String text, Page<?> page) {
-        return text + "\n" + getText(
+        return text + "\n" + get(
             "page.info",
             String.valueOf(page.getNumber() + 1),
             String.valueOf(page.getTotalPages()),
@@ -53,11 +53,11 @@ public class MessageProvider {
         return messageSource.getMessage(code, args, availableLocale.getLocale());
     }
 
-    public String getText(String code, String... args) {
+    public String get(String code, String... args) {
         return messageSource.getMessage(code, args, getLanguage().getLocale());
     }
 
-    public String getText(String code) {
+    public String get(String code) {
         return messageSource.getMessage(code, null, getLocale());
     }
 

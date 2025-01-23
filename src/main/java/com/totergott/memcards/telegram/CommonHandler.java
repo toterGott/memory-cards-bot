@@ -1,39 +1,44 @@
 package com.totergott.memcards.telegram;
 
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
+import static com.totergott.memcards.user.UserState.STAND_BY;
 
+import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 // todo rename
 public class CommonHandler {
 
     private final KeyboardProvider keyboardProvider;
-    private final MessageProvider messageProvider;
+    private final TextProvider textProvider;
     private final MessageService messageService;
     private final CollectionService collectionService;
+    private final CardService cardService;
 
     public void collectionsScreen() {
         messageService.sendMessage(
-            messageProvider.getText("emoji.collection"),
+            textProvider.get("emoji.collection"),
             keyboardProvider.getBackToMainMenuReply()
         );
         var page = collectionService.getCollectionsPage(getUser().getId(), 0);
-        var text = messageProvider.getText("collections");
+        var text = textProvider.get("collections");
 
         CollectionsCallback callback = new CollectionsCallback();
         callback.setAction(CollectionCallbackAction.SELECT);
         var pageKeyboard = keyboardProvider.buildPage(page, callback);
-        text = messageProvider.appendPageInfo(text, page);
+        text = textProvider.appendPageInfo(text, page);
         messageService.sendMessage(text, pageKeyboard);
         messageService.deleteMessagesExceptLast(2);
     }
@@ -75,6 +80,23 @@ public class CommonHandler {
         }
 
         return sb.toString();
+    }
+
+    public void mainMenu() {
+        messageService.checkoutMainMenu();
+        getUser().setState(STAND_BY);
+        var cardId = getUser().getCurrentCardId();
+        if (cardId != null) {
+            cardService.findById(cardId).ifPresentOrElse(
+                card -> {
+                    if (card.getQuestion() == null) {
+                        cardService.deleteById(cardId);
+                    }
+                },
+                () -> log.warn("User {} had currentCardId {} but card doesn't exist.", getUser().getId(), cardId)
+            );
+            getUser().setCurrentCardId(null);
+        }
     }
 
 }

@@ -6,7 +6,7 @@ import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallb
 import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.EDIT_QUESTION;
 
 import com.totergott.memcards.card.Card;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.InlineKeyboardBuilder;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
@@ -20,13 +20,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public abstract class CardHandler {
 
-    protected final MessageProvider messageProvider;
+    protected final TextProvider textProvider;
     protected final MessageService messageService;
     protected final KeyboardProvider keyboardProvider;
 
     protected void printCardWithEditButtons(Card card, CallbackSource callbackSource) {
         if (card.getQuestion() != null) {
-            var buttonText = messageProvider.getText("button.card.edit_question");
+            var buttonText = textProvider.get("button.card.edit_question");
             var callback = CreateEditCardCallback.builder().action(EDIT_QUESTION).data(card.getId().toString()).build();
 
             messageService.sendMessage(
@@ -35,7 +35,7 @@ public abstract class CardHandler {
             );
         }
         if (card.getAnswer() != null) {
-            var buttonText = messageProvider.getText("button.card.edit_answer");
+            var buttonText = textProvider.get("button.card.edit_answer");
             var callback = CreateEditCardCallback.builder().action(EDIT_ANSWER).data(card.getId().toString()).build();
 
             messageService.sendMessage(
@@ -49,8 +49,8 @@ public abstract class CardHandler {
     }
 
     private void printFinalMessage(Card card, CallbackSource callbackSource) {
-        var emoji = messageProvider.getText("emoji.collection");
-        var cardCreatedText = messageProvider.getText(
+        var emoji = textProvider.get("emoji.collection");
+        var cardCreatedText = textProvider.get(
             "create.card.created",
             emoji,
             card.getCollection().getName()
@@ -58,7 +58,7 @@ public abstract class CardHandler {
         var id = card.getId().toString();
         var breadcrumb = callbackSource.getCode();
         var confirmCallback = switch (callbackSource) {
-            case CallbackSource.GET_CARD -> GetCardCallback.builder().action(GetCardCallbackAction.BACK_TO_CARD).build();
+            case CallbackSource.GET_CARD -> GetCardCallback.builder().action(GetCardCallbackAction.OK_AFTER_EDIT).build();
             case CallbackSource.NEW_CARD -> CreateEditCardCallback.builder().action(CreateEditCardCallbackAction.CONFIRM).build();
             default -> throw new IllegalStateException("Unexpected value: " + callbackSource);
         };
@@ -68,17 +68,17 @@ public abstract class CardHandler {
 
         var keyboard = new InlineKeyboardBuilder()
             .addButton(
-                messageProvider.getText("emoji.delete")
-                + messageProvider.getText("button.card.delete"),
+                textProvider.get("emoji.delete")
+                + textProvider.get("button.card.delete"),
                 CreateEditCardCallback.builder().action(DELETE_DIALOG).data(id).additionalData(breadcrumb).build()
             )
             .addButton(
-                messageProvider.getText("emoji.collection")
-                + messageProvider.getText("button.card.edit_collection"),
+                textProvider.get("emoji.collection")
+                + textProvider.get("button.card.edit_collection"),
                 CreateEditCardCallback.builder().action(EDIT_COLLECTION).data(id).build()
             )
             .addRow()
-            .addButton(messageProvider.getText("button.ok"), confirmCallback)
+            .addButton(textProvider.get("button.ok"), confirmCallback)
             .build();
 
         messageService.sendMessage(cardCreatedText, keyboard);

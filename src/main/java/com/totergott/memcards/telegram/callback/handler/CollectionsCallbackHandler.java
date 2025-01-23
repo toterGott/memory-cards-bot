@@ -6,7 +6,7 @@ import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
 
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.CommonHandler;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
@@ -35,7 +35,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
 
     private final CollectionService collectionService;
     private final CardService cardService;
-    private final MessageProvider messageProvider;
+    private final TextProvider textProvider;
     private final KeyboardProvider keyboardProvider;
     private final MessageService client;
     private final CommonHandler commonHandler;
@@ -59,12 +59,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
             );
             case BACK -> handleCollectionPage(callback.getAdditionalData(), user, messageId);
             case NEW_COLLECTION -> createCollection();
-            case CHANGE_PAGE -> handleCollectionPage(
-                collectionsCallback.getData(),
-                user,
-                messageId
-            );
-            case EDIT_CARDS -> cardsPage(UUID.fromString(collectionsCallback.getData()));
+            case BROWSE_CARDS -> cardsPage(UUID.fromString(collectionsCallback.getData()));
             case DELETE -> deleteCollection(
                 UUID.fromString(collectionsCallback.getData()),
                 messageId,
@@ -83,14 +78,14 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         GetCardCallback getCardCallback = new GetCardCallback();
         getCardCallback.setAction(GetCardCallbackAction.SELECT);
         var keyboard = keyboardProvider.buildPage(cardPage, getCardCallback);
-        var text = messageProvider.getText("collections.cards", collectionName);
-        text = messageProvider.appendPageInfo(text, cardPage);
+        var text = textProvider.get("collections.cards", collectionName);
+        text = textProvider.appendPageInfo(text, cardPage);
         client.editCallbackMessage(text, keyboard);
     }
 
     private void createCollection() {
         getUser().setState(COLLECTION_CREATION);
-        var text = messageProvider.getText("create.collection.name_prompt");
+        var text = textProvider.get("create.collection.name_prompt");
         client.deleteCallbackMessage();
         client.sendMessage(text, new ReplyKeyboardRemove(true));
     }
@@ -104,14 +99,14 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         var collectionName = collectionService.findById(collectionId).orElseThrow().getName();
         collectionService.deleteById(collectionId);
 
-        var text = messageProvider.getText("collections.deleted", collectionName);
+        var text = textProvider.get("collections.deleted", collectionName);
         client.showAlert(getCallback().getId(), text);
         commonHandler.collectionsScreen();
     }
 
     private void handleSelectCollection(UUID collectionId, String pageNumber, Integer messageId, TelegramUser user) {
         var collection = collectionService.findById(collectionId).orElseThrow();
-        var text = messageProvider.getMessage("collections.selected", user.getLanguage(), collection.getName());
+        var text = textProvider.getMessage("collections.selected", user.getLanguage(), collection.getName());
         var inlineKeyboard = keyboardProvider.buildCollectionSelectedOptionsKeyboard(user.getLanguage(), collectionId
             , pageNumber);
 
@@ -120,7 +115,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
 
     private void handleFocusOnCollection(UUID collectionId, Integer messageId, TelegramUser user) {
         var collection = collectionService.findById(collectionId).orElseThrow();
-        var text = messageProvider.getMessage("collections.focus_on", user.getLanguage(), collection.getName());
+        var text = textProvider.getMessage("collections.focus_on", user.getLanguage(), collection.getName());
         user.setFocusedOnCollection(collection);
         var keyboard = keyboardProvider.getMainMenu(user);
 
@@ -130,7 +125,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
 
     private void deleteCollection(UUID collectionId, Integer messageId, TelegramUser user, String callbackId) {
         if (Objects.equals(collectionId, user.getPayload().getDefaultCollection())) {
-            var text = messageProvider.getMessage(
+            var text = textProvider.getMessage(
                 "collections.delete_error.default_collection",
                 user.getLanguage()
             );
@@ -139,7 +134,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         }
 
         var collection = collectionService.findById(collectionId).orElseThrow();
-        var text = messageProvider.getMessage(
+        var text = textProvider.getMessage(
             "collections.delete.confirmation",
             user.getLanguage(),
             collection.getName()
@@ -150,7 +145,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
 
     private void handleCollectionPage(String pageNumber, TelegramUser user, Integer messageId) {
         var page = collectionService.getCollectionsPage(user.getId(), Integer.parseInt(pageNumber));
-        var text = messageProvider.getMessage(
+        var text = textProvider.getMessage(
             "collections",
             user.getLanguage()
         );
@@ -158,7 +153,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         pageItemCallback.setAction(CollectionCallbackAction.SELECT);
         var pageKeyboard = keyboardProvider.buildPage(page, pageItemCallback);
 
-        text = messageProvider.appendPageInfo(text, page);
+        text = textProvider.appendPageInfo(text, page);
         client.editMessage(user.getChatId(), messageId, text, pageKeyboard);
     }
 }

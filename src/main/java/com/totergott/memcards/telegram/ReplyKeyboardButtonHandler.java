@@ -4,10 +4,9 @@ import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
 import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
-import static com.totergott.memcards.user.UserState.STAND_BY;
 
 import com.totergott.memcards.card.CardService;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.handler.CreateEditCardScreenHandler;
 import com.totergott.memcards.telegram.callback.handler.GetCardScreenHandler;
 import com.totergott.memcards.user.TelegramUser;
@@ -27,7 +26,7 @@ public class ReplyKeyboardButtonHandler {
     private String version;
 
     private final KeyboardProvider keyboardProvider;
-    private final MessageProvider messageProvider;
+    private final TextProvider textProvider;
     private final MessageService messageService;
     private final CardService cardService;
     private final CreateEditCardScreenHandler createEditCardScreenHandler;
@@ -36,7 +35,7 @@ public class ReplyKeyboardButtonHandler {
 
     public void handleButton(Update update, TelegramUser user) {
         var text = update.getMessage().getText();
-        var key = messageProvider.resolveCode(text);
+        var key = textProvider.resolveCode(text);
         if (key == null) {
             key = "Key not found";
         }
@@ -49,32 +48,15 @@ public class ReplyKeyboardButtonHandler {
             case "button.settings" -> sendSettingsMessage(user);
             case "button.collections" -> commonHandler.collectionsScreen();
             case "button.remove_focus" -> removeFocus(user);
-            case "button.back_to_main_menu" -> mainMenu();
+            case "button.back_to_main_menu" -> commonHandler.mainMenu();
             default -> handleUnknownMessage();
-        }
-    }
-
-    private void mainMenu() {
-        messageService.checkoutMainMenu();
-        getUser().setState(STAND_BY);
-        var cardId = getUser().getCurrentCardId();
-        if (cardId != null) {
-            cardService.findById(cardId).ifPresentOrElse(
-                card -> {
-                    if (card.getQuestion() == null) {
-                        cardService.deleteById(cardId);
-                    }
-                },
-                () -> log.warn("User {} had currentCardId {} but card doesn't exist.", getUser().getId(), cardId)
-            );
-            getUser().setCurrentCardId(null);
         }
     }
 
     private void handleSchedule() {
         if (true) { // todo fix card sending by the scheduler
             messageService.sendMessage(
-                messageProvider.getText("not_implemented"),
+                textProvider.get("not_implemented"),
                 keyboardProvider.getBackToMainMenuReply());
             messageService.deleteMessagesExceptLast(1);
             return;
@@ -82,13 +64,13 @@ public class ReplyKeyboardButtonHandler {
         var schedule = getUser().getPayload().getSchedule();
         String text;
         if (schedule != null) {
-            text = messageProvider.getText("schedule.enabled", schedule.getHours().toString());
+            text = textProvider.get("schedule.enabled", schedule.getHours().toString());
         } else {
-            text = messageProvider.getText("schedule");
+            text = textProvider.get("schedule");
         }
         var keyboard = keyboardProvider.getScheduleKeyboard();
         messageService.sendMessage(
-            messageProvider.getText("emoji.schedule"),
+            textProvider.get("emoji.schedule"),
             keyboardProvider.getBackToMainMenuReply()
         );
         messageService.sendMessage(text, keyboard);
@@ -99,17 +81,17 @@ public class ReplyKeyboardButtonHandler {
         user.setFocusedOnCollection(null);
         var keyboard = keyboardProvider.getMainMenu(user);
         messageService.sendMessage(
-            messageProvider.getMessage("collections.focus_removed", user.getLanguage()),
+            textProvider.getMessage("collections.focus_removed", user.getLanguage()),
             keyboard
         );
     }
 
     private void sendSettingsMessage(TelegramUser user) {
         messageService.sendMessage(
-            messageProvider.getText("emoji.settings"),
+            textProvider.get("emoji.settings"),
             keyboardProvider.getBackToMainMenuReply()
         );
-        var text = "v." + version + "\n" + messageProvider.getText("settings");
+        var text = "v." + version + "\n" + textProvider.get("settings");
         var settingsKeyboard = keyboardProvider.getSettingsMenu(user);
         messageService.sendMessage(text, settingsKeyboard);
         messageService.deleteMessagesExceptLast(2);
@@ -121,8 +103,8 @@ public class ReplyKeyboardButtonHandler {
 
     private void createCollection() {
         getUser().setState(COLLECTION_CREATION);
-        messageService.sendMessage(messageProvider.getText("emoji.create"));
-        var text = messageProvider.getText("create.collection.name_prompt");
+        messageService.sendMessage(textProvider.get("emoji.create"));
+        var text = textProvider.get("create.collection.name_prompt");
         messageService.sendMessage(
             text,
             ForceReplyKeyboard.builder().forceReply(true).inputFieldPlaceholder(text).build()
