@@ -66,7 +66,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
             case SHOW_ANSWER -> showAnswer(UUID.fromString(callback.getData()));
 
             case CHECK_INFO -> checkInfo();
-            case CHECK_KNOWLEDGE -> checkKnowledge(UUID.fromString(callback.getData()), callback.getAdditionalData());
+            case CHECK_KNOWLEDGE -> checkKnowledge(UUID.fromString(callback.getData()), getCardCallback.getGrade());
 
             case CONFIGS -> showConfigOptions(UUID.fromString(callback.getData())); // remove
             case CHOOSE_ANOTHER_COLLECTION -> chooseAnotherCollection(UUID.fromString(callback.getData()));
@@ -76,6 +76,8 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
             case OK_AFTER_EDIT -> commonHandler.mainMenu();
 
             case EDIT -> editCard(callback.getData());
+
+            case SELECT_IN_COLLECTION_PAGE -> editCardInCollection(callback.getData(), getCardCallback.getBreadCrumb());
         }
     }
 
@@ -113,10 +115,10 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         );
     }
 
-    private void checkKnowledge(UUID uuid, String additionalData) {
+    private void checkKnowledge(UUID uuid, Integer additionalData) {
         var card = cardService.findById(uuid).orElseThrow();
         var user = getUser();
-        var grade = Integer.parseInt(additionalData);
+        var grade = additionalData;
 
         String text;
         Instant appearTime = Instant.now();
@@ -201,10 +203,15 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
     }
 
     private void editCard(String data) {
-        // todo introduce common component to edit card on creation, after answer and in cards browser
         var card = cardService.getCard(UUID.fromString(data));
         messageService.deleteMessagesExceptFirst(1);
         printCardWithEditButtons(card, getCallbackSource());
+    }
+
+    private void editCardInCollection(String data, CallbackSource breadcrumb) {
+        var card = cardService.getCard(UUID.fromString(data));
+        messageService.deleteMessagesExceptFirst(1);
+        printCardWithEditButtons(card, breadcrumb);
     }
 
     private void showConfigOptions(UUID uuid) {

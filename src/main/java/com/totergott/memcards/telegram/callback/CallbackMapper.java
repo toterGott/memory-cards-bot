@@ -1,7 +1,5 @@
 package com.totergott.memcards.telegram.callback;
 
-import static com.totergott.memcards.telegram.TelegramUtils.CALLBACK_DELIMITER;
-
 import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
@@ -21,51 +19,102 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CallbackMapper {
 
+    private static final String CALLBACK_DELIMITER = " ";
+    private static final String GRADE_KEY = "!";
+    private static final String PAGE_KEY = "#";
+    private static final String BREADCRUMB_KEY = "/";
+
     public static Callback readCallback(String rawCallback) {
         var callbackArgs = rawCallback.split(CALLBACK_DELIMITER);
-        var source = CallbackSource.fromCode(callbackArgs[0]);
-        var callback = switch (source) {
+        var callbackSource = CallbackSource.fromCode(callbackArgs[0]);
+        var actionCode = callbackArgs[1];
+        var data = callbackArgs[2];
+        var pageNumber = getIntValueByKey(callbackArgs, PAGE_KEY);
+        var breadCrumb = CallbackSource.fromCode(getStringValueByKey(callbackArgs, BREADCRUMB_KEY));
+
+        var callback = switch (callbackSource) {
             case COLLECTIONS -> CollectionsCallback.builder()
-                .action(CollectionCallbackAction.fromCode(callbackArgs[1]))
-                .data(callbackArgs[2])
-                .additionalData(callbackArgs[3])
+                .action(CollectionCallbackAction.fromCode(actionCode))
+                .data(data)
+                .pageNumber(pageNumber)
+                .breadCrumb(breadCrumb)
                 .build();
             case SETTINGS -> SettingsCallback.builder()
-                .action(SettingsCallbackAction.fromCode(callbackArgs[1]))
-                .data(callbackArgs[2])
+                .action(SettingsCallbackAction.fromCode(actionCode))
+                .data(data)
+                .breadCrumb(breadCrumb)
                 .build();
             case NEW_CARD -> CreateEditCardCallback.builder()
-               .action(CreateEditCardCallbackAction.fromCode(callbackArgs[1]))
-               .data(callbackArgs[2])
-                .additionalData(callbackArgs[3])
-               .build();
+                .action(CreateEditCardCallbackAction.fromCode(actionCode))
+                .data(data)
+                .breadCrumb(breadCrumb)
+                .build();
             case GET_CARD -> GetCardCallback.builder()
-               .action(GetCardCallbackAction.fromCode(callbackArgs[1]))
-               .data(callbackArgs[2])
-               .additionalData(callbackArgs[3])
-               .build();
+                .action(GetCardCallbackAction.fromCode(actionCode))
+                .grade(getIntValueByKey(callbackArgs, GRADE_KEY))
+                .data(data)
+                .breadCrumb(breadCrumb)
+                .build();
             case SCHEDULE -> ScheduleCallback.builder()
-               .source(source)
-               .action(ScheduleCallbackAction.fromCode(callbackArgs[1]))
-               .data(callbackArgs[2])
-               .build();
+                .source(callbackSource)
+                .action(ScheduleCallbackAction.fromCode(actionCode))
+                .build();
             case PAGE_NAVIGATION -> PageNavigationCallback.builder()
-               .action(PageNavigationCallbackAction.fromCode(callbackArgs[1]))
-               .data(callbackArgs[2])
-               .build();
-            default -> throw new IllegalArgumentException("Unhandled callback action: " + source);
+                .action(PageNavigationCallbackAction.fromCode(actionCode))
+                .data(data)
+                .breadCrumb(breadCrumb)
+                .pageNumber(pageNumber)
+                .build();
+            default -> throw new IllegalArgumentException("Unhandled callback action: " + callbackSource);
         };
         log.debug("Callback: {}", callback);
         return callback;
     }
 
+    private static Integer getIntValueByKey(String[] callbackArgs, String key) {
+        var res = getStringValueByKey(callbackArgs, key);
+        if (res == null || res.equals("null")) {
+            return null;
+        }
+        return Integer.parseInt(res);
+    }
+
+    private static String getStringValueByKey(String[] callbackArgs, String key) {
+        for (int i = 3; i < callbackArgs.length; i++) {
+            if (callbackArgs[i].startsWith(key)) {
+                return callbackArgs[i].substring(key.length());
+            }
+        }
+        return null;
+    }
+
     public static String writeCallback(Callback callback) {
-        return callback.getSource().getCode()
-            + CALLBACK_DELIMITER
-            + callback.getActionCode()
-            + CALLBACK_DELIMITER
-            + callback.getData()
-            + CALLBACK_DELIMITER
-            + callback.getAdditionalData();
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(callback.getSource().getCode());
+        builder.append(CALLBACK_DELIMITER);
+        builder.append(callback.getActionCode());
+        builder.append(CALLBACK_DELIMITER);
+        builder.append(callback.getData());
+
+        if (callback.getBreadCrumb() != null) {
+            builder.append(CALLBACK_DELIMITER);
+            builder.append(BREADCRUMB_KEY);
+            builder.append(callback.getBreadCrumb().getCode());
+        }
+
+        if (callback.getPageNumber() != null) {
+            builder.append(CALLBACK_DELIMITER);
+            builder.append(PAGE_KEY);
+            builder.append(callback.getPageNumber());
+        }
+
+        if (callback instanceof GetCardCallback) {
+            builder.append(CALLBACK_DELIMITER);
+            builder.append(GRADE_KEY);
+            builder.append(((GetCardCallback) (callback)).getGrade());
+        }
+
+        return builder.toString();
     }
 }
