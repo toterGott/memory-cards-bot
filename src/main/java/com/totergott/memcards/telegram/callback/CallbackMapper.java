@@ -55,7 +55,7 @@ public class CallbackMapper {
                .build();
             default -> throw new IllegalArgumentException("Unhandled callback action: " + source);
         };
-        log.debug("Callback: {}", callback);
+        log.debug("Callback: {}", callback.toString());
         return callback;
     }
 
