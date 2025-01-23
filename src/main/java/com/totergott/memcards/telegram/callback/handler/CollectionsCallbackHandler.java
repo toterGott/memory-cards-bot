@@ -47,7 +47,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         switch (collectionsCallback.getAction()) {
             case SELECT -> handleSelectCollection(
                 UUID.fromString(collectionsCallback.getData()),
-                collectionsCallback.getPageNumber(),
+                callback.getAdditionalData(),
                 messageId,
                 user
             );
@@ -56,7 +56,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
                 messageId,
                 user
             );
-            case BACK -> handleCollectionPage(collectionsCallback.getPageNumber(), user, messageId);
+            case BACK -> handleCollectionPage(callback.getAdditionalData(), user, messageId);
             case NEW_COLLECTION -> createCollection();
             case BROWSE_CARDS -> cardsPage(UUID.fromString(collectionsCallback.getData()));
             case DELETE -> deleteCollection(
@@ -75,8 +75,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         var collectionName = collectionService.findById(collectionId).orElseThrow().getName();
         var cardPage = cardService.getCardPageByCollectionId(collectionId, 0);
         GetCardCallback getCardCallback = new GetCardCallback();
-        getCardCallback.setAction(GetCardCallbackAction.SELECT_IN_COLLECTION_PAGE);
-        getCardCallback.setBreadCrumb(CallbackSource.COLLECTIONS);
+        getCardCallback.setAction(GetCardCallbackAction.SELECT);
         var keyboard = keyboardProvider.buildPage(cardPage, getCardCallback);
         var text = textProvider.get("collections.cards", collectionName);
         text = textProvider.appendPageInfo(text, cardPage);
@@ -104,7 +103,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         commonHandler.collectionsScreen();
     }
 
-    private void handleSelectCollection(UUID collectionId, Integer pageNumber, Integer messageId, TelegramUser user) {
+    private void handleSelectCollection(UUID collectionId, String pageNumber, Integer messageId, TelegramUser user) {
         var collection = collectionService.findById(collectionId).orElseThrow();
         var text = textProvider.getMessage("collections.selected", user.getLanguage(), collection.getName());
         var inlineKeyboard = keyboardProvider.buildCollectionSelectedOptionsKeyboard(user.getLanguage(), collectionId
@@ -143,8 +142,8 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         client.editMessage(user.getChatId(), messageId, text, keyboard);
     }
 
-    private void handleCollectionPage(Integer pageNumber, TelegramUser user, Integer messageId) {
-        var page = collectionService.getCollectionsPage(user.getId(), pageNumber);
+    private void handleCollectionPage(String pageNumber, TelegramUser user, Integer messageId) {
+        var page = collectionService.getCollectionsPage(user.getId(), Integer.parseInt(pageNumber));
         var text = textProvider.getMessage(
             "collections",
             user.getLanguage()

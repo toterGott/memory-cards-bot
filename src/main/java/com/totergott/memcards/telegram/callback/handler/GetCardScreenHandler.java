@@ -66,7 +66,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
             case SHOW_ANSWER -> showAnswer(UUID.fromString(callback.getData()));
 
             case CHECK_INFO -> checkInfo();
-            case CHECK_KNOWLEDGE -> checkKnowledge(UUID.fromString(callback.getData()), getCardCallback.getGrade());
+            case CHECK_KNOWLEDGE -> checkKnowledge(UUID.fromString(callback.getData()), callback.getAdditionalData());
 
             case CONFIGS -> showConfigOptions(UUID.fromString(callback.getData())); // remove
             case CHOOSE_ANOTHER_COLLECTION -> chooseAnotherCollection(UUID.fromString(callback.getData()));
@@ -121,10 +121,10 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         messageService.showCallbackAlert(textProvider.get("knowledge_check_info"));
     }
 
-    private void checkKnowledge(UUID uuid, Integer additionalData) {
+    private void checkKnowledge(UUID uuid, String additionalData) {
         var card = cardService.findById(uuid).orElseThrow();
         var user = getUser();
-        var grade = additionalData;
+        var grade = Integer.parseInt(additionalData);
 
         String text;
         Instant appearTime = Instant.now();
@@ -213,15 +213,10 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
     }
 
     private void editCard(String data) {
+        // todo introduce common component to edit card on creation, after answer and in cards browser
         var card = cardService.getCard(UUID.fromString(data));
         messageService.deleteMessagesExceptFirst(1);
         printCardWithEditButtons(card, getCallbackSource());
-    }
-
-    private void editCardInCollection(String data, CallbackSource breadcrumb) {
-        var card = cardService.getCard(UUID.fromString(data));
-        messageService.deleteMessagesExceptFirst(1);
-        printCardWithEditButtons(card, breadcrumb);
     }
 
     private void showConfigOptions(UUID uuid) {

@@ -71,15 +71,15 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
             case CONFIRM -> confirmCardCreation();
             case DELETE_DIALOG -> deleteCardDialog(
                 UUID.fromString(callback.getData()),
-                callback.getBreadCrumb()
+                CallbackSource.fromCode(callback.getAdditionalData())
             );
             case CANCEL_DELETE -> cancelDelete(
                 UUID.fromString(callback.getData()),
-                callback.getBreadCrumb()
+                CallbackSource.fromCode(callback.getAdditionalData())
             );
             case CONFIRM_DELETE -> confirmDelete(
                 UUID.fromString(callback.getData()),
-                callback.getBreadCrumb()
+                CallbackSource.fromCode(callback.getAdditionalData())
             );
         }
     }
@@ -285,7 +285,7 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
                 CreateEditCardCallback.builder()
                     .action(CONFIRM_DELETE)
                     .data(cardId.toString())
-                    .breadCrumb(breadcrumb)
+                    .additionalData(breadcrumb.getCode())
                     .build()
             )
             .addRow()
@@ -295,7 +295,7 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
                 CreateEditCardCallback.builder().
                     action(CANCEL_DELETE)
                     .data(cardId.toString())
-                    .breadCrumb(breadcrumb)
+                    .additionalData(breadcrumb.getCode())
                     .build()
             )
             .build();
