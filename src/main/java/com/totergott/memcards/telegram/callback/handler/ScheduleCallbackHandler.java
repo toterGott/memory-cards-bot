@@ -26,7 +26,7 @@ public class ScheduleCallbackHandler implements CallbackHandler {
 
     private final TextProvider textProvider;
     private final KeyboardProvider keyboardProvider;
-    private final MessageService client;
+    private final MessageService messageService;
 
     @Getter
     CallbackSource callbackSource = CallbackSource.SCHEDULE;
@@ -40,13 +40,31 @@ public class ScheduleCallbackHandler implements CallbackHandler {
         }
     }
 
+
+    public void handleSchedule() {
+        var schedule = getUser().getPayload().getSchedule();
+        String text;
+        if (schedule != null) {
+            text = textProvider.get("schedule.enabled", schedule.getHours().toString());
+        } else {
+            text = textProvider.get("schedule");
+        }
+        var keyboard = keyboardProvider.getScheduleKeyboard();
+        messageService.sendMessage(
+            textProvider.get("emoji.schedule"),
+            keyboardProvider.getBackToMainMenuReply()
+        );
+        messageService.sendMessage(text, keyboard);
+        messageService.deleteMessagesExceptLast(2);
+    }
+
     private void disable() {
         getUser().getPayload().setSchedule(null);
 
         var text = textProvider.get("schedule.disabled");
         var keyboard = keyboardProvider.getScheduleKeyboard();
-        client.deleteMessagesExceptFirst(1);
-        client.sendMessage(text, keyboard);
+        messageService.deleteMessagesExceptFirst(1);
+        messageService.sendMessage(text, keyboard);
     }
 
     private void enableSchelling(String data) {
@@ -58,7 +76,7 @@ public class ScheduleCallbackHandler implements CallbackHandler {
 
         var text = textProvider.get("schedule.enabled", data);
         var keyboard = keyboardProvider.getScheduleKeyboard();
-        client.deleteMessagesExceptFirst(1);
-        client.sendMessage(text, keyboard);
+        messageService.deleteMessagesExceptFirst(1);
+        messageService.sendMessage(text, keyboard);
     }
 }

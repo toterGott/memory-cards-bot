@@ -7,7 +7,6 @@ import static com.totergott.memcards.telegram.callback.model.GetCardCallback.Get
 import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -170,7 +169,7 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
 
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
-            var nextRun = schedule.getNextRun().plus(schedule.getHours(), HOURS);
+            var nextRun = schedule.getNextRun().plus(schedule.getHours(), MINUTES);
             schedule.setNextRun(nextRun);
         }
         text = textProvider.get(
@@ -256,20 +255,7 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
         user.setCurrentCardId(null);
     }
 
-//    private void back(UUID cardId, String pageNumber) {
-//        var collectionId = cardService.findById(cardId).orElseThrow().getCollection().getId();
-//        // todo dry, same code in CollectionHandler
-//        var collectionName = collectionService.findById(collectionId).orElseThrow().getName();
-//        var cardPage = cardService.getCardPageByCollectionId(collectionId, Integer.parseInt(pageNumber));
-//        CardCallback cardCallback = new CardCallback();
-//        cardCallback.setAction(CardCallbackAction.SELECT);
-//        var keyboard = keyboardProvider.buildPage(cardPage, cardCallback);
-//        var text = messageProvider.getText("collections.cards", collectionName);
-//        text = messageProvider.appendPageInfo(text, cardPage);
-//        messageService.editCallbackMessage(text, keyboard);
-//    }
-
-    private void sendCard(Card card, TelegramUser user) {
+    public void sendCard(Card card, TelegramUser user) {
         messageService.sendMessage(textProvider.get("emoji.card"));
 
         var now = Instant.now();

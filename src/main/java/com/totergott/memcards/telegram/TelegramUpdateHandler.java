@@ -16,6 +16,7 @@ import com.totergott.memcards.telegram.callback.handler.CreateEditCardScreenHand
 import com.totergott.memcards.user.TelegramUser;
 import com.totergott.memcards.user.UserService;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,7 @@ public class TelegramUpdateHandler {
         try {
             updateThreadLocal.set(update);
             var user = welcomeOrGetUser(update);
+            user.getPayload().setLastInteractionTimestamp(Instant.now());
             telegramUserThreadLocal.set(user);
             log.debug("User {} state before {}", user.getUsername(), user.getState());
 

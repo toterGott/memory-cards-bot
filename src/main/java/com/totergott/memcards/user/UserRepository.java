@@ -12,11 +12,12 @@ public interface UserRepository extends JpaRepository<TelegramUser, UUID> {
     @Query(
         nativeQuery = true,
         value = """
-            select * from telegram_user
-                where state = 'STAND_BY'
-                    and payload -> 'schedule' is not null
-                    and to_timestamp((payload -> 'schedule' ->> 'nextRun')::double precision) < now()
-            order by to_timestamp((payload -> 'schedule' ->> 'nextRun')::double precision)
+            select *
+            from telegram_user
+            where state = 'STAND_BY'
+              and payload -> 'schedule' is not null
+              and (payload -> 'schedule' ->> 'nextRun')::timestamptz < now()
+            order by (payload -> 'schedule' ->> 'nextRun')::timestamptz
             limit 1
             """
     )
