@@ -111,12 +111,12 @@ public class KeyboardProvider {
 
         callback.setAction(GetCardCallbackAction.CHECK_KNOWLEDGE);
         InlineKeyboardButton againButton = new InlineKeyboardButton(textProvider.get("button.again"));
-        callback.setGrade(0);
+        callback.setAdditionalData("0");
         againButton.setCallbackData(writeCallback(callback));
         row.add(againButton);
 
         InlineKeyboardButton hardButton = new InlineKeyboardButton(textProvider.get("button.hard"));
-        callback.setGrade(1);
+        callback.setAdditionalData("1");
         hardButton.setCallbackData(writeCallback(callback));
         row.add(hardButton);
 
@@ -124,12 +124,12 @@ public class KeyboardProvider {
         rows.add(row);
 
         InlineKeyboardButton goodButton = new InlineKeyboardButton(textProvider.get("button.good"));
-        callback.setGrade(2);
+        callback.setAdditionalData("2");
         goodButton.setCallbackData(writeCallback(callback));
         row.add(goodButton);
 
         InlineKeyboardButton easyButton = new InlineKeyboardButton(textProvider.get("button.easy"));
-        callback.setGrade(3);
+        callback.setAdditionalData("3");
         easyButton.setCallbackData(writeCallback(callback));
         row.add(easyButton);
 
@@ -173,7 +173,7 @@ public class KeyboardProvider {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         for (PageableEntity collection : page.getContent()) {
             callback.setData(collection.getId().toString());
-            callback.setPageNumber(page.getNumber());
+            callback.setAdditionalData(String.valueOf(page.getNumber()));
 
             var button = new InlineKeyboardButton(collection.getName());
             button.setCallbackData(writeCallback(callback));
@@ -185,7 +185,7 @@ public class KeyboardProvider {
     public InlineKeyboardMarkup buildCollectionSelectedOptionsKeyboard(
         AvailableLocale language,
         UUID collectionId,
-        Integer pageNumber
+        String pageNumber
     ) {
         List<InlineKeyboardRow> rows = new ArrayList<>();
         CollectionsCallback callback = CollectionsCallback.builder()
@@ -215,7 +215,7 @@ public class KeyboardProvider {
         rows.add(new InlineKeyboardRow(delete));
 
         callback.setAction(CollectionCallbackAction.BACK);
-        callback.setPageNumber(Integer.valueOf(pageNumber));
+        callback.setAdditionalData(pageNumber);
         var back = new InlineKeyboardButton(
             textProvider.get("emoji.back")
                 + textProvider.get("button.back")
@@ -449,8 +449,14 @@ public class KeyboardProvider {
         var row = new InlineKeyboardRow();
         rows.add(row);
         var callback = new GetCardCallback();
-        callback.setPageNumber(Integer.valueOf(pageNumber));
+        callback.setAdditionalData(pageNumber);
         callback.setData(cardId.toString());
+
+        // todo may be add edit
+//        callback.setAction(GetCardCallbackAction.DELETE_DIALOG);
+//        var deleteButton = new InlineKeyboardButton(messageProvider.getText("button.card.delete"));
+//        deleteButton.setCallbackData(writeCallback(callback));
+//        row.add(deleteButton);
 
         callback.setAction(GetCardCallbackAction.BACK);
         var backButton = new InlineKeyboardButton(
