@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.user.TelegramUser;
 import java.io.InputStream;
 import java.time.Instant;
@@ -32,7 +32,7 @@ public class CollectionService {
     private Integer pageSize;
 
     private final CardCollectionRepository repository;
-    private final MessageProvider messageProvider;
+    private final TextProvider textProvider;
     private final ObjectMapper objectMapper;
     private final CardService cardService;
 
@@ -40,7 +40,7 @@ public class CollectionService {
         var collections = repository.findAllByOwnerId(user.getId());
         if (collections.isEmpty()) {
             var defaultCollection = new CardCollection();
-            defaultCollection.setName(messageProvider.getMessage("default_collection_name", user.getLanguage()));
+            defaultCollection.setName(textProvider.getMessage("default_collection_name", user.getLanguage()));
             defaultCollection.setOwner(user);
             defaultCollection = repository.save(defaultCollection);
             user.getPayload().setDefaultCollection(defaultCollection.getId());
@@ -79,7 +79,7 @@ public class CollectionService {
             log.info("How to collection: {}", map);
 
             var howToCollection = new CardCollection();
-            howToCollection.setName(messageProvider.getMessage("how_to_collection_name", user.getLanguage()));
+            howToCollection.setName(textProvider.getMessage("how_to_collection_name", user.getLanguage()));
             howToCollection.setOwner(user);
             howToCollection = repository.save(howToCollection);
 

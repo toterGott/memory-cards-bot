@@ -5,7 +5,7 @@ import static com.totergott.memcards.telegram.TelegramUtils.getCallbackMessageId
 import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.user.UserState;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class MessageService {
     private static final int CHUNK_SIZE = 100;
 
     private final TelegramClient telegramClient;
-    private final MessageProvider messageProvider;
+    private final TextProvider textProvider;
     private final KeyboardProvider keyboardProvider;
 
     public Message sendMessage(Long chatId, String text, ReplyKeyboard replyKeyboard) {
@@ -126,7 +126,7 @@ public class MessageService {
     public void notImplementedAlert() {
         AnswerCallbackQuery answer = new AnswerCallbackQuery(getCallback().getId());
         answer.setShowAlert(true);
-        answer.setText(messageProvider.getText("not_implemented"));
+        answer.setText(textProvider.get("not_implemented"));
         answerCallback(answer);
     }
 
@@ -175,9 +175,9 @@ public class MessageService {
     // todo should be somewhere else but not in the message service
     public void checkoutMainMenu() {
         getUser().setState(UserState.STAND_BY);
-        sendMessage(messageProvider.getText("emoji.main_menu"));
+        sendMessage(textProvider.get("emoji.main_menu"));
         var keyboard = keyboardProvider.getMainMenu();
-        var text = messageProvider.getText("main_menu");
+        var text = textProvider.get("main_menu");
         sendMessage(text, keyboard);
         deleteMessagesExceptLast(2);
     }

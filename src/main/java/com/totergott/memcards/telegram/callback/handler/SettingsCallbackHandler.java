@@ -2,7 +2,7 @@ package com.totergott.memcards.telegram.callback.handler;
 
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
@@ -25,7 +25,7 @@ public class SettingsCallbackHandler implements CallbackHandler {
 
     private final CollectionService collectionService;
     private final CardService cardService;
-    private final MessageProvider messageProvider;
+    private final TextProvider textProvider;
     private final KeyboardProvider keyboardProvider;
     private final MessageService client;
     CallbackSource callbackSource = CallbackSource.SETTINGS;
@@ -45,7 +45,7 @@ public class SettingsCallbackHandler implements CallbackHandler {
     private void changeLanguage(SettingsCallback settingsCallback, TelegramUser user, Integer messageId) {
         var newLanguage = AvailableLocale.valueOf(settingsCallback.getData());
         user.setLanguage(newLanguage);
-        var text = messageProvider.getMessage("settings.language.updated", newLanguage, newLanguage.getReadableName());
+        var text = textProvider.getMessage("settings.language.updated", newLanguage, newLanguage.getReadableName());
         var keyboard = keyboardProvider.getMainMenu(user);
 
         client.sendMessage( text, keyboard);
@@ -53,13 +53,13 @@ public class SettingsCallbackHandler implements CallbackHandler {
     }
 
     private void languageSettings(SettingsCallback settingsCallback, TelegramUser user, Integer messageId) {
-        var text = messageProvider.getMessage("settings.language", user.getLanguage());
+        var text = textProvider.getMessage("settings.language", user.getLanguage());
         var keyboard = keyboardProvider.buildLanguageKeyboard();
         client.editMessage(user.getChatId(), messageId, text, keyboard);
     }
 
     private void info() {
         client.deleteMessagesExceptFirst(1);
-        client.sendMessage(messageProvider.getText("about_url"));
+        client.sendMessage(textProvider.get("about_url"));
     }
 }

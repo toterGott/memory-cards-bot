@@ -10,7 +10,7 @@ import static com.totergott.memcards.user.UserState.STAND_BY;
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CardCollection;
 import com.totergott.memcards.collection.CollectionService;
-import com.totergott.memcards.i18n.MessageProvider;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.TelegramCallbackDelegate;
 import com.totergott.memcards.telegram.callback.handler.CreateEditCardScreenHandler;
 import com.totergott.memcards.user.TelegramUser;
@@ -32,7 +32,7 @@ public class TelegramUpdateHandler {
     private final MessageService messageService;
     private final UserService userService;
     private final KeyboardProvider keyboardProvider;
-    private final MessageProvider messageProvider;
+    private final TextProvider textProvider;
     private final CollectionService collectionService;
     private final CardService cardService;
     private final TelegramCallbackDelegate callbackHandler;
@@ -109,7 +109,7 @@ public class TelegramUpdateHandler {
 
         getUser().setState(STAND_BY);
 
-        var text = messageProvider.getText("create.collection.created");
+        var text = textProvider.get("create.collection.created");
         messageService.sendMessage(text, keyboardProvider.getMainMenu());
     }
 
@@ -151,7 +151,7 @@ public class TelegramUpdateHandler {
     }
 
     private void sendWelcomeMessage(TelegramUser user) {
-        var welcomeText = messageProvider.getMessage("welcome", user.getLanguage());
+        var welcomeText = textProvider.getMessage("welcome", user.getLanguage());
         var mainMenu = keyboardProvider.getMainMenu(user);
         messageService.sendMessage(getUpdate().getMessage().getChatId(), welcomeText, mainMenu);
     }
