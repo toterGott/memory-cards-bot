@@ -7,6 +7,7 @@ import static com.totergott.memcards.telegram.callback.model.GetCardCallback.Get
 import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -169,7 +170,7 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
 
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
-            var nextRun = schedule.getNextRun().plus(schedule.getHours(), MINUTES);
+            var nextRun = schedule.getNextRun().plus(schedule.getHours(), HOURS);
             schedule.setNextRun(nextRun);
         }
         text = textProvider.get(
