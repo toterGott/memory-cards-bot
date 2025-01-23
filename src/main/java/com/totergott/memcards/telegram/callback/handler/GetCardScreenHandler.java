@@ -1,7 +1,7 @@
 package com.totergott.memcards.telegram.callback.handler;
 
-import static com.totergott.memcards.telegram.TelegramUtils.getCallback;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
+import static com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction.AFTER_ANSWER_INFO;
 import static com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction.EDIT;
 import static com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction.NEXT_CARD;
 import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
@@ -78,7 +78,16 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
             case EDIT -> editCard(callback.getData());
 
             case SELECT_IN_COLLECTION_PAGE -> editCardInCollection(callback.getData(), getCardCallback.getBreadCrumb());
+            case AFTER_ANSWER_INFO -> showInfoAfterAnswer(getCardCallback.getData());
         }
+    }
+
+    private void showInfoAfterAnswer(String data) {
+        var card = cardService.getCard(UUID.fromString(data));
+        messageService.showCallbackAlert(textProvider.get(
+            "card.info_after_answer",
+            commonHandler.getDiff(card.getAppearTime())
+        ));
     }
 
     public void showCard() {
@@ -109,10 +118,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
     }
 
     private void checkInfo() {
-        messageService.showAlert(
-            getCallback().getId(),
-            textProvider.get("knowledge_check_info")
-        );
+        messageService.showCallbackAlert(textProvider.get("knowledge_check_info"));
     }
 
     private void checkKnowledge(UUID uuid, Integer additionalData) {
@@ -153,23 +159,26 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
 
-        text = textProvider.get(
-            "card_answered",
-            Integer.toString(chronoUnitsAmount), chronoUnit.toString().toLowerCase()
-        );
-        if (user.getFocusedOnCollection() != null) {
-            var collectionName = collectionService.getById(user.getFocusedOnCollection().getId()).orElseThrow()
-                .getName();
-            text += " " + textProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
-        }
+
+//        if (user.getFocusedOnCollection() != null) {
+//            var collectionName = collectionService.getById(user.getFocusedOnCollection().getId()).orElseThrow()
+//                .getName();
+//            text += " " + textProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
+//        }
 
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
             var nextRun = schedule.getNextRun().plus(schedule.getHours(), HOURS);
             schedule.setNextRun(nextRun);
         }
+        text = textProvider.get(
+            "card_answered",
+            Integer.toString(chronoUnitsAmount), chronoUnit.toString().toLowerCase()
+        );
 
         var keyboard = new InlineKeyboardBuilder()
+            .addButton(text, GetCardCallback.builder().action(AFTER_ANSWER_INFO).data(card.getId().toString()).build())
+            .addRow()
             .addButton(
                 textProvider.get("emoji.edit")
                     + textProvider.get("button.edit"),
@@ -188,8 +197,9 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
                     .build()
             )
             .build();
-        messageService.clearCallbackKeyboard();
-        messageService.sendMessage(text, keyboard);
+        messageService.editCallbackKeyboard(keyboard);
+//        messageService.clearCallbackKeyboard();
+//        messageService.sendMessage(text, keyboard);
     }
 
     private void backToCard(String data) {
@@ -286,7 +296,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
 
         var now = Instant.now();
         if (card.getAppearTime().isAfter(now)) {
-            var diff = commonHandler.getDiff(now, card.getAppearTime());
+            var diff = commonHandler.getDiff(card.getAppearTime());
             messageService.sendMessage(
                 textProvider.get("no_cards_yet", diff),
                 keyboardProvider.getBackToMainMenuReply()
