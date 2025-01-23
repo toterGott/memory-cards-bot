@@ -9,6 +9,7 @@ import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.handler.CreateEditCardScreenHandler;
 import com.totergott.memcards.telegram.callback.handler.GetCardHandler;
+import com.totergott.memcards.telegram.callback.handler.ScheduleCallbackHandler;
 import com.totergott.memcards.user.TelegramUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ public class ReplyKeyboardButtonHandler {
     private final CreateEditCardScreenHandler createEditCardScreenHandler;
     private final CommonHandler commonHandler;
     private final GetCardHandler getCardHandler;
+    private final ScheduleCallbackHandler scheduleHandler;
 
     public void handleButton(Update update, TelegramUser user) {
         var text = update.getMessage().getText();
@@ -44,37 +46,13 @@ public class ReplyKeyboardButtonHandler {
             case "button.get_card" -> getCardHandler.showCard();
             case "button.new_card" -> createEditCardScreenHandler.startCreateCardDialog();
             case "button.new_collection" -> createCollection();
-            case "button.schedule" -> handleSchedule();
+            case "button.schedule" -> scheduleHandler.handleSchedule();
             case "button.settings" -> sendSettingsMessage(user);
             case "button.collections" -> commonHandler.collectionsScreen();
             case "button.remove_focus" -> removeFocus(user);
             case "button.back_to_main_menu" -> commonHandler.mainMenu();
             default -> handleUnknownMessage();
         }
-    }
-
-    private void handleSchedule() {
-        if (true) { // todo fix card sending by the scheduler
-            messageService.sendMessage(
-                textProvider.get("not_implemented"),
-                keyboardProvider.getBackToMainMenuReply());
-            messageService.deleteMessagesExceptLast(1);
-            return;
-        }
-        var schedule = getUser().getPayload().getSchedule();
-        String text;
-        if (schedule != null) {
-            text = textProvider.get("schedule.enabled", schedule.getHours().toString());
-        } else {
-            text = textProvider.get("schedule");
-        }
-        var keyboard = keyboardProvider.getScheduleKeyboard();
-        messageService.sendMessage(
-            textProvider.get("emoji.schedule"),
-            keyboardProvider.getBackToMainMenuReply()
-        );
-        messageService.sendMessage(text, keyboard);
-        messageService.deleteMessagesExceptLast(2);
     }
 
     private void removeFocus(TelegramUser user) {

@@ -1,5 +1,6 @@
 package com.totergott.memcards.user;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.totergott.memcards.collection.CardCollection;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.CascadeType;
@@ -56,14 +57,18 @@ public class TelegramUser {
     public static class Payload {
         UUID defaultCollection;
         UUID lastChosenCollectionId;
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Instant lastChosenCollectionTimestamp;
         Schedule schedule;
         List<Integer> chatMessages = new ArrayList<>();
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
+        Instant lastInteractionTimestamp;
 
         @Data
         @NoArgsConstructor
         public static class Schedule {
             Integer hours;
+            @JsonFormat(shape = JsonFormat.Shape.STRING)
             Instant nextRun;
         }
     }

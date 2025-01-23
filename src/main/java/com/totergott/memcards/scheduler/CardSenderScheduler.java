@@ -1,16 +1,15 @@
 package com.totergott.memcards.scheduler;
 
 import static com.totergott.memcards.telegram.TelegramUtils.telegramUserThreadLocal;
-import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
 
 import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
-import com.totergott.memcards.i18n.TextProvider;
-import com.totergott.memcards.telegram.KeyboardProvider;
-import com.totergott.memcards.telegram.MessageService;
+import com.totergott.memcards.telegram.callback.handler.GetCardHandler;
 import com.totergott.memcards.user.TelegramUser;
 import com.totergott.memcards.user.UserService;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,9 +22,7 @@ public class CardSenderScheduler {
 
     private final CardService cardService;
     private final UserService userService;
-    private final MessageService client;
-    private final KeyboardProvider keyboardProvider;
-    private final TextProvider textProvider;
+    private final GetCardHandler getCardHandler;
 
     @Scheduled(cron = "0/5 * * * * ?")
     @Transactional
@@ -34,6 +31,14 @@ public class CardSenderScheduler {
             user -> cardService.getCardToLearn(user).ifPresentOrElse(
                 card -> {
                     telegramUserThreadLocal.set(user);
+                    var lastInteraction = user.getPayload().getLastInteractionTimestamp();
+                    var safeLag = Instant.now().minus(1, ChronoUnit.MINUTES);
+                    if (lastInteraction.isAfter(safeLag)) {
+                        var postpone = Instant.now().plus(1, ChronoUnit.MINUTES);
+                        user.getPayload().getSchedule().setNextRun(postpone);
+                        log.info("Card sent is postponed for user {}", user.getUsername());
+                        return;
+                    }
                     sendCard(card, user);
                     log.info("Card sent by schedule to user {}", user.getUsername());
                 },
@@ -43,11 +48,7 @@ public class CardSenderScheduler {
         );
     }
 
-    // todo reuse this method
     private void sendCard(Card card, TelegramUser user) {
-        var keyboard = keyboardProvider.getShowAnswerKeyboard();
-        client.sendMessage(card.getQuestion(), keyboard);
-        user.setCurrentCardId(card.getId());
-        user.setState(QUESTION_SHOWED);
+        getCardHandler.sendCard(card, user);
     }
 }
