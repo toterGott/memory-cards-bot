@@ -11,6 +11,8 @@ import com.totergott.memcards.telegram.InlineKeyboardBuilder;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
+import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
+import com.totergott.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import com.totergott.memcards.telegram.callback.model.CreateEditCardCallback;
 import com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction;
 import com.totergott.memcards.telegram.callback.model.GetCardCallback;
@@ -49,33 +51,36 @@ public abstract class CardHandler {
     }
 
     private void printFinalMessage(Card card, CallbackSource callbackSource) {
+        var cardId = card.getId().toString();
         var emoji = textProvider.get("emoji.collection");
         var cardCreatedText = textProvider.get(
             "create.card.created",
             emoji,
             card.getCollection().getName()
         );
-        var id = card.getId().toString();
-        var breadcrumb = callbackSource.getCode();
         var confirmCallback = switch (callbackSource) {
-            case CallbackSource.GET_CARD -> GetCardCallback.builder().action(GetCardCallbackAction.OK_AFTER_EDIT).build();
-            case CallbackSource.NEW_CARD -> CreateEditCardCallback.builder().action(CreateEditCardCallbackAction.CONFIRM).build();
+            case CallbackSource.GET_CARD ->
+                GetCardCallback.builder().action(GetCardCallbackAction.OK_AFTER_EDIT).build();
+            case CallbackSource.NEW_CARD ->
+                CreateEditCardCallback.builder().action(CreateEditCardCallbackAction.CONFIRM).build();
+            case CallbackSource.COLLECTIONS ->
+                CollectionsCallback.builder().action(CollectionCallbackAction.BROWSE_CARDS)
+                    .data(card.getCollection().getId().toString()).build();
             default -> throw new IllegalStateException("Unexpected value: " + callbackSource);
         };
-        confirmCallback.setData(card.getId().toString());
-        confirmCallback.setAdditionalData(breadcrumb); // todo is it really needed?
-
+        confirmCallback.setData(cardId);
+        confirmCallback.setBreadCrumb(callbackSource); // todo is it really needed?
 
         var keyboard = new InlineKeyboardBuilder()
             .addButton(
                 textProvider.get("emoji.delete")
-                + textProvider.get("button.card.delete"),
-                CreateEditCardCallback.builder().action(DELETE_DIALOG).data(id).additionalData(breadcrumb).build()
+                    + textProvider.get("button.card.delete"),
+                CreateEditCardCallback.builder().action(DELETE_DIALOG).data(cardId).breadCrumb(callbackSource).build()
             )
             .addButton(
                 textProvider.get("emoji.collection")
-                + textProvider.get("button.card.edit_collection"),
-                CreateEditCardCallback.builder().action(EDIT_COLLECTION).data(id).build()
+                    + textProvider.get("button.card.edit_collection"),
+                CreateEditCardCallback.builder().action(EDIT_COLLECTION).data(cardId).build()
             )
             .addRow()
             .addButton(textProvider.get("button.ok"), confirmCallback)

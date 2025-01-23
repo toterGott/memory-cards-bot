@@ -18,6 +18,7 @@ public class GetCardCallback extends Callback {
     @Builder.Default
     protected CallbackSource source = CallbackSource.GET_CARD;
     private GetCardCallbackAction action;
+    private Integer grade;
 
     @Override
     public void setAction(String actionName) {
@@ -39,7 +40,7 @@ public class GetCardCallback extends Callback {
         SET_COLLECTION("S"),
         EDIT("E"),
         CHANGE_PAGE("P"),
-        SELECT("s"),
+        SELECT_IN_COLLECTION_PAGE("s"),
         BACK("b"),
         SHOW_ANSWER("A"),
         CHECK_KNOWLEDGE("K"),

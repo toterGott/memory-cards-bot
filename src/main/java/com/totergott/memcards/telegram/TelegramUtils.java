@@ -14,8 +14,6 @@ public class TelegramUtils {
     public static ThreadLocal<TelegramUser> telegramUserThreadLocal = new ThreadLocal<>();
     public static ThreadLocal<Update> updateThreadLocal = new ThreadLocal<>();
 
-    public static final String CALLBACK_DELIMITER = " ";
-
     public static TelegramUser getUser() {
         return telegramUserThreadLocal.get();
     }
