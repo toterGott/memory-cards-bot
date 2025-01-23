@@ -49,6 +49,7 @@ public class GetCardCallback extends Callback {
         NEXT_CARD("N"),
         BACK_TO_CARD("B"),
         OK_AFTER_EDIT("o"),
+        AFTER_ANSWER_INFO("I"),
         ;
 
         @Getter

@@ -43,10 +43,10 @@ public class CommonHandler {
         messageService.deleteMessagesExceptLast(2);
     }
 
-    public String getDiff(Instant appearTime, Instant now) {
-        Duration duration = Duration.between(appearTime, now);
+    public String getDiff(Instant appearTime) {
+        Duration duration = Duration.between(Instant.now(), appearTime);
         if (duration.isNegative()) {
-            duration = duration.negated();
+            return "0 " + ChronoUnit.SECONDS;
         }
 
         long totalSeconds = duration.getSeconds();

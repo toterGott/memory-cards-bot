@@ -116,8 +116,8 @@ public class MessageService {
         execute(editMessageText);
     }
 
-    public void showAlert(String callbackId, String text) {
-        AnswerCallbackQuery answer = new AnswerCallbackQuery(callbackId);
+    public void showCallbackAlert(String text) {
+        AnswerCallbackQuery answer = new AnswerCallbackQuery(getCallback().getId());
         answer.setShowAlert(true);
         answer.setText(text);
         answerCallback(answer);

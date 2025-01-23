@@ -281,7 +281,7 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
         var keyboard = new InlineKeyboardBuilder()
             .addButton(
                 textProvider.get("emoji.delete")
-                    + textProvider.get("button.card.delete"),
+                    + textProvider.get("button.delete"),
                 CreateEditCardCallback.builder()
                     .action(CONFIRM_DELETE)
                     .data(cardId.toString())

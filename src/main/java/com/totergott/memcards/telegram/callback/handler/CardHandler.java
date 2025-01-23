@@ -74,9 +74,10 @@ public abstract class CardHandler {
         var keyboard = new InlineKeyboardBuilder()
             .addButton(
                 textProvider.get("emoji.delete")
-                    + textProvider.get("button.card.delete"),
+                    + textProvider.get("button.delete"),
                 CreateEditCardCallback.builder().action(DELETE_DIALOG).data(cardId).breadCrumb(callbackSource).build()
             )
+            .addRow()
             .addButton(
                 textProvider.get("emoji.collection")
                     + textProvider.get("button.card.edit_collection"),

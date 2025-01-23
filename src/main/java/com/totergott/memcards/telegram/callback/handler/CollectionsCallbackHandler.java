@@ -1,6 +1,5 @@
 package com.totergott.memcards.telegram.callback.handler;
 
-import static com.totergott.memcards.telegram.TelegramUtils.getCallback;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
 
@@ -101,7 +100,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         collectionService.deleteById(collectionId);
 
         var text = textProvider.get("collections.deleted", collectionName);
-        client.showAlert(getCallback().getId(), text);
+        client.showCallbackAlert(text);
         commonHandler.collectionsScreen();
     }
 
@@ -130,7 +129,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
                 "collections.delete_error.default_collection",
                 user.getLanguage()
             );
-            client.showAlert(callbackId, text);
+            client.showCallbackAlert(text);
             return;
         }
 
