@@ -8,7 +8,7 @@ import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.handler.CreateEditCardScreenHandler;
-import com.totergott.memcards.telegram.callback.handler.GetCardScreenHandler;
+import com.totergott.memcards.telegram.callback.handler.GetCardHandler;
 import com.totergott.memcards.user.TelegramUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class ReplyKeyboardButtonHandler {
     private final CardService cardService;
     private final CreateEditCardScreenHandler createEditCardScreenHandler;
     private final CommonHandler commonHandler;
-    private final GetCardScreenHandler getCardScreenHandler;
+    private final GetCardHandler getCardHandler;
 
     public void handleButton(Update update, TelegramUser user) {
         var text = update.getMessage().getText();
@@ -41,7 +41,7 @@ public class ReplyKeyboardButtonHandler {
         }
 
         switch (key) {
-            case "button.get_card" -> getCardScreenHandler.showCard();
+            case "button.get_card" -> getCardHandler.showCard();
             case "button.new_card" -> createEditCardScreenHandler.startCreateCardDialog();
             case "button.new_collection" -> createCollection();
             case "button.schedule" -> handleSchedule();

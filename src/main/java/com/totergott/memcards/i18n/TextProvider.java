@@ -37,6 +37,9 @@ public class TextProvider {
     }
 
     public String appendPageInfo(String text, Page<?> page) {
+        if (page.getTotalPages() == 0) {
+            return text + "\n" + get("page.no_elements");
+        }
         return text + "\n" + get(
             "page.info",
             String.valueOf(page.getNumber() + 1),

@@ -275,83 +275,6 @@ public class KeyboardProvider {
         return new InlineKeyboardMarkup(keyboard);
     }
 
-    public InlineKeyboardMarkup getCardMenuAfterAnswerWithOptions(UUID cardId) {
-        var row = new InlineKeyboardRow();
-        List<InlineKeyboardRow> keyboard = new ArrayList<>();
-        keyboard.add(row);
-
-        var callback = GetCardCallback.builder()
-            .source(CallbackSource.GET_CARD)
-            .data(cardId.toString())
-            .build();
-
-        callback.setAction(GetCardCallbackAction.CHOOSE_ANOTHER_COLLECTION);
-        var text = textProvider.get("emoji.collection")
-            + textProvider.get("button.card.edit_collection");
-        var changeCollection = new InlineKeyboardButton(text);
-        changeCollection.setCallbackData(writeCallback(callback));
-        row.add(changeCollection);
-
-        row = new InlineKeyboardRow();
-        callback.setAction(GetCardCallbackAction.EDIT);
-        text = textProvider.get("emoji.edit")
-            + textProvider.get("button.card.edit");
-        var editCard = new InlineKeyboardButton(text);
-        editCard.setCallbackData(writeCallback(callback));
-        row.add(editCard);
-        keyboard.add(row);
-
-//        row = new InlineKeyboardRow();
-//        keyboard.add(row);
-//        callback.setAction(GetCardCallbackAction.DELETE_DIALOG);
-//        text = messageProvider.getText("emoji.delete")
-//            + messageProvider.getText("button.card.delete");
-//        var delete = new InlineKeyboardButton(text);
-//        delete.setCallbackData(writeCallback(callback));
-//        row.add(delete);
-
-        row = new InlineKeyboardRow();
-        keyboard.add(row);
-        callback.setAction(GetCardCallbackAction.BACK_TO_CARD);
-        text = textProvider.get("emoji.back")
-            + textProvider.get("button.back");
-        var back = new InlineKeyboardButton(text);
-        back.setCallbackData(writeCallback(callback));
-        row.add(back);
-
-        return new InlineKeyboardMarkup(keyboard);
-    }
-
-    public InlineKeyboardMarkup getCardMenuAfterAnswer(UUID cardId) {
-        var row = new InlineKeyboardRow();
-        List<InlineKeyboardRow> keyboard = new ArrayList<>();
-        keyboard.add(row);
-
-        var callback = GetCardCallback.builder()
-            .source(CallbackSource.GET_CARD)
-            .action(GetCardCallbackAction.CONFIGS)
-            .data(cardId.toString())
-            .build();
-
-        var text = textProvider.get("emoji.config")
-            + textProvider.get("button.card.configure");
-        var configureButton = new InlineKeyboardButton(text);
-        configureButton.setCallbackData(writeCallback(callback));
-        row.add(configureButton);
-
-        row = new InlineKeyboardRow();
-        keyboard.add(row);
-        callback.setAction(GetCardCallbackAction.NEXT_CARD);
-        var nextCard = new InlineKeyboardButton(
-            textProvider.get("emoji.card")
-                + textProvider.get("card.get_another")
-        );
-        nextCard.setCallbackData(writeCallback(callback));
-        row.add(nextCard);
-
-        return new InlineKeyboardMarkup(keyboard);
-    }
-
     public InlineKeyboardMarkup getScheduleKeyboard() {
         var row = new InlineKeyboardRow();
         List<InlineKeyboardRow> keyboard = new ArrayList<>();
@@ -452,12 +375,6 @@ public class KeyboardProvider {
         callback.setAdditionalData(pageNumber);
         callback.setData(cardId.toString());
 
-        // todo may be add edit
-//        callback.setAction(GetCardCallbackAction.DELETE_DIALOG);
-//        var deleteButton = new InlineKeyboardButton(messageProvider.getText("button.card.delete"));
-//        deleteButton.setCallbackData(writeCallback(callback));
-//        row.add(deleteButton);
-
         callback.setAction(GetCardCallbackAction.BACK);
         var backButton = new InlineKeyboardButton(
             textProvider.get("emoji.back")
@@ -495,28 +412,5 @@ public class KeyboardProvider {
 
     public ReplyKeyboard getBackToMainMenuReply() {
         return getOneSingleButton(textProvider.get("button.back_to_main_menu"));
-    }
-
-    public InlineKeyboardMarkup getAfterCardDeleted() {
-        var row = new InlineKeyboardRow();
-        List<InlineKeyboardRow> keyboard = new ArrayList<>();
-        keyboard.add(row);
-
-        var callback = GetCardCallback.builder()
-            .source(CallbackSource.GET_CARD)
-            .action(GetCardCallbackAction.CONFIGS)
-            .build();
-
-        row = new InlineKeyboardRow();
-        keyboard.add(row);
-        callback.setAction(GetCardCallbackAction.NEXT_CARD);
-        var nextCard = new InlineKeyboardButton(
-            textProvider.get("emoji.card")
-                + textProvider.get("card.get_another")
-        );
-        nextCard.setCallbackData(writeCallback(callback));
-        row.add(nextCard);
-
-        return new InlineKeyboardMarkup(keyboard);
     }
 }

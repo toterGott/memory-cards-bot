@@ -43,10 +43,8 @@ public class GetCardCallback extends Callback {
         BACK("b"),
         SHOW_ANSWER("A"),
         CHECK_KNOWLEDGE("K"),
-        CONFIGS("O"),
         CHECK_INFO("i"),
         NEXT_CARD("N"),
-        BACK_TO_CARD("B"),
         OK_AFTER_EDIT("o"),
         AFTER_ANSWER_INFO("I"),
         ;

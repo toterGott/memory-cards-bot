@@ -36,7 +36,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
     private final CardService cardService;
     private final TextProvider textProvider;
     private final KeyboardProvider keyboardProvider;
-    private final MessageService client;
+    private final MessageService messageService;
     private final CommonHandler commonHandler;
     CallbackSource callbackSource = CallbackSource.COLLECTIONS;
 
@@ -79,14 +79,15 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         var keyboard = keyboardProvider.buildPage(cardPage, getCardCallback);
         var text = textProvider.get("collections.cards", collectionName);
         text = textProvider.appendPageInfo(text, cardPage);
-        client.editCallbackMessage(text, keyboard);
+        messageService.deleteMessagesExceptFirst(1);
+        messageService.sendMessage(text, keyboard);
     }
 
     private void createCollection() {
         getUser().setState(COLLECTION_CREATION);
         var text = textProvider.get("create.collection.name_prompt");
-        client.deleteCallbackMessage();
-        client.sendMessage(text, new ReplyKeyboardRemove(true));
+        messageService.deleteCallbackMessage();
+        messageService.sendMessage(text, new ReplyKeyboardRemove(true));
     }
 
     private void confirmDelete(UUID collectionId) {
@@ -99,7 +100,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         collectionService.deleteById(collectionId);
 
         var text = textProvider.get("collections.deleted", collectionName);
-        client.showCallbackAlert(text);
+        messageService.showCallbackAlert(text);
         commonHandler.collectionsScreen();
     }
 
@@ -109,7 +110,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         var inlineKeyboard = keyboardProvider.buildCollectionSelectedOptionsKeyboard(user.getLanguage(), collectionId
             , pageNumber);
 
-        client.editMessage(user.getChatId(), messageId, text, inlineKeyboard);
+        messageService.editMessage(user.getChatId(), messageId, text, inlineKeyboard);
     }
 
     private void handleFocusOnCollection(UUID collectionId, Integer messageId, TelegramUser user) {
@@ -118,8 +119,8 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         user.setFocusedOnCollection(collection);
         var keyboard = keyboardProvider.getMainMenu(user);
 
-        client.sendMessage( text, keyboard);
-        client.deleteMessage(user.getChatId(), messageId);
+        messageService.sendMessage(text, keyboard);
+        messageService.deleteMessage(user.getChatId(), messageId);
     }
 
     private void deleteCollection(UUID collectionId, Integer messageId, TelegramUser user, String callbackId) {
@@ -128,7 +129,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
                 "collections.delete_error.default_collection",
                 user.getLanguage()
             );
-            client.showCallbackAlert(text);
+            messageService.showCallbackAlert(text);
             return;
         }
 
@@ -139,7 +140,7 @@ public class CollectionsCallbackHandler implements CallbackHandler {
             collection.getName()
         );
         var keyboard = keyboardProvider.buildDeleteConfirmationDialog(user, collectionId);
-        client.editMessage(user.getChatId(), messageId, text, keyboard);
+        messageService.editMessage(user.getChatId(), messageId, text, keyboard);
     }
 
     private void handleCollectionPage(String pageNumber, TelegramUser user, Integer messageId) {
@@ -153,6 +154,6 @@ public class CollectionsCallbackHandler implements CallbackHandler {
         var pageKeyboard = keyboardProvider.buildPage(page, pageItemCallback);
 
         text = textProvider.appendPageInfo(text, page);
-        client.editMessage(user.getChatId(), messageId, text, pageKeyboard);
+        messageService.editMessage(user.getChatId(), messageId, text, pageKeyboard);
     }
 }

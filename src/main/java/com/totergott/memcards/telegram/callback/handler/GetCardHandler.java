@@ -22,6 +22,8 @@ import com.totergott.memcards.telegram.MessageService;
 import com.totergott.memcards.telegram.callback.CallbackHandler;
 import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CallbackSource;
+import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
+import com.totergott.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
 import com.totergott.memcards.telegram.callback.model.GetCardCallback;
 import com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction;
 import com.totergott.memcards.user.TelegramUser;
@@ -32,11 +34,10 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 @Component
 @Slf4j
-public class GetCardScreenHandler extends CardHandler implements CallbackHandler {
+public class GetCardHandler extends CardHandler implements CallbackHandler {
 
     private final CollectionService collectionService;
     private final CardService cardService;
@@ -45,7 +46,7 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
     @Getter
     CallbackSource callbackSource = CallbackSource.GET_CARD;
 
-    public GetCardScreenHandler(
+    public GetCardHandler(
         TextProvider textProvider,
         MessageService messageService,
         KeyboardProvider keyboardProvider,
@@ -65,29 +66,29 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         switch (getCardCallback.getAction()) {
             case SHOW_ANSWER -> showAnswer(UUID.fromString(callback.getData()));
 
-            case CHECK_INFO -> checkInfo();
+            case CHECK_INFO -> checkInfoAlert();
             case CHECK_KNOWLEDGE -> checkKnowledge(UUID.fromString(callback.getData()), callback.getAdditionalData());
 
-            case CONFIGS -> showConfigOptions(UUID.fromString(callback.getData())); // remove
             case CHOOSE_ANOTHER_COLLECTION -> chooseAnotherCollection(UUID.fromString(callback.getData()));
             case SET_COLLECTION -> setCollection(UUID.fromString(callback.getData()));
             case NEXT_CARD -> nextCard();
-            case BACK_TO_CARD -> backToCard(callback.getData());
             case OK_AFTER_EDIT -> commonHandler.mainMenu();
 
             case EDIT -> editCard(callback.getData());
 
-            case SELECT_IN_COLLECTION_PAGE -> editCardInCollection(callback.getData(), getCardCallback.getBreadCrumb());
-            case AFTER_ANSWER_INFO -> showInfoAfterAnswer(getCardCallback.getData());
+            case AFTER_ANSWER_INFO -> infoAlertAfterAnswer(getCardCallback.getData());
+            case SELECT -> editCollectionCard(getCardCallback.getData());
         }
     }
 
-    private void showInfoAfterAnswer(String data) {
+    private void editCollectionCard(String data) {
+        messageService.deleteMessagesExceptFirst(1);
         var card = cardService.getCard(UUID.fromString(data));
-        messageService.showCallbackAlert(textProvider.get(
-            "card.info_after_answer",
-            commonHandler.getDiff(card.getAppearTime())
-        ));
+        printCardWithEditButtons(
+            card,
+            CollectionsCallback.builder().action(CollectionCallbackAction.BROWSE_CARDS)
+                .data(card.getCollection().getId().toString()).build()
+        );
     }
 
     public void showCard() {
@@ -117,8 +118,16 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         );
     }
 
-    private void checkInfo() {
+    private void checkInfoAlert() {
         messageService.showCallbackAlert(textProvider.get("knowledge_check_info"));
+    }
+
+    private void infoAlertAfterAnswer(String data) {
+        var card = cardService.getCard(UUID.fromString(data));
+        messageService.showCallbackAlert(textProvider.get(
+            "card.info_after_answer",
+            commonHandler.getDiff(card.getAppearTime())
+        ));
     }
 
     private void checkKnowledge(UUID uuid, String additionalData) {
@@ -159,13 +168,6 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
         card.setAppearTime(appearTime);
         user.setState(STAND_BY);
 
-
-//        if (user.getFocusedOnCollection() != null) {
-//            var collectionName = collectionService.getById(user.getFocusedOnCollection().getId()).orElseThrow()
-//                .getName();
-//            text += " " + textProvider.getMessage("collections.focus_on", user.getLanguage(), collectionName);
-//        }
-
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
             var nextRun = schedule.getNextRun().plus(schedule.getHours(), HOURS);
@@ -198,14 +200,6 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
             )
             .build();
         messageService.editCallbackKeyboard(keyboard);
-//        messageService.clearCallbackKeyboard();
-//        messageService.sendMessage(text, keyboard);
-    }
-
-    private void backToCard(String data) {
-        var cardId = UUID.fromString(data);
-        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswer(cardId);
-        messageService.editCallbackKeyboard(keyboard);
     }
 
     private void nextCard() {
@@ -213,23 +207,12 @@ public class GetCardScreenHandler extends CardHandler implements CallbackHandler
     }
 
     private void editCard(String data) {
-        // todo introduce common component to edit card on creation, after answer and in cards browser
         var card = cardService.getCard(UUID.fromString(data));
         messageService.deleteMessagesExceptFirst(1);
-        printCardWithEditButtons(card, getCallbackSource());
-    }
-
-    private void showConfigOptions(UUID uuid) {
-        InlineKeyboardMarkup keyboard = keyboardProvider.getCardMenuAfterAnswerWithOptions(uuid);
-        messageService.editCallbackKeyboard(keyboard);
-    }
-
-    private void selectCard(UUID cardId, String additionalData) {
-        var card = cardService.findById(cardId).orElseThrow();
-        var text = textProvider.get("collections.cards.selected", card.getQuestion(), card.getAnswer());
-        var keyboard = keyboardProvider.buildCardKeyboard(cardId, additionalData);
-
-        messageService.editCallbackMessage(text, keyboard);
+        printCardWithEditButtons(
+            card,
+            GetCardCallback.builder().action(GetCardCallbackAction.OK_AFTER_EDIT).data(data).build()
+        );
     }
 
     private void chooseAnotherCollection(UUID cardId) {

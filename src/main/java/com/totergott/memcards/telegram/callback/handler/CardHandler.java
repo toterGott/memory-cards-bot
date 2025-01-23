@@ -10,11 +10,8 @@ import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.InlineKeyboardBuilder;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
-import com.totergott.memcards.telegram.callback.model.CallbackSource;
+import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.telegram.callback.model.CreateEditCardCallback;
-import com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction;
-import com.totergott.memcards.telegram.callback.model.GetCardCallback;
-import com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -24,7 +21,7 @@ public abstract class CardHandler {
     protected final MessageService messageService;
     protected final KeyboardProvider keyboardProvider;
 
-    protected void printCardWithEditButtons(Card card, CallbackSource callbackSource) {
+    protected void printCardWithEditButtons(Card card, Callback confirmCallback) {
         if (card.getQuestion() != null) {
             var buttonText = textProvider.get("button.card.edit_question");
             var callback = CreateEditCardCallback.builder().action(EDIT_QUESTION).data(card.getId().toString()).build();
@@ -44,11 +41,11 @@ public abstract class CardHandler {
             );
         }
         if (card.getQuestion() != null && card.getAnswer() != null) {
-            printFinalMessage(card, callbackSource);
+            printFinalMessage(card, confirmCallback);
         }
     }
 
-    private void printFinalMessage(Card card, CallbackSource callbackSource) {
+    private void printFinalMessage(Card card, Callback confirmCallback) {
         var emoji = textProvider.get("emoji.collection");
         var cardCreatedText = textProvider.get(
             "create.card.created",
@@ -56,21 +53,21 @@ public abstract class CardHandler {
             card.getCollection().getName()
         );
         var id = card.getId().toString();
-        var breadcrumb = callbackSource.getCode();
-        var confirmCallback = switch (callbackSource) {
-            case CallbackSource.GET_CARD -> GetCardCallback.builder().action(GetCardCallbackAction.OK_AFTER_EDIT).build();
-            case CallbackSource.NEW_CARD -> CreateEditCardCallback.builder().action(CreateEditCardCallbackAction.CONFIRM).build();
-            default -> throw new IllegalStateException("Unexpected value: " + callbackSource);
-        };
-        confirmCallback.setData(card.getId().toString());
-        confirmCallback.setAdditionalData(breadcrumb); // todo is it really needed?
+//        var breadcrumb = callbackSource.getCode();
+//        var confirmCallback = switch (callbackSource) {
+//            case CallbackSource.GET_CARD -> GetCardCallback.builder().action(GetCardCallbackAction.OK_AFTER_EDIT).build();
+//            case CallbackSource.NEW_CARD -> CreateEditCardCallback.builder().action(CreateEditCardCallbackAction.CONFIRM).build();
+//            default -> throw new IllegalStateException("Unexpected value: " + callbackSource);
+//        };
+//        confirmCallback.setData(card.getId().toString());
+//        confirmCallback.setAdditionalData(breadcrumb); // todo is it really needed?
 
 
         var keyboard = new InlineKeyboardBuilder()
             .addButton(
                 textProvider.get("emoji.delete")
                 + textProvider.get("button.delete"),
-                CreateEditCardCallback.builder().action(DELETE_DIALOG).data(id).additionalData(breadcrumb).build()
+                CreateEditCardCallback.builder().action(DELETE_DIALOG).data(id).build()
             )
             .addRow()
             .addButton(
