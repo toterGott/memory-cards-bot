@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class TelegramUpdateConsumerTest extends BaseTest {
 
     @Test
-    public void test() {
+    public void when() {
         assertThat(true).isTrue();
     }
 }
