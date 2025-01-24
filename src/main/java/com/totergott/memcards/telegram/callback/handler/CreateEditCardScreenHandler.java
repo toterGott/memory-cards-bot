@@ -106,8 +106,6 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
             card.setQuestion(question);
         }
 
-        getUser().setCurrentCardId(null);
-
         messageService.deleteMessagesExceptFirst(1);
         printCardWithEditButtons(
             card,
@@ -150,7 +148,6 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
         getUser().setState(UserState.STAND_BY);
         Card card = cardService.getCard(getUser().getCurrentCardId());
         card.setAnswer(answer);
-        getUser().setCurrentCardId(null);
 
         UUID collectionId;
         var payload = getUser().getPayload();
@@ -194,6 +191,7 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
     private void confirmCardCreation() {
         messageService.checkoutMainMenu();
 
+        getUser().setState(UserState.STAND_BY);
         getUser().setCurrentCardId(null);
     }
 
@@ -217,7 +215,6 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
                 .build()
         );
 
-        user.setCurrentCardId(null);
         user.setState(UserState.STAND_BY);
         user.getPayload().setLastChosenCollectionId(collectionId);
         user.getPayload().setLastChosenCollectionTimestamp(now());
