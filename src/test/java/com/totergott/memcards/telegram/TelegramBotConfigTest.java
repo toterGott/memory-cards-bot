@@ -1,24 +1,27 @@
 package com.totergott.memcards.telegram;
 
-import org.springframework.beans.factory.annotation.Value;
+import static org.mockito.Mockito.mock;
+
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ActiveProfiles;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-//@TestConfiguration
-class TelegramBotConfigTest {
-
-
-    @Value("${bot.token}")
-    private String botToken;
+@Configuration
+@ActiveProfiles("test")
+public class TelegramBotConfigTest {
 
     @Bean
-    public TelegramBotsLongPollingApplication telegramBotsLongPollingApplication(TelegramUpdateConsumer telegramUpdateConsumer) {
-        return null;
+    @Primary
+    public TelegramBotsLongPollingApplication telegramBotsLongPollingApplication() {
+        return mock(TelegramBotsLongPollingApplication.class);
     }
 
     @Bean
+    @Primary
     public TelegramClient telegramClient() {
-        return null;
+        return mock(TelegramClient.class);
     }
 }

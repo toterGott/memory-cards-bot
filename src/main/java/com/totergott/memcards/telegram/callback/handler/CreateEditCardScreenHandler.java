@@ -59,7 +59,6 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
         CreateEditCardCallback createEditCardCallback = (CreateEditCardCallback) callback;
         Integer messageId = callbackQuery.getMessage().getMessageId();
         switch (createEditCardCallback.getAction()) {
-            // todo these buttons also should have breadcrumbs
             case EDIT_COLLECTION -> changeCardCollection(createEditCardCallback.getData());
             case SET_COLLECTION -> setCollection(createEditCardCallback.getData(), user, messageId);
             case CHANGE_PAGE -> changePage(callback.getData());
