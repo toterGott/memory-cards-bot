@@ -2,14 +2,14 @@ package com.totergott.memcards.telegram;
 
 import static org.mockito.Mockito.mock;
 
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-@Configuration
+@TestConfiguration
 @ActiveProfiles("test")
 public class TelegramBotConfigTest {
 

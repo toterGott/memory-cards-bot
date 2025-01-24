@@ -1,5 +1,7 @@
 package com.totergott.memcards;
 
+import com.totergott.memcards.telegram.TelegramBotConfigTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -9,6 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @ActiveProfiles("test")
+@Import(TelegramBotConfigTest.class)
 public abstract class BaseTest {
 
     @Container
