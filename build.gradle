@@ -36,6 +36,10 @@ dependencies {
 	testImplementation 'org.testcontainers:postgresql:1.19.0'
 	testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
 	testImplementation 'org.assertj:assertj-core:3.24.2'
+
+	testCompileOnly 'org.projectlombok:lombok:1.18.30'
+
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
 
 tasks.named('test') {
