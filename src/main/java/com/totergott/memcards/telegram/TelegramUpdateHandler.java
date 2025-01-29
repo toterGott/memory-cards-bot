@@ -1,5 +1,6 @@
 package com.totergott.memcards.telegram;
 
+import static com.totergott.memcards.telegram.Constants.START_COMMAND;
 import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUpdate;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
@@ -7,7 +8,6 @@ import static com.totergott.memcards.telegram.TelegramUtils.telegramUserThreadLo
 import static com.totergott.memcards.telegram.TelegramUtils.updateThreadLocal;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 
-import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CardCollection;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.TextProvider;
@@ -35,7 +35,6 @@ public class TelegramUpdateHandler {
     private final KeyboardProvider keyboardProvider;
     private final TextProvider textProvider;
     private final CollectionService collectionService;
-    private final CardService cardService;
     private final TelegramCallbackDelegate callbackHandler;
     private final ReplyKeyboardButtonHandler buttonHandler;
     private final CreateEditCardScreenHandler createEditCardScreenHandler;
@@ -121,11 +120,12 @@ public class TelegramUpdateHandler {
 
     private void handleCommand(MessageEntity messageEntity, TelegramUser user) {
         switch (messageEntity.getText()) {
-            case "/start" -> {
+            case START_COMMAND -> {
                 user.setState(STAND_BY);
                 sendWelcomeMessage(user);
             }
             case "/menu" -> messageService.checkoutMainMenu();
+            default -> log.warn("Unhandled command: {}", messageEntity.getText());
         }
     }
 

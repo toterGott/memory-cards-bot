@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @SpringBootTest
@@ -20,15 +20,15 @@ class TelegramUpdateConsumerTest extends BaseTest {
 
     private TelegramUpdateConsumer telegramUpdateConsumer;
 
-    @MockitoSpyBean
-    private TelegramUpdateHandler messageHandler;
+    @MockitoBean
+    private TelegramUpdateHandler telegramUpdateHandler;
 
     @Test
-    public void when() {
+    public void receiveUpdate() {
         var update = new Update();
 
         telegramUpdateConsumer.consume(update);
 
-        verify(messageHandler, times(1)).handleUpdate(eq(update));
+        verify(telegramUpdateHandler, times(1)).handleUpdate(eq(update));
     }
 }
