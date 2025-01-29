@@ -1,6 +1,8 @@
 package com.totergott.memcards;
 
 import com.totergott.memcards.telegram.TelegramBotConfigTest;
+import com.totergott.memcards.user.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -13,6 +15,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ActiveProfiles("test")
 @Import(TelegramBotConfigTest.class)
 public abstract class BaseTest {
+
+    protected UserRepository userRepository;
+
+    @BeforeEach
+    void init() {
+        userRepository.deleteAll();
+    }
 
     @Container
     public static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15.3")
