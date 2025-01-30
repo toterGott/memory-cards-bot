@@ -15,7 +15,6 @@ This is a telegram bot with memory cards.
 - Add some tests
 - Change default collections names on a language change
 
-
 ```shell
 docker network create tg_bot_network
 ```
