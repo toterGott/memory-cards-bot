@@ -27,7 +27,7 @@ docker run -d \
   -e POSTGRES_DB=memory_cards \
   --network tg_bot_network \
   -v ~/postgresql_data:/var/lib/postgresql/data \
-  -p 5432:5432 \
+  -p 127.0.0.1:5432:5432 \
   postgres:latest
 ```
 

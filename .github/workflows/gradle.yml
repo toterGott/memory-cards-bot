@@ -59,6 +59,7 @@ jobs:
             --name memory-cards \
             -e BOT_TOKEN=${{ secrets.BOT_TOKEN }} \
             --network tg_bot_network \
+            -p 127.0.0.1:8080:8080 \
             memory-cards:latest
 
       - name: Health Check
