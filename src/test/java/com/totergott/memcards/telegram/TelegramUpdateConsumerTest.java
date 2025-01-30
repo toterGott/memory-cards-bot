@@ -5,7 +5,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.totergott.memcards.BaseTest;
-import lombok.AllArgsConstructor;
+import com.totergott.memcards.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
@@ -15,13 +15,22 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 @SpringBootTest
 @TestConstructor(autowireMode = AutowireMode.ALL)
-@AllArgsConstructor
 class TelegramUpdateConsumerTest extends BaseTest {
 
-    private TelegramUpdateConsumer telegramUpdateConsumer;
+    private final TelegramUpdateConsumer telegramUpdateConsumer;
 
     @MockitoBean
-    private TelegramUpdateHandler telegramUpdateHandler;
+    private final TelegramUpdateHandler telegramUpdateHandler;
+
+    public TelegramUpdateConsumerTest(
+        TelegramUpdateConsumer telegramUpdateConsumer,
+        TelegramUpdateHandler telegramUpdateHandler,
+        UserRepository userRepository
+    ) {
+        this.telegramUpdateConsumer = telegramUpdateConsumer;
+        this.telegramUpdateHandler = telegramUpdateHandler;
+        this.userRepository = userRepository;
+    }
 
     @Test
     public void receiveUpdate() {
