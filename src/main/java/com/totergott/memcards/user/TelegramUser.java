@@ -43,7 +43,7 @@ public class TelegramUser {
     @Enumerated(EnumType.STRING)
     private AvailableLocale language;
     @Type(JsonBinaryType.class)
-    @Column(columnDefinition = "jsonb") // can be removed is ddl none
+    @Column(columnDefinition = "jsonb") // can be removed if ddl none
     private Payload payload = new Payload();
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CardCollection> collections = new ArrayList<>();

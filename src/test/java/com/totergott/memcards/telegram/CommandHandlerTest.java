@@ -1,16 +1,24 @@
 package com.totergott.memcards.telegram;
 
+import static com.totergott.memcards.TestUtils.DEFAULT_LANGUAGE_CODE;
+import static com.totergott.memcards.TestUtils.DEFAULT_LOCALE;
+import static com.totergott.memcards.TestUtils.RANDOM;
 import static com.totergott.memcards.TestUtils.getUpdateWithCommand;
+import static com.totergott.memcards.telegram.Constants.MENU_COMMAND;
 import static com.totergott.memcards.telegram.Constants.START_COMMAND;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.totergott.memcards.BaseTest;
+import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.user.UserRepository;
+import com.totergott.memcards.user.UserService;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
@@ -23,20 +31,17 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 @TestConstructor(autowireMode = AutowireMode.ALL)
 class CommandHandlerTest extends BaseTest {
 
-    private final TelegramUpdateConsumer telegramUpdateConsumer;
-    private final TelegramClient telegramClient;
-    private final MessageService messageService;
+    @Autowired
+    private TelegramUpdateConsumer telegramUpdateConsumer;
+    @Autowired
+    private TelegramClient telegramClient;
+    @Autowired
+    private TextProvider textProvider;
+    @Autowired
+    private UserService userService;
 
-    public CommandHandlerTest(
-        TelegramUpdateConsumer telegramUpdateConsumer,
-        UserRepository userRepository,
-        TelegramClient telegramClient,
-        MessageService messageService
-    ) {
-        this.telegramUpdateConsumer = telegramUpdateConsumer;
-        this.messageService = messageService;
+    public CommandHandlerTest(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.telegramClient = telegramClient;
     }
 
     @Test
@@ -45,13 +50,42 @@ class CommandHandlerTest extends BaseTest {
 
         telegramUpdateConsumer.consume(update);
 
-        verify(telegramClient, times(1)).execute(any(SendMessage.class));
-        verify(telegramClient, times(1)).execute(any(DeleteMessage.class));
+        var sendCaptor = ArgumentCaptor.forClass(SendMessage.class);
+        verify(telegramClient, times(1)).execute(sendCaptor.capture());
+        var welcomeText = textProvider.getMessage("welcome", DEFAULT_LOCALE);
+        assertThat(sendCaptor.getValue().getText()).isEqualTo(welcomeText);
+        var deleteCaptor = ArgumentCaptor.forClass(DeleteMessage.class);
+        verify(telegramClient, times(1)).execute(deleteCaptor.capture());
+        assertThat(deleteCaptor.getValue().getMessageId()).isEqualTo(update.getMessage().getMessageId());
+        assertThat(deleteCaptor.getValue().getChatId()).isEqualTo(update.getMessage().getChatId().toString());
 
         var users = userRepository.findAll();
         assertThat(users).hasSize(1);
         var user = users.getFirst();
         assertThat(user.getState()).isEqualTo(STAND_BY);
+        // todo check default collections created
+    }
+
+    @Test
+    void whenUserExists_hasMessageAndMenuCommand_thenMenuHandled() throws TelegramApiException {
+        var update = getUpdateWithCommand(MENU_COMMAND);
+        var user = userService.createUser(update.getMessage().getChat(), DEFAULT_LANGUAGE_CODE);
+        user.getPayload().setChatMessages(List.of(RANDOM.nextInt()));
+        user = userService.save(user);
+
+        telegramUpdateConsumer.consume(update);
+
+        var deleteCaptor = ArgumentCaptor.forClass(DeleteMessage.class);
+        verify(telegramClient, times(2)).execute(deleteCaptor.capture());
+        assertThat(deleteCaptor.getAllValues().getFirst().getMessageId()).isEqualTo(user.getPayload().getChatMessages().getFirst());
+        assertThat(deleteCaptor.getAllValues().getFirst().getChatId()).isEqualTo(user.getChatId().toString());
+        assertThat(deleteCaptor.getAllValues().getLast().getMessageId()).isEqualTo(update.getMessage().getMessageId());
+        assertThat(deleteCaptor.getAllValues().getLast().getChatId()).isEqualTo(update.getMessage().getChatId().toString());
+
+        var sendCaptor = ArgumentCaptor.forClass(SendMessage.class);
+        verify(telegramClient, times(1)).execute(sendCaptor.capture());
+        var welcomeText = textProvider.getMessage("main_menu", DEFAULT_LOCALE);
+        assertThat(sendCaptor.getValue().getText()).isEqualTo(welcomeText);
     }
 
 }

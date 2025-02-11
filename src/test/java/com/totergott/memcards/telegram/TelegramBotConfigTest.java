@@ -1,10 +1,10 @@
 package com.totergott.memcards.telegram;
 
+import static com.totergott.memcards.TestUtils.RANDOM;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Random;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -29,7 +29,7 @@ public class TelegramBotConfigTest {
     @Primary
     public TelegramClient telegramClient() throws TelegramApiException {
         var telegramClient = mock(TelegramClient.class);
-        when(telegramClient.execute(any(SendMessage.class))).thenAnswer(_ -> Message.builder().messageId(new Random().nextInt()).build());
+        when(telegramClient.execute(any(SendMessage.class))).thenAnswer(_ -> Message.builder().messageId(RANDOM.nextInt()).build());
         return telegramClient;
     }
 }
