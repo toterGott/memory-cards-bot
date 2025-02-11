@@ -1,6 +1,5 @@
 package com.totergott.memcards.telegram;
 
-import static com.totergott.memcards.telegram.Constants.START_COMMAND;
 import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUpdate;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
@@ -20,8 +19,6 @@ import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 
@@ -40,6 +37,8 @@ public class TelegramUpdateHandler {
     private final CreateEditCardScreenHandler createEditCardScreenHandler;
 
     public static final String COMMAND_TYPE = "bot_command";
+    private final CommonHandler commonHandler;
+    private final CommandHandler commandHandler;
 
     @Transactional
     public void handleUpdate(Update update) {
@@ -56,13 +55,6 @@ public class TelegramUpdateHandler {
             user.getPayload().setLastInteractionTimestamp(Instant.now());
             telegramUserThreadLocal.set(user);
             log.debug("User {} state before {}", user.getUsername(), user.getState());
-
-            if (!update.hasCallbackQuery()) {
-                SendChatAction sendChatAction = SendChatAction.builder()
-                    .action("typing")
-                    .chatId(getUser().getChatId()).build();
-                messageService.execute(sendChatAction);
-            }
 
             if (update.hasCallbackQuery()) {
                 callbackHandler.handleCallback(update.getCallbackQuery(), user);
@@ -88,7 +80,7 @@ public class TelegramUpdateHandler {
                 .filter(messageEntity -> messageEntity.getType().equals(COMMAND_TYPE))
                 .findFirst();
             if (command.isPresent()) {
-                handleCommand(command.get(), user);
+                commandHandler.handleCommand(command.get());
                 return;
             }
         }
@@ -118,16 +110,6 @@ public class TelegramUpdateHandler {
         buttonHandler.handleButton(update, user);
     }
 
-    private void handleCommand(MessageEntity messageEntity, TelegramUser user) {
-        switch (messageEntity.getText()) {
-            case START_COMMAND -> {
-                user.setState(STAND_BY);
-                sendWelcomeMessage(user);
-            }
-            case "/menu" -> messageService.checkoutMainMenu();
-            default -> log.warn("Unhandled command: {}", messageEntity.getText());
-        }
-    }
 
     private TelegramUser welcomeOrGetUser(Update update) {
         Chat chat;
@@ -150,11 +132,5 @@ public class TelegramUpdateHandler {
         collectionService.initDefaultCollection(newUser);
         collectionService.initHowToUserCollection(newUser);
         return newUser;
-    }
-
-    private void sendWelcomeMessage(TelegramUser user) {
-        var welcomeText = textProvider.getMessage("welcome", user.getLanguage());
-        var mainMenu = keyboardProvider.getMainMenu(user);
-        messageService.sendMessage(getUpdate().getMessage().getChatId(), welcomeText, mainMenu);
     }
 }

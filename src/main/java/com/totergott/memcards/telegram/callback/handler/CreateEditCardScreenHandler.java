@@ -15,6 +15,7 @@ import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CardCollection;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.TextProvider;
+import com.totergott.memcards.telegram.CommonHandler;
 import com.totergott.memcards.telegram.InlineKeyboardBuilder;
 import com.totergott.memcards.telegram.KeyboardProvider;
 import com.totergott.memcards.telegram.MessageService;
@@ -38,6 +39,7 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
 
     private final CollectionService collectionService;
     private final CardService cardService;
+    private final CommonHandler commonHandler;
 
     @Getter
     CallbackSource callbackSource = CallbackSource.NEW_CARD;
@@ -47,11 +49,13 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
         MessageService messageService,
         KeyboardProvider keyboardProvider,
         CollectionService collectionService,
-        CardService cardService
+        CardService cardService,
+        CommonHandler commonHandler
     ) {
         super(textProvider, messageService, keyboardProvider);
         this.collectionService = collectionService;
         this.cardService = cardService;
+        this.commonHandler = commonHandler;
     }
 
     @Override
@@ -188,7 +192,7 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
     }
 
     private void confirmCardCreation() {
-        messageService.checkoutMainMenu();
+        commonHandler.checkoutMainMenu();
 
         getUser().setState(UserState.STAND_BY);
         getUser().setCurrentCardId(null);

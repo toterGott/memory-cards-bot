@@ -8,6 +8,7 @@ import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
+import com.totergott.memcards.user.UserState;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -83,7 +84,7 @@ public class CommonHandler {
     }
 
     public void mainMenu() {
-        messageService.checkoutMainMenu();
+        checkoutMainMenu();
         getUser().setState(STAND_BY);
         var cardId = getUser().getCurrentCardId();
         if (cardId != null) {
@@ -99,4 +100,14 @@ public class CommonHandler {
         }
     }
 
+
+    // todo should be somewhere else but not in the message service
+    public void checkoutMainMenu() {
+        getUser().setState(UserState.STAND_BY);
+        messageService.sendMessage(textProvider.get("emoji.main_menu"));
+        var keyboard = keyboardProvider.getMainMenu();
+        var text = textProvider.get("main_menu");
+        messageService.sendMessage(text, keyboard);
+        messageService.deleteMessagesExceptLast(2);
+    }
 }

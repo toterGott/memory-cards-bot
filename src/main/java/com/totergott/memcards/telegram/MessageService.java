@@ -6,7 +6,6 @@ import static com.totergott.memcards.telegram.TelegramUtils.getChatId;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 
 import com.totergott.memcards.i18n.TextProvider;
-import com.totergott.memcards.user.UserState;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -170,15 +169,5 @@ public class MessageService {
     public void editCallbackKeyboard(InlineKeyboardMarkup keyboard) {
         var sameText = ((Message) (getCallback().getMessage())).getText();
         editCallbackMessage(sameText, keyboard);
-    }
-
-    // todo should be somewhere else but not in the message service
-    public void checkoutMainMenu() {
-        getUser().setState(UserState.STAND_BY);
-        sendMessage(textProvider.get("emoji.main_menu"));
-        var keyboard = keyboardProvider.getMainMenu();
-        var text = textProvider.get("main_menu");
-        sendMessage(text, keyboard);
-        deleteMessagesExceptLast(2);
     }
 }
