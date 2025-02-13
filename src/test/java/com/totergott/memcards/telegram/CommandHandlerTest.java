@@ -8,6 +8,7 @@ import static com.totergott.memcards.telegram.Constants.MENU_COMMAND;
 import static com.totergott.memcards.telegram.Constants.START_COMMAND;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -42,8 +43,6 @@ class CommandHandlerTest extends BaseTest {
     private TextProvider textProvider;
     @Autowired
     private UserService userService;
-    @Autowired
-    private CollectionService service;
     @Autowired
     private CollectionService collectionService;
     @Autowired
@@ -97,6 +96,7 @@ class CommandHandlerTest extends BaseTest {
         var user = userService.createUser(update.getMessage().getChat(), DEFAULT_LANGUAGE_CODE);
         user.getPayload().setChatMessages(List.of(RANDOM.nextInt()));
         user = userService.save(user);
+        clearInvocations(telegramClient);
 
         telegramUpdateConsumer.consume(update);
 
@@ -110,9 +110,11 @@ class CommandHandlerTest extends BaseTest {
             .isEqualTo(update.getMessage().getChatId().toString());
 
         var sendCaptor = ArgumentCaptor.forClass(SendMessage.class);
-        verify(telegramClient, times(1)).execute(sendCaptor.capture());
+        verify(telegramClient, times(2)).execute(sendCaptor.capture());
+        var emoji = textProvider.getMessage("emoji.main_menu", DEFAULT_LOCALE);
+        assertThat(sendCaptor.getAllValues().getFirst().getText()).isEqualTo(emoji);
         var welcomeText = textProvider.getMessage("main_menu", DEFAULT_LOCALE);
-        assertThat(sendCaptor.getValue().getText()).isEqualTo(welcomeText);
+        assertThat(sendCaptor.getAllValues().getLast().getText()).isEqualTo(welcomeText);
     }
 
 }
