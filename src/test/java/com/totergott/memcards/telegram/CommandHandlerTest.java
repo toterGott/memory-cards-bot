@@ -12,6 +12,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.totergott.memcards.BaseTest;
+import com.totergott.memcards.card.CardService;
+import com.totergott.memcards.collection.CardCollection;
+import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.user.UserRepository;
 import com.totergott.memcards.user.UserService;
@@ -39,6 +42,12 @@ class CommandHandlerTest extends BaseTest {
     private TextProvider textProvider;
     @Autowired
     private UserService userService;
+    @Autowired
+    private CollectionService service;
+    @Autowired
+    private CollectionService collectionService;
+    @Autowired
+    private CardService cardService;
 
     public CommandHandlerTest(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -63,7 +72,23 @@ class CommandHandlerTest extends BaseTest {
         assertThat(users).hasSize(1);
         var user = users.getFirst();
         assertThat(user.getState()).isEqualTo(STAND_BY);
-        // todo check default collections created
+        var defaultCollectionId = user.getPayload().getDefaultCollection();
+
+        var initialCollections = collectionService.getCollectionsPage(user.getId(), 0);
+        assertThat(initialCollections).hasSize(2);
+        assertThat(initialCollections.stream().map(CardCollection::getId)).contains(defaultCollectionId);
+
+        var defaultCollectionName = textProvider.getMessage("default_collection_name", DEFAULT_LOCALE);
+        var defaultCollection =
+            initialCollections.stream().filter(it -> it.getName().equals(defaultCollectionName)).findFirst()
+                .orElseThrow();
+        assertThat(cardService.getCardPageByCollectionId(defaultCollection.getId(), 0)).isEmpty();
+
+        var tutorialCollectionName = textProvider.getMessage("tutorial_collection_name", DEFAULT_LOCALE);
+        var tutorialCollection =
+            initialCollections.stream().filter(it -> it.getName().equals(tutorialCollectionName)).findFirst()
+                .orElseThrow();
+        assertThat(cardService.getCardPageByCollectionId(tutorialCollection.getId(), 0)).isNotEmpty();
     }
 
     @Test
@@ -77,10 +102,12 @@ class CommandHandlerTest extends BaseTest {
 
         var deleteCaptor = ArgumentCaptor.forClass(DeleteMessage.class);
         verify(telegramClient, times(2)).execute(deleteCaptor.capture());
-        assertThat(deleteCaptor.getAllValues().getFirst().getMessageId()).isEqualTo(user.getPayload().getChatMessages().getFirst());
+        assertThat(deleteCaptor.getAllValues().getFirst().getMessageId())
+            .isEqualTo(user.getPayload().getChatMessages().getFirst());
         assertThat(deleteCaptor.getAllValues().getFirst().getChatId()).isEqualTo(user.getChatId().toString());
         assertThat(deleteCaptor.getAllValues().getLast().getMessageId()).isEqualTo(update.getMessage().getMessageId());
-        assertThat(deleteCaptor.getAllValues().getLast().getChatId()).isEqualTo(update.getMessage().getChatId().toString());
+        assertThat(deleteCaptor.getAllValues().getLast().getChatId())
+            .isEqualTo(update.getMessage().getChatId().toString());
 
         var sendCaptor = ArgumentCaptor.forClass(SendMessage.class);
         verify(telegramClient, times(1)).execute(sendCaptor.capture());

@@ -79,7 +79,7 @@ public class CollectionService {
             log.info("How to collection: {}", map);
 
             var howToCollection = new CardCollection();
-            howToCollection.setName(textProvider.getMessage("how_to_collection_name", user.getLanguage()));
+            howToCollection.setName(textProvider.getMessage("tutorial_collection_name", user.getLanguage()));
             howToCollection.setOwner(user);
             howToCollection = repository.save(howToCollection);
 
