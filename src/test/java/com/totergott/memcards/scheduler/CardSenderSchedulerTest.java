@@ -49,8 +49,6 @@ class CardSenderSchedulerTest extends BaseTest {
         verify(telegramClient, times(0)).execute(any(SendMessage.class));
     }
 
-    // todo test scheduler enabling
-
     @ParameterizedTest
     @MethodSource("schedulingConditions")
     void whenUserWithScheduler_thenScheduleTick_thenNoMessagesSent(
@@ -79,7 +77,7 @@ class CardSenderSchedulerTest extends BaseTest {
                 atLeastOnce()
             ),
             of(
-                Instant.now().minus(55, ChronoUnit.SECONDS),
+                Instant.now().minus(5, ChronoUnit.SECONDS),
                 never()
             )
         );
