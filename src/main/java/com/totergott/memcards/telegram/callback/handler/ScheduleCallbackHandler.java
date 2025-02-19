@@ -69,7 +69,8 @@ public class ScheduleCallbackHandler implements CallbackHandler {
         }
 
         messageService.sendMessage(
-            textProvider.get("emoji.schedule")
+            textProvider.get("emoji.schedule"),
+            keyboardProvider.getBackToMainMenuReply()
         );
         messageService.sendMessage(text, buildKeyboard());
         messageService.deleteMessagesExceptLast(2);
@@ -79,8 +80,8 @@ public class ScheduleCallbackHandler implements CallbackHandler {
         getUser().getPayload().setSchedule(null);
 
         var text = textProvider.get("schedule.disabled");
-        messageService.deleteMessagesExceptFirst(1);
-        messageService.sendMessage(text, buildKeyboard());
+        messageService.deleteMessagesExceptLast(2);
+        messageService.editCallbackMessage(text, buildKeyboard());
     }
 
     private void enableScheduling(String data) {
@@ -91,8 +92,8 @@ public class ScheduleCallbackHandler implements CallbackHandler {
         getUser().getPayload().setSchedule(schedule);
 
         var text = getScheduleEnabledText(option);
-        messageService.deleteMessagesExceptFirst(1);
-        messageService.sendMessage(text, buildKeyboard());
+        messageService.deleteMessagesExceptLast(2);
+        messageService.editCallbackMessage(text, buildKeyboard());
     }
 
     private String getScheduleEnabledText(SchedulingOption option) {

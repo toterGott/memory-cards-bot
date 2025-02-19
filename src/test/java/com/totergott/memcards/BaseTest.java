@@ -18,7 +18,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @ActiveProfiles("test")
-@DirtiesContext
+@DirtiesContext // todo fix tests fails in bulk run
 @Import(TelegramBotConfigTest.class)
 public abstract class BaseTest {
 
