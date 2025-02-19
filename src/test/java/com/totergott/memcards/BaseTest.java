@@ -7,6 +7,7 @@ import com.totergott.memcards.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -17,12 +18,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @ActiveProfiles("test")
+@DirtiesContext
 @Import(TelegramBotConfigTest.class)
 public abstract class BaseTest {
 
     @Autowired
     protected TelegramClient telegramClient;
 
+    @Autowired
     protected UserRepository userRepository;
 
     @BeforeEach
@@ -35,7 +38,8 @@ public abstract class BaseTest {
     public static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15.3")
         .withDatabaseName("testdb")
         .withUsername("test")
-        .withPassword("test");
+        .withPassword("test")
+        .withReuse(true);
 
     @DynamicPropertySource
     static void configureDatasource(DynamicPropertyRegistry registry) {

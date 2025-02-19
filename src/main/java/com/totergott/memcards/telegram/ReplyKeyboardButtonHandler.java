@@ -5,7 +5,6 @@ import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
 
-import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.handler.CreateEditCardScreenHandler;
 import com.totergott.memcards.telegram.callback.handler.GetCardHandler;
@@ -29,7 +28,6 @@ public class ReplyKeyboardButtonHandler {
     private final KeyboardProvider keyboardProvider;
     private final TextProvider textProvider;
     private final MessageService messageService;
-    private final CardService cardService;
     private final CreateEditCardScreenHandler createEditCardScreenHandler;
     private final CommonHandler commonHandler;
     private final GetCardHandler getCardHandler;

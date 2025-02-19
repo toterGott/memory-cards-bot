@@ -31,8 +31,8 @@ public class Card implements PageableEntity {
     @Id
     @GeneratedValue
     private UUID id;
-    private String question; // todo jsonb
-    private String answer; // todo jsonb
+    private String question;
+    private String answer;
     private Instant appearTime;
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

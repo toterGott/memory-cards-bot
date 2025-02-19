@@ -24,7 +24,13 @@ public class CardSenderScheduler {
     private final UserService userService;
     private final GetCardHandler getCardHandler;
 
-    @Scheduled(cron = "0/5 * * * * ?")
+    private static final int SAFE_LAG_AMOUNT = 1;
+    private static final ChronoUnit SAFE_LAG_UNIT = ChronoUnit.MINUTES;
+
+    private static final int POSTPONE_AMOUNT = SAFE_LAG_AMOUNT;
+    private static final ChronoUnit POSTPONE_UNIT = SAFE_LAG_UNIT;
+
+    @Scheduled(cron = "${app.scheduler}")
     @Transactional
     public void schedule() {
         userService.getScheduledUser().ifPresentOrElse(
@@ -32,17 +38,17 @@ public class CardSenderScheduler {
                 card -> {
                     telegramUserThreadLocal.set(user);
                     var lastInteraction = user.getPayload().getLastInteractionTimestamp();
-                    var safeLag = Instant.now().minus(1, ChronoUnit.MINUTES);
+                    var safeLag = Instant.now().minus(SAFE_LAG_AMOUNT, SAFE_LAG_UNIT);
                     if (lastInteraction.isAfter(safeLag)) {
-                        var postpone = Instant.now().plus(1, ChronoUnit.MINUTES);
+                        var postpone = Instant.now().plus(POSTPONE_AMOUNT, POSTPONE_UNIT);
                         user.getPayload().getSchedule().setNextRun(postpone);
-                        log.info("Card sent is postponed for user {}", user.getUsername());
+                        log.debug("Card sent is postponed for user {}", user.getUsername());
                         return;
                     }
                     sendCard(card, user);
-                    log.info("Card sent by schedule to user {}", user.getUsername());
+                    log.debug("Card sent by schedule to user {}", user.getUsername());
                 },
-                () -> log.info("No cards to learn found for user {}", user.getUsername())
+                () -> log.debug("No cards to learn found for user {}", user.getUsername())
             ),
             () -> log.debug("No user with schedule found")
         );

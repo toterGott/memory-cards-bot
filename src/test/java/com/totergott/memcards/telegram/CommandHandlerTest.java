@@ -8,7 +8,6 @@ import static com.totergott.memcards.telegram.Constants.MENU_COMMAND;
 import static com.totergott.memcards.telegram.Constants.START_COMMAND;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -17,7 +16,6 @@ import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CardCollection;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.TextProvider;
-import com.totergott.memcards.user.UserRepository;
 import com.totergott.memcards.user.UserService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -47,10 +45,6 @@ class CommandHandlerTest extends BaseTest {
     private CollectionService collectionService;
     @Autowired
     private CardService cardService;
-
-    public CommandHandlerTest(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Test
     void whenNoUsers_firstStartCommand_thenUserCreated() throws TelegramApiException {
@@ -96,7 +90,6 @@ class CommandHandlerTest extends BaseTest {
         var user = userService.createUser(update.getMessage().getChat(), DEFAULT_LANGUAGE_CODE);
         user.getPayload().setChatMessages(List.of(RANDOM.nextInt()));
         user = userService.save(user);
-        clearInvocations(telegramClient);
 
         telegramUpdateConsumer.consume(update);
 

@@ -1,5 +1,6 @@
 package com.totergott.memcards.user;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,12 +15,12 @@ public interface UserRepository extends JpaRepository<TelegramUser, UUID> {
         value = """
             select *
             from telegram_user
-            where state = 'STAND_BY'
+            where state in (:states)
               and payload -> 'schedule' is not null
               and (payload -> 'schedule' ->> 'nextRun')::timestamptz < now()
             order by (payload -> 'schedule' ->> 'nextRun')::timestamptz
             limit 1
             """
     )
-    Optional<TelegramUser> getScheduledUser();
+    Optional<TelegramUser> getScheduledUser(List<String> states);
 }

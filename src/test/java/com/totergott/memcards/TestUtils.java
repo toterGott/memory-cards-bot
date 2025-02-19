@@ -20,7 +20,7 @@ public class TestUtils {
     public static final String DEFAULT_LANGUAGE_CODE = DEFAULT_LOCALE.getTag();
 
 
-    public static Update getUpdateWithMessage() {
+    private static Update getUpdateWithMessage() {
         var update = new Update();
         var message = new Message();
         message.setMessageId(RANDOM.nextInt());
@@ -43,6 +43,12 @@ public class TestUtils {
             .length(command.length()).build();
         update.getMessage().setEntities(List.of(commandEntity));
         update.getMessage().setText(command);
+        return update;
+    }
+
+    public static Update getUpdateWithMessage(String message) {
+        var update = getUpdateWithMessage();
+        update.getMessage().setText(message);
         return update;
     }
 }

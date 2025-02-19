@@ -37,7 +37,6 @@ public class TelegramUpdateHandler {
     private final CreateEditCardScreenHandler createEditCardScreenHandler;
 
     public static final String COMMAND_TYPE = "bot_command";
-    private final CommonHandler commonHandler;
     private final CommandHandler commandHandler;
 
     @Transactional
@@ -130,7 +129,7 @@ public class TelegramUpdateHandler {
         var newUser = userService.createUser(chat, languageCode);
 
         collectionService.initDefaultCollection(newUser);
-        collectionService.initHowToUserCollection(newUser);
+        collectionService.initTutorialCollection(newUser);
         return newUser;
     }
 }

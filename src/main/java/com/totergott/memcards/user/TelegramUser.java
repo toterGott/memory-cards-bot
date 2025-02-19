@@ -16,6 +16,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -56,20 +57,23 @@ public class TelegramUser {
     @NoArgsConstructor
     public static class Payload {
         UUID defaultCollection;
+        // todo Disable collection reset to default after some time
         UUID lastChosenCollectionId;
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         Instant lastChosenCollectionTimestamp;
         Schedule schedule;
         List<Integer> chatMessages = new ArrayList<>();
         @JsonFormat(shape = JsonFormat.Shape.STRING)
-        Instant lastInteractionTimestamp;
+        Instant lastInteractionTimestamp = Instant.now();
 
         @Data
         @NoArgsConstructor
         public static class Schedule {
-            Integer hours;
+            SchedulingOption option;
             @JsonFormat(shape = JsonFormat.Shape.STRING)
             Instant nextRun;
         }
+
+        public record SchedulingOption(ChronoUnit chronoUnit, Integer amount) {}
     }
 }

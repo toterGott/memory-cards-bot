@@ -69,7 +69,7 @@ public class CollectionService {
         return repository.save(collection);
     }
 
-    public void initHowToUserCollection(TelegramUser user) {
+    public void initTutorialCollection(TelegramUser user) {
         try (InputStream inputStream = getClass().getClassLoader()
             .getResourceAsStream("default-collections/how-to.en.json")) {
             var map = objectMapper.readValue(

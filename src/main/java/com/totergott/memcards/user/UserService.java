@@ -1,5 +1,6 @@
 package com.totergott.memcards.user;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +72,10 @@ public class UserService {
     }
 
     public Optional<TelegramUser> getScheduledUser() {
-        return repository.getScheduledUser();
+        return repository.getScheduledUser(List.of(
+            UserState.STAND_BY.name(),
+            UserState.QUESTION_SHOWED.name(),
+            UserState.EVALUATE_ANSWER.name()
+        ));
     }
 }

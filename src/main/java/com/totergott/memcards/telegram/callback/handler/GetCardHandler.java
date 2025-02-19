@@ -7,7 +7,6 @@ import static com.totergott.memcards.telegram.callback.model.GetCardCallback.Get
 import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
 import static com.totergott.memcards.user.UserState.STAND_BY;
 import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -170,7 +169,8 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
 
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
-            var nextRun = schedule.getNextRun().plus(schedule.getHours(), HOURS);
+            var option = schedule.getOption();
+            var nextRun = schedule.getNextRun().plus(option.amount(), option.chronoUnit());
             schedule.setNextRun(nextRun);
         }
         text = textProvider.get(
@@ -180,7 +180,7 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
 
         var keyboard = new InlineKeyboardBuilder()
             .addButton(text, GetCardCallback.builder().action(AFTER_ANSWER_INFO).data(card.getId().toString()).build())
-            .addRow()
+            .nextRow()
             .addButton(
                 textProvider.get("emoji.edit")
                     + textProvider.get("button.edit"),
@@ -189,7 +189,7 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
                     .data(card.getId().toString())
                     .build()
             )
-            .addRow()
+            .nextRow()
             .addButton(
                 textProvider.get("emoji.card")
                     + textProvider.get("card.get_another"),

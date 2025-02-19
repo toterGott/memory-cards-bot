@@ -1,6 +1,7 @@
 package com.totergott.memcards.telegram.callback.model;
 
 import java.util.Arrays;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -11,6 +12,9 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 public class ScheduleCallback extends Callback {
+
+    @Builder.Default
+    protected CallbackSource source = CallbackSource.SCHEDULE;
 
     private ScheduleCallbackAction action;
 
@@ -31,8 +35,8 @@ public class ScheduleCallback extends Callback {
     @RequiredArgsConstructor
     public enum ScheduleCallbackAction implements EncodedEnum {
         DISABLE("D"),
-        SET_TIME("T")
-        ;
+        SET_TIME("T"),
+        BACK("B");
 
         @Getter
         private final String code;

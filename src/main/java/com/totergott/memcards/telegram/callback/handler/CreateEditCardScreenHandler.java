@@ -278,7 +278,7 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
                 textProvider.get("button.back_to_main_menu"),
                 CreateEditCardCallback.builder().action(CreateEditCardCallbackAction.CONFIRM).build()
             )
-            .addRow();
+            .nextRow();
 
 //        switch (callbackSource) {
 //            case GET_CARD -> keyboardBuilder.addButton(
@@ -305,7 +305,7 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
                     .data(cardId.toString())
                     .build()
             )
-            .addRow()
+            .nextRow()
             .addButton(
                 textProvider.get("emoji.back")
                     + textProvider.get("button.card.cancel"),

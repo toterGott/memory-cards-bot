@@ -53,14 +53,6 @@ public abstract class CardHandler {
             card.getCollection().getName()
         );
         var id = card.getId().toString();
-//        var breadcrumb = callbackSource.getCode();
-//        var confirmCallback = switch (callbackSource) {
-//            case CallbackSource.GET_CARD -> GetCardCallback.builder().action(GetCardCallbackAction.OK_AFTER_EDIT).build();
-//            case CallbackSource.NEW_CARD -> CreateEditCardCallback.builder().action(CreateEditCardCallbackAction.CONFIRM).build();
-//            default -> throw new IllegalStateException("Unexpected value: " + callbackSource);
-//        };
-//        confirmCallback.setData(card.getId().toString());
-//        confirmCallback.setAdditionalData(breadcrumb); // todo is it really needed?
 
 
         var keyboard = new InlineKeyboardBuilder()
@@ -69,13 +61,13 @@ public abstract class CardHandler {
                 + textProvider.get("button.delete"),
                 CreateEditCardCallback.builder().action(DELETE_DIALOG).data(id).build()
             )
-            .addRow()
+            .nextRow()
             .addButton(
                 textProvider.get("emoji.collection")
                 + textProvider.get("button.card.edit_collection"),
                 CreateEditCardCallback.builder().action(EDIT_COLLECTION).data(id).build()
             )
-            .addRow()
+            .nextRow()
             .addButton(textProvider.get("button.ok"), confirmCallback)
             .build();
 

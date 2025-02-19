@@ -14,8 +14,6 @@ import com.totergott.memcards.telegram.callback.model.GetCardCallback;
 import com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction;
 import com.totergott.memcards.telegram.callback.model.PageNavigationCallback;
 import com.totergott.memcards.telegram.callback.model.PageNavigationCallback.PageNavigationCallbackAction;
-import com.totergott.memcards.telegram.callback.model.ScheduleCallback;
-import com.totergott.memcards.telegram.callback.model.ScheduleCallback.ScheduleCallbackAction;
 import com.totergott.memcards.telegram.callback.model.SettingsCallback;
 import com.totergott.memcards.telegram.callback.model.SettingsCallback.SettingsCallbackAction;
 import com.totergott.memcards.user.AvailableLocale;
@@ -275,47 +273,6 @@ public class KeyboardProvider {
         return new InlineKeyboardMarkup(keyboard);
     }
 
-    public InlineKeyboardMarkup getScheduleKeyboard() {
-        var row = new InlineKeyboardRow();
-        List<InlineKeyboardRow> keyboard = new ArrayList<>();
-        keyboard.add(row);
-
-        var callback = ScheduleCallback.builder()
-            .source(CallbackSource.SCHEDULE)
-            .action(ScheduleCallbackAction.SET_TIME)
-            .build();
-
-        callback.setData("1");
-        var text = textProvider.get("button.schedule.settings.time", callback.getData());
-        var timeButton = new InlineKeyboardButton(text);
-        timeButton.setCallbackData(writeCallback(callback));
-        row.add(timeButton);
-
-        callback.setData("3");
-        text = textProvider.get("button.schedule.settings.time", callback.getData());
-        timeButton = new InlineKeyboardButton(text);
-        timeButton.setCallbackData(writeCallback(callback));
-        row.add(timeButton);
-
-        row = new InlineKeyboardRow();
-        keyboard.add(row);
-
-        callback.setData("6");
-        text = textProvider.get("button.schedule.settings.time", callback.getData());
-        timeButton = new InlineKeyboardButton(text);
-        timeButton.setCallbackData(writeCallback(callback));
-        row.add(timeButton);
-
-        callback.setData(null);
-        callback.setAction(ScheduleCallbackAction.DISABLE);
-        text = textProvider.get("button.schedule.settings.disable", callback.getData());
-        timeButton = new InlineKeyboardButton(text);
-        timeButton.setCallbackData(writeCallback(callback));
-        row.add(timeButton);
-
-        return new InlineKeyboardMarkup(keyboard);
-    }
-
     public InlineKeyboardMarkup buildPage(
         Page<? extends PageableEntity> page,
         Callback pageItemsCallback
@@ -364,24 +321,6 @@ public class KeyboardProvider {
         List<InlineKeyboardRow> rows = new ArrayList<>(buildCollectionsPageContent(newPage, callback));
 
         rows.add(buildDefaultNavigationRow(newPage));
-        return new InlineKeyboardMarkup(rows);
-    }
-
-    public InlineKeyboardMarkup buildCardKeyboard(UUID cardId, String pageNumber) {
-        List<InlineKeyboardRow> rows = new ArrayList<>();
-        var row = new InlineKeyboardRow();
-        rows.add(row);
-        var callback = new GetCardCallback();
-        callback.setAdditionalData(pageNumber);
-        callback.setData(cardId.toString());
-
-        callback.setAction(GetCardCallbackAction.BACK);
-        var backButton = new InlineKeyboardButton(
-            textProvider.get("emoji.back")
-                + textProvider.get("button.back"));
-        backButton.setCallbackData(writeCallback(callback));
-        row.add(backButton);
-
         return new InlineKeyboardMarkup(rows);
     }
 
