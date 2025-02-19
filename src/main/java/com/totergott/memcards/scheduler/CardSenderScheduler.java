@@ -1,6 +1,7 @@
 package com.totergott.memcards.scheduler;
 
 import static com.totergott.memcards.telegram.TelegramUtils.telegramUserThreadLocal;
+import static java.time.Instant.now;
 
 import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
@@ -8,7 +9,6 @@ import com.totergott.memcards.telegram.callback.handler.GetCardHandler;
 import com.totergott.memcards.user.TelegramUser;
 import com.totergott.memcards.user.UserService;
 import jakarta.transaction.Transactional;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,14 +38,15 @@ public class CardSenderScheduler {
                 card -> {
                     telegramUserThreadLocal.set(user);
                     var lastInteraction = user.getPayload().getLastInteractionTimestamp();
-                    var safeLag = Instant.now().minus(SAFE_LAG_AMOUNT, SAFE_LAG_UNIT);
+                    var safeLag = now().minus(SAFE_LAG_AMOUNT, SAFE_LAG_UNIT);
                     if (lastInteraction.isAfter(safeLag)) {
-                        var postpone = Instant.now().plus(POSTPONE_AMOUNT, POSTPONE_UNIT);
+                        var postpone = now().plus(POSTPONE_AMOUNT, POSTPONE_UNIT);
                         user.getPayload().getSchedule().setNextRun(postpone);
                         log.debug("Card sent is postponed for user {}", user.getUsername());
                         return;
                     }
                     sendCard(card, user);
+                    user.getPayload().setLastInteractionTimestamp(now());
                     log.debug("Card sent by schedule to user {}", user.getUsername());
                 },
                 () -> log.debug("No cards to learn found for user {}", user.getUsername())
