@@ -74,7 +74,7 @@ public class UserService {
     public Optional<TelegramUser> getScheduledUser() {
         return repository.getScheduledUser(List.of(
             UserState.STAND_BY.name(),
-            UserState.QUESTION_SHOWED.name(),
+            // todo need to come up with solution how to show showed card again without spamming
             UserState.EVALUATE_ANSWER.name()
         ));
     }
