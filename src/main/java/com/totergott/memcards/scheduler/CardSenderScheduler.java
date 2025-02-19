@@ -24,7 +24,7 @@ public class CardSenderScheduler {
     private final UserService userService;
     private final GetCardHandler getCardHandler;
 
-    private static final int SAFE_LAG_AMOUNT = 1;
+    private static final int SAFE_LAG_AMOUNT = 2;
     private static final ChronoUnit SAFE_LAG_UNIT = ChronoUnit.MINUTES;
 
     private static final int POSTPONE_AMOUNT = SAFE_LAG_AMOUNT;
