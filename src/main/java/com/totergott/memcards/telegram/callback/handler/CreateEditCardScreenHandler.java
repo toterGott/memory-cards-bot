@@ -8,7 +8,6 @@ import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallb
 import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.SET_COLLECTION;
 import static com.totergott.memcards.user.UserState.WAIT_CARD_QUESTION_INPUT;
 import static java.time.Instant.now;
-import static java.time.temporal.ChronoUnit.MINUTES;
 
 import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
@@ -154,10 +153,8 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
 
         UUID collectionId;
         var payload = getUser().getPayload();
-        if (payload.getLastChosenCollectionId() != null
-            && payload.getLastChosenCollectionTimestamp().isAfter(now().minus(1, MINUTES))) {
+        if (payload.getLastChosenCollectionId() != null && collectionService.exists(payload.getLastChosenCollectionId())) {
             collectionId = payload.getLastChosenCollectionId();
-            payload.setLastChosenCollectionTimestamp(now());
         } else {
             collectionId = payload.getDefaultCollection();
         }
@@ -220,7 +217,6 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
 
         user.setState(UserState.STAND_BY);
         user.getPayload().setLastChosenCollectionId(collectionId);
-        user.getPayload().setLastChosenCollectionTimestamp(now());
     }
 
     private void changePage(String pageNumber) {

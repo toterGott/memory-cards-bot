@@ -1,7 +1,7 @@
 package com.totergott.memcards.scheduler;
 
 import static com.totergott.memcards.TestUtils.DEFAULT_LANGUAGE_CODE;
-import static com.totergott.memcards.TestUtils.getUpdateWithCommand;
+import static com.totergott.memcards.TestUtils.getCommandUpdate;
 import static com.totergott.memcards.telegram.Constants.START_COMMAND;
 import static org.junit.jupiter.params.provider.Arguments.of;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +38,7 @@ class CardSenderSchedulerTest extends BaseTest {
 
     @Test
     void whenNoUserWithScheduler_thenScheduleTick_thenNoMessagesSent() throws TelegramApiException {
-        var update = getUpdateWithCommand(START_COMMAND);
+        var update = getCommandUpdate(START_COMMAND);
         var user = userService.createUser(update.getMessage().getChat(), DEFAULT_LANGUAGE_CODE);
         userService.save(user);
 
@@ -53,7 +53,7 @@ class CardSenderSchedulerTest extends BaseTest {
         Instant lastInteraction,
         VerificationMode verificationMode
     ) throws TelegramApiException {
-        var update = getUpdateWithCommand(START_COMMAND);
+        var update = getCommandUpdate(START_COMMAND);
         var user = userService.createUser(update.getMessage().getChat(), DEFAULT_LANGUAGE_CODE);
         Schedule schedule = new Schedule();
         schedule.setOption(new SchedulingOption(ChronoUnit.MINUTES, 1));

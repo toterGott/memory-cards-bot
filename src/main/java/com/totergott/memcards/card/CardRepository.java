@@ -6,8 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-interface CardRepository extends JpaRepository<Card, UUID> {
+public interface CardRepository extends JpaRepository<Card, UUID> {
 
     Optional<Card> findFirstByOwnerIdOrderByAppearTimeAsc(UUID ownerId);
     Optional<Card> findFirstByOwnerIdAndCollectionIdOrderByAppearTimeAsc(UUID ownerId, UUID collectionId);
@@ -35,7 +36,7 @@ interface CardRepository extends JpaRepository<Card, UUID> {
             limit 1
             """
     )
-    Optional<Card> findAvailableCard(UUID ownerId);
+    Optional<Card> findAvailableCard(@Param("ownerId") UUID ownerId);
 
     Page<Card> findAllByCollectionId(UUID collectionId, Pageable pageable);
 }

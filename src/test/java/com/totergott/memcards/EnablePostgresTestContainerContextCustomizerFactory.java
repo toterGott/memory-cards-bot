@@ -55,10 +55,7 @@ public class EnablePostgresTestContainerContextCustomizerFactory implements Cont
             var properties = Map.<String, Object>of(
                 "spring.datasource.url", postgresContainer.getJdbcUrl(),
                 "spring.datasource.username", postgresContainer.getUsername(),
-                "spring.datasource.password", postgresContainer.getPassword(),
-                // Prevent any in memory db from replacing the data source
-                // See @AutoConfigureTestDatabase
-                "spring.test.database.replace", "NONE"
+                "spring.datasource.password", postgresContainer.getPassword()
             );
             var propertySource = new MapPropertySource("PostgresContainer Test Properties", properties);
             context.getEnvironment().getPropertySources().addFirst(propertySource);

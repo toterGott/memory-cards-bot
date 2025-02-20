@@ -59,8 +59,6 @@ public class TelegramUser {
         UUID defaultCollection;
         // todo Disable collection reset to default after some time
         UUID lastChosenCollectionId;
-        @JsonFormat(shape = JsonFormat.Shape.STRING)
-        Instant lastChosenCollectionTimestamp;
         Schedule schedule;
         List<Integer> chatMessages = new ArrayList<>();
         @JsonFormat(shape = JsonFormat.Shape.STRING)

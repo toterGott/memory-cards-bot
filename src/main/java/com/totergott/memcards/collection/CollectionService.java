@@ -100,4 +100,8 @@ public class CollectionService {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean exists(UUID lastChosenCollectionId) {
+        return repository.existsById(lastChosenCollectionId);
+    }
 }

@@ -3,7 +3,7 @@ package com.totergott.memcards.telegram;
 import static com.totergott.memcards.TestUtils.DEFAULT_LANGUAGE_CODE;
 import static com.totergott.memcards.TestUtils.DEFAULT_LOCALE;
 import static com.totergott.memcards.TestUtils.RANDOM;
-import static com.totergott.memcards.TestUtils.getUpdateWithCommand;
+import static com.totergott.memcards.TestUtils.getCommandUpdate;
 import static com.totergott.memcards.telegram.Constants.MENU_COMMAND;
 import static com.totergott.memcards.telegram.Constants.START_COMMAND;
 import static com.totergott.memcards.user.UserState.STAND_BY;
@@ -21,14 +21,11 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestConstructor;
-import org.springframework.test.context.TestConstructor.AutowireMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-@TestConstructor(autowireMode = AutowireMode.ALL)
 class CommandHandlerTest extends BaseTest {
 
     @Autowired
@@ -46,7 +43,7 @@ class CommandHandlerTest extends BaseTest {
 
     @Test
     void whenNoUsers_firstStartCommand_thenUserCreated() throws TelegramApiException {
-        var update = getUpdateWithCommand(START_COMMAND);
+        var update = getCommandUpdate(START_COMMAND);
 
         telegramUpdateConsumer.consume(update);
 
@@ -84,7 +81,7 @@ class CommandHandlerTest extends BaseTest {
 
     @Test
     void whenUserExists_hasMessageAndMenuCommand_thenMenuHandled() throws TelegramApiException {
-        var update = getUpdateWithCommand(MENU_COMMAND);
+        var update =  getCommandUpdate(MENU_COMMAND);
         var user = userService.createUser(update.getMessage().getChat(), DEFAULT_LANGUAGE_CODE);
         user.getPayload().setChatMessages(List.of(RANDOM.nextInt()));
         user = userService.save(user);

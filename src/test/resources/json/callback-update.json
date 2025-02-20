@@ -1,0 +1,45 @@
+{
+  "update_id": 517068580,
+  "callback_query": {
+    "id": "874273345019706165",
+    "from": {
+      "id": 203557625,
+      "first_name": "Firstname",
+      "is_bot": false,
+      "last_name": "Lastname",
+      "username": "testUser",
+      "language_code": "en",
+      "is_premium": true
+    },
+    "message": {
+      "message_id": 9371,
+      "from": {
+        "id": 1872830191,
+        "first_name": "debugbot",
+        "is_bot": true,
+        "username": "debugtotergottbot"
+      },
+      "date": 1740063980,
+      "chat": {
+        "id": 203557625,
+        "type": "private",
+        "first_name": "Firstname",
+        "last_name": "Lastname",
+        "username": "testUser"
+      },
+      "text": "🌠 Message text",
+      "reply_markup": {
+        "inline_keyboard": [
+          [
+            {
+              "text": "🔑 Inline button text",
+              "callback_data": "c A 2e085987-475d-4cf0-8e99-1826dc3a112a null"
+            }
+          ]
+        ]
+      }
+    },
+    "data": "c A 2e085987-475d-4cf0-8e99-1826dc3a112a null",
+    "chat_instance": "-3185773028312774561"
+  }
+}

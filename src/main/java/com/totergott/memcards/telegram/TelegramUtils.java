@@ -21,11 +21,14 @@ public class TelegramUtils {
     }
 
     public static AvailableLocale getLanguage() {
+        if (telegramUserThreadLocal.get() == null) {
+            return AvailableLocale.EN;
+        }
         return telegramUserThreadLocal.get().getLanguage();
     }
 
     public static Locale getLocale() {
-        return telegramUserThreadLocal.get().getLanguage().getLocale();
+        return getLanguage().getLocale();
     }
 
     public static Long getChatId() {

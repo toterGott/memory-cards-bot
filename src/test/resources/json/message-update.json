@@ -1,0 +1,24 @@
+{
+  "update_id": 517068579,
+  "message": {
+    "message_id": 9373,
+    "from": {
+      "id": 203557625,
+      "first_name": "Firstname",
+      "is_bot": false,
+      "last_name": "Lastname",
+      "username": "testUser",
+      "language_code": "en",
+      "is_premium": true
+    },
+    "date": 1740064048,
+    "chat": {
+      "id": 203557625,
+      "type": "private",
+      "first_name": "Firstname",
+      "last_name": "Lastname",
+      "username": "testUser"
+    },
+    "text": "message"
+  }
+}

@@ -3,7 +3,7 @@ package com.totergott.memcards.telegram;
 import static com.totergott.memcards.TestUtils.DEFAULT_LANGUAGE_CODE;
 import static com.totergott.memcards.TestUtils.DEFAULT_LOCALE;
 import static com.totergott.memcards.TestUtils.RANDOM;
-import static com.totergott.memcards.TestUtils.getUpdateWithMessage;
+import static com.totergott.memcards.TestUtils.getMessageUpdate;
 import static com.totergott.memcards.telegram.callback.CallbackMapper.readCallback;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +36,7 @@ class ReplyKeyboardButtonHandlerTest extends BaseTest {
 
     @Test
     void whenUserExists_thenGetScheduleMenu_thenMenuShowed() throws TelegramApiException {
-        var update = getUpdateWithMessage(textProvider.getMessage("button.schedule", DEFAULT_LOCALE));
+        var update = getMessageUpdate(textProvider.getMessage("button.schedule", DEFAULT_LOCALE));
         var user = userService.createUser(update.getMessage().getChat(), DEFAULT_LANGUAGE_CODE);
         user.getPayload().setChatMessages(List.of(RANDOM.nextInt()));
         userService.save(user);
