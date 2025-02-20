@@ -35,24 +35,38 @@ public class SettingsCallbackHandler implements CallbackHandler {
         SettingsCallback settingsCallback = (SettingsCallback) callback;
         Integer messageId = callbackQuery.getMessage().getMessageId();
         switch (settingsCallback.getAction()) {
-            case LANGUAGE -> languageSettings(settingsCallback, user, messageId);
+            case LANGUAGE -> languageSettings(user, messageId);
             case CHANGE_LANGUAGE -> changeLanguage(settingsCallback, user, messageId);
             case INFO -> info();
         }
     }
 
-    // todo change default collections names and content on a language change
     private void changeLanguage(SettingsCallback settingsCallback, TelegramUser user, Integer messageId) {
         var newLanguage = AvailableLocale.valueOf(settingsCallback.getData());
+        changeCollectionNames(user, user.getLanguage(), newLanguage);
         user.setLanguage(newLanguage);
         var text = textProvider.getMessage("settings.language.updated", newLanguage, newLanguage.getReadableName());
         var keyboard = keyboardProvider.getMainMenu(user);
 
-        client.sendMessage( text, keyboard);
+        client.sendMessage(text, keyboard);
         client.deleteMessage(user.getChatId(), messageId);
     }
 
-    private void languageSettings(SettingsCallback settingsCallback, TelegramUser user, Integer messageId) {
+    private void changeCollectionNames(TelegramUser user, AvailableLocale oldLanguage, AvailableLocale newLanguage) {
+        var collections = user.getCollections();
+        collections.stream().filter(it -> it.getName().equals(textProvider.getMessage(
+            "default_collection_name", oldLanguage))).findFirst().ifPresent(defaultCollection -> {
+            defaultCollection.setName(textProvider.getMessage(
+                "default_collection_name", newLanguage));
+        });
+        collections.stream().filter(it -> it.getName().equals(textProvider.getMessage(
+            "tutorial_collection_name", oldLanguage))).findFirst().ifPresent(tutorialCollection -> {
+            tutorialCollection.setName(textProvider.getMessage(
+                "tutorial_collection_name", newLanguage));
+        });
+    }
+
+    private void languageSettings(TelegramUser user, Integer messageId) {
         var text = textProvider.getMessage("settings.language", user.getLanguage());
         var keyboard = keyboardProvider.buildLanguageKeyboard();
         client.editMessage(user.getChatId(), messageId, text, keyboard);
