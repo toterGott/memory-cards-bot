@@ -7,13 +7,11 @@ import static org.mockito.Mockito.verify;
 import com.totergott.memcards.BaseTest;
 import com.totergott.memcards.user.UserRepository;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-@SpringBootTest
 @TestConstructor(autowireMode = AutowireMode.ALL)
 class TelegramUpdateConsumerTest extends BaseTest {
 

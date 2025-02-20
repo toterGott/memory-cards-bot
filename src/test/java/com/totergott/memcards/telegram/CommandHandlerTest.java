@@ -21,7 +21,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -29,7 +28,6 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-@SpringBootTest
 @TestConstructor(autowireMode = AutowireMode.ALL)
 class CommandHandlerTest extends BaseTest {
 

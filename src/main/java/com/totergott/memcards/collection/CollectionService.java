@@ -76,7 +76,6 @@ public class CollectionService {
                 inputStream, new TypeReference<Map<String, String>>() {
                 }
             );
-            log.info("How to collection: {}", map);
 
             var howToCollection = new CardCollection();
             howToCollection.setName(textProvider.getMessage("tutorial_collection_name", user.getLanguage()));
