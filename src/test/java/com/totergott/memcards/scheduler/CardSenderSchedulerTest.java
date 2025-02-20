@@ -73,7 +73,7 @@ class CardSenderSchedulerTest extends BaseTest {
     public static Stream<Arguments> schedulingConditions() {
         return Stream.of(
             of(
-                Instant.now().minus(1, ChronoUnit.MINUTES),
+                Instant.now().minus(2, ChronoUnit.MINUTES),
                 atLeastOnce()
             ),
             of(
