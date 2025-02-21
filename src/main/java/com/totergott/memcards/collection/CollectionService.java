@@ -31,6 +31,9 @@ public class CollectionService {
     @Value("${app.page_size}")
     private Integer pageSize;
 
+    @Value("${app.limit.collections}")
+    private Integer collectionsLimit;
+
     private final CardCollectionRepository repository;
     private final TextProvider textProvider;
     private final ObjectMapper objectMapper;
@@ -63,10 +66,6 @@ public class CollectionService {
     public void deleteById(UUID collectionId) {
 //        repository.deleteById(collectionId); // todo find out why is this not working
         repository.deleteByIdQuery(collectionId);
-    }
-
-    public CardCollection save(CardCollection collection) {
-        return repository.save(collection);
     }
 
     public void initTutorialCollection(TelegramUser user) {
@@ -103,5 +102,24 @@ public class CollectionService {
 
     public boolean exists(UUID lastChosenCollectionId) {
         return repository.existsById(lastChosenCollectionId);
+    }
+
+    public Optional<CardCollection> createCollection(String collectionName, TelegramUser user) {
+        if (getCollectionCount(user.getId()) >= collectionsLimit) {
+            return Optional.empty();
+        }
+
+        if (repository.existsByOwnerIdAndName(user.getId(), collectionName)) {
+            return Optional.empty();
+        }
+
+        var collection = new CardCollection();
+        collection.setName(collectionName);
+        collection.setOwner(user);
+        return Optional.of(repository.save(collection));
+    }
+
+    private Integer getCollectionCount(UUID id) {
+        return repository.countAllByOwnerId(id);
     }
 }

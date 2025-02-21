@@ -83,7 +83,7 @@ public class CommonHandler {
         return sb.toString();
     }
 
-    public void mainMenu() {
+    public void setMainMenu() {
         checkoutMainMenu();
         getUser().setState(STAND_BY);
         var cardId = getUser().getCurrentCardId();
@@ -101,8 +101,7 @@ public class CommonHandler {
     }
 
 
-    // todo should be somewhere else but not in the message service
-    public void checkoutMainMenu() {
+    private void checkoutMainMenu() {
         getUser().setState(UserState.STAND_BY);
         messageService.sendMessage(textProvider.get("emoji.main_menu"));
         var keyboard = keyboardProvider.getMainMenu();

@@ -71,7 +71,7 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
             case CHOOSE_ANOTHER_COLLECTION -> chooseAnotherCollection(UUID.fromString(callback.getData()));
             case SET_COLLECTION -> setCollection(UUID.fromString(callback.getData()));
             case NEXT_CARD -> nextCard();
-            case OK_AFTER_EDIT -> commonHandler.mainMenu();
+            case OK_AFTER_EDIT -> commonHandler.setMainMenu();
 
             case EDIT -> editCard(callback.getData());
 

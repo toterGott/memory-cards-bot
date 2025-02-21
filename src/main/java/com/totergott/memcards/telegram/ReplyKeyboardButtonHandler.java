@@ -48,7 +48,7 @@ public class ReplyKeyboardButtonHandler {
             case "button.settings" -> sendSettingsMessage(user);
             case "button.collections" -> commonHandler.collectionsScreen();
             case "button.remove_focus" -> removeFocus(user);
-            case "button.back_to_main_menu" -> commonHandler.mainMenu();
+            case "button.back_to_main_menu" -> commonHandler.setMainMenu();
             default -> handleUnknownMessage();
         }
     }

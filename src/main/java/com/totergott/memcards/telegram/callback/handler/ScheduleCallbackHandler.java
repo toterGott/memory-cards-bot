@@ -55,7 +55,7 @@ public class ScheduleCallbackHandler implements CallbackHandler {
         switch (scheduleCallback.getAction()) {
             case DISABLE -> disable();
             case SET_TIME -> enableScheduling(scheduleCallback.getData());
-            case BACK -> commonHandler.mainMenu();
+            case BACK -> commonHandler.setMainMenu();
         }
     }
 

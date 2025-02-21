@@ -189,7 +189,7 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
     }
 
     private void confirmCardCreation() {
-        commonHandler.checkoutMainMenu();
+        commonHandler.setMainMenu();
 
         getUser().setState(UserState.STAND_BY);
         getUser().setCurrentCardId(null);

@@ -31,7 +31,7 @@ public class CommandHandler {
                 sendWelcomeMessage(user);
                 messageService.deleteMessagesExceptLast(1);
             }
-            case MENU_COMMAND -> commonHandler.checkoutMainMenu();
+            case MENU_COMMAND -> commonHandler.setMainMenu();
             default -> log.warn("Unhandled command: {}", messageEntity.getText());
         }
     }

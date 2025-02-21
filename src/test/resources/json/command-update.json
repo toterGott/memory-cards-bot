@@ -19,12 +19,12 @@
       "last_name": "Lastname",
       "username": "testUser"
     },
-    "text": "/menu",
+    "text": "/start",
     "entities": [
       {
         "type": "bot_command",
         "offset": 0,
-        "length": 5
+        "length": 6
       }
     ]
   }

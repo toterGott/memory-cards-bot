@@ -5,9 +5,7 @@ import static com.totergott.memcards.telegram.TelegramUtils.getUpdate;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.telegram.TelegramUtils.telegramUserThreadLocal;
 import static com.totergott.memcards.telegram.TelegramUtils.updateThreadLocal;
-import static com.totergott.memcards.user.UserState.STAND_BY;
 
-import com.totergott.memcards.collection.CardCollection;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.TelegramCallbackDelegate;
@@ -38,6 +36,7 @@ public class TelegramUpdateHandler {
 
     public static final String COMMAND_TYPE = "bot_command";
     private final CommandHandler commandHandler;
+    private final CommonHandler commonHandler;
 
     @Transactional
     public void handleUpdate(Update update) {
@@ -88,21 +87,18 @@ public class TelegramUpdateHandler {
             case WAIT_CARD_QUESTION_INPUT -> createEditCardScreenHandler.handleQuestionInput();
             case WAIT_CARD_ANSWER_INPUT -> createEditCardScreenHandler.handleAnswerInput();
             case COLLECTION_CREATION -> createCollection();
-            default -> log.warn("Unhandled state: {} and command: {}", user.getState(), getMessage().getText());
+            default -> log.warn("Unhandled state: {} and input: {}", user.getState(), getMessage().getText());
         }
     }
 
+
     private void createCollection() {
-        var collectionName = getMessage().getText();
-        var collection = new CardCollection();
-        collection.setName(collectionName);
-        collection.setOwner(getUser());
-        collectionService.save(collection);
+        var text = collectionService.createCollection(getMessage().getText(), getUser()).map(
+            collection -> textProvider.get("create.collection.created", collection.getName()))
+            .orElse(textProvider.get("collection.limit_reached"));
 
-        getUser().setState(STAND_BY);
-
-        var text = textProvider.get("create.collection.created");
-        messageService.sendMessage(text, keyboardProvider.getMainMenu());
+        commonHandler.setMainMenu();
+        messageService.sendMessage(text);
     }
 
     private void handleStandBy(Update update, TelegramUser user) {

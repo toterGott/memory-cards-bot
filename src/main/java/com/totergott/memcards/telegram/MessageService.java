@@ -26,11 +26,10 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 @Slf4j
 public class MessageService {
 
-    private static final int CHUNK_SIZE = 100;
+    private static final int DELETE_CHUNK_SIZE = 100;
 
     private final TelegramClient telegramClient;
     private final TextProvider textProvider;
-    private final KeyboardProvider keyboardProvider;
 
     public Message sendMessage(Long chatId, String text, ReplyKeyboard replyKeyboard) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), text);

@@ -19,6 +19,8 @@ public interface CardCollectionRepository extends JpaRepository<CardCollection, 
 
     Integer countAllByOwnerId(UUID ownerId);
 
+    boolean existsByOwnerIdAndName(UUID ownerId, String name);
+
     @Query(nativeQuery = true,
         value = """
             delete from collection where id = :id
