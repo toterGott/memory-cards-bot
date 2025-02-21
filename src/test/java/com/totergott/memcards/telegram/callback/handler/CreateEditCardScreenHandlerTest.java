@@ -2,6 +2,7 @@ package com.totergott.memcards.telegram.callback.handler;
 
 import static com.totergott.memcards.TestUtils.DEFAULT_LOCALE;
 import static com.totergott.memcards.TestUtils.getCallbackUpdate;
+import static com.totergott.memcards.TestUtils.getCommandUpdate;
 import static com.totergott.memcards.TestUtils.getMessageUpdate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,6 +15,8 @@ import com.totergott.memcards.card.CardRepository;
 import com.totergott.memcards.collection.CardCollectionRepository;
 import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.TelegramUpdateConsumer;
+import com.totergott.memcards.telegram.callback.model.CreateEditCardCallback;
+import com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction;
 import java.util.Collection;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -40,7 +43,6 @@ class CreateEditCardScreenHandlerTest extends BaseTest {
 
     public static final String NEW_CARD_QUESTION = "New card question";
 
-    // arrange, act, assert
     @Test
     void whenCardJustCreated_thenCollectionChosen_thenLastChosenIdIsSet() throws TelegramApiException {
         var lastMessage = createCardAndGetLastMessage();
@@ -71,6 +73,30 @@ class CreateEditCardScreenHandlerTest extends BaseTest {
         assertThat(newCard.getQuestion()).isEqualTo(NEW_CARD_QUESTION);
         var user = userRepository.findAll().getFirst();
         assertThat(user.getPayload().getLastChosenCollectionId()).isEqualTo(tutorialCollection.getId());
+    }
+
+    @Test
+    void whenCardsLimitReached_thenTryToCreateNewCard_thenCardNotCreated() throws TelegramApiException {
+        telegramUpdateConsumer.consume(getCommandUpdate());
+        var user = userRepository.findAll().getFirst();
+        userRepository.save(user);
+        var repeat = 50 - cardRepository.count();
+        for (int i = 0; i < repeat; i++) {
+            telegramUpdateConsumer.consume(getMessageUpdate(textProvider.get("button.new_card")));
+            telegramUpdateConsumer.consume(getMessageUpdate("card " + i));
+            telegramUpdateConsumer.consume(getMessageUpdate("answer " + i));
+            telegramUpdateConsumer.consume(getCallbackUpdate(CreateEditCardCallback.builder().action(
+                CreateEditCardCallbackAction.CONFIRM).build()));
+        }
+        clearInvocations(telegramClient);
+        ArgumentCaptor<SendMessage> sendMessageCaptor = ArgumentCaptor.forClass(SendMessage.class);
+
+        telegramUpdateConsumer.consume(getMessageUpdate(textProvider.get("button.new_card")));
+
+        assertThat(cardRepository.count()).isEqualTo(50);
+        verify(telegramClient, times(3)).execute(sendMessageCaptor.capture());
+        var lastMessage = sendMessageCaptor.getAllValues().getLast().getText();
+        assertThat(lastMessage).isEqualTo(textProvider.get("card.limit_reached"));
     }
 
     private SendMessage createCardAndGetLastMessage() throws TelegramApiException {

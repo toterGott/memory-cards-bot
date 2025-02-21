@@ -1,9 +1,11 @@
 package com.totergott.memcards;
 
 import static com.totergott.memcards.telegram.Constants.START_COMMAND;
+import static com.totergott.memcards.telegram.callback.CallbackMapper.writeCallback;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.totergott.memcards.telegram.callback.model.Callback;
 import com.totergott.memcards.user.AvailableLocale;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -62,6 +64,13 @@ public class TestUtils {
         var update = getCallbackUpdate();
         var callbackQuery = update.getCallbackQuery();
         callbackQuery.setData(callbackData);
+        return update;
+    }
+
+    public static Update getCallbackUpdate(Callback callback) {
+        var update = getCallbackUpdate();
+        var callbackQuery = update.getCallbackQuery();
+        callbackQuery.setData(writeCallback(callback));
         return update;
     }
 

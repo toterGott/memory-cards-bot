@@ -76,6 +76,12 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
     }
 
     public void startCreateCardDialog() {
+        if (cardService.isLimitReached(getUser().getId())) {
+            log.error("Cards limit reached for user {}", getUser().getUsername());
+            commonHandler.setMainMenu();
+            messageService.sendMessage(textProvider.get("card.limit_reached"));
+            return;
+        }
         getUser().setState(WAIT_CARD_QUESTION_INPUT);
         var cardId = getUser().getCurrentCardId();
         if (cardId != null) {

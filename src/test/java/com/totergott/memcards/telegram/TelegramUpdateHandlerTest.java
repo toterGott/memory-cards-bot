@@ -52,17 +52,15 @@ class TelegramUpdateHandlerTest extends BaseTest {
     void whenUserCreatesCollection_thenReachesLimit_thenNewCollectionIsNotCreated() throws TelegramApiException {
         telegramUpdateConsumer.consume(getCommandUpdate());
         var user = userRepository.findAll().getFirst();
-        user.setState(UserState.COLLECTION_CREATION);
-        userRepository.save(user);
         ArgumentCaptor<SendMessage> sendCaptor = ArgumentCaptor.forClass(SendMessage.class);
         for (int i = 0; i < 8; i++) {
-            telegramUpdateConsumer.consume(getMessageUpdate(NEW_COLLECTION_NAME + i));
             user.setState(UserState.COLLECTION_CREATION);
             userRepository.save(user);
+            telegramUpdateConsumer.consume(getMessageUpdate(NEW_COLLECTION_NAME + i));
         }
         clearInvocations(telegramClient);
 
-        telegramUpdateConsumer.consume(getMessageUpdate(NEW_COLLECTION_NAME));
+        telegramUpdateConsumer.consume(getMessageUpdate(textProvider.get("button.new_collection")));
 
         verify(telegramClient, times(3)).execute(sendCaptor.capture());
         var lastMessage = sendCaptor.getAllValues().getLast().getText();
@@ -86,7 +84,7 @@ class TelegramUpdateHandlerTest extends BaseTest {
 
         verify(telegramClient, atLeastOnce()).execute(sendCaptor.capture());
         var lastMessage = sendCaptor.getAllValues().getLast().getText();
-        assertThat(lastMessage).isEqualTo(textProvider.get("collection.limit_reached"));
+        assertThat(lastMessage).isEqualTo(textProvider.get("collection.name_exists"));
         assertThat(cardCollectionRepository.count()).isEqualTo(3);
     }
 }

@@ -39,4 +39,6 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
     Optional<Card> findAvailableCard(@Param("ownerId") UUID ownerId);
 
     Page<Card> findAllByCollectionId(UUID collectionId, Pageable pageable);
+
+    Integer countAllByOwnerId(UUID id);
 }

@@ -21,6 +21,9 @@ public class CardService {
     @Value("${app.page_size}")
     private Integer pageSize;
 
+    @Value("${app.limit.cards}")
+    private Integer cardsLimit;
+
     private final CardRepository repository;
 
     public Card save(Card card) {
@@ -79,5 +82,9 @@ public class CardService {
                 }
             }
         );
+    }
+
+    public boolean isLimitReached(UUID id) {
+        return repository.countAllByOwnerId(id) >= cardsLimit;
     }
 }

@@ -106,6 +106,7 @@ public class CollectionService {
 
     public Optional<CardCollection> createCollection(String collectionName, TelegramUser user) {
         if (getCollectionCount(user.getId()) >= collectionsLimit) {
+            log.error("Collection limit reacher for user {}", user.getId());
             return Optional.empty();
         }
 
@@ -117,6 +118,11 @@ public class CollectionService {
         collection.setName(collectionName);
         collection.setOwner(user);
         return Optional.of(repository.save(collection));
+    }
+
+    public boolean isLimitReached(UUID id) {
+        log.error("Collection limit reacher for user {}", id);
+        return getCollectionCount(id) >= collectionsLimit;
     }
 
     private Integer getCollectionCount(UUID id) {

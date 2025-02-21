@@ -31,12 +31,12 @@ public class TelegramUpdateHandler {
     private final TextProvider textProvider;
     private final CollectionService collectionService;
     private final TelegramCallbackDelegate callbackHandler;
-    private final ReplyKeyboardButtonHandler buttonHandler;
     private final CreateEditCardScreenHandler createEditCardScreenHandler;
 
     public static final String COMMAND_TYPE = "bot_command";
     private final CommandHandler commandHandler;
     private final CommonHandler commonHandler;
+    private final ReplyKeyboardButtonHandler replyKeyboardButtonHandler;
 
     @Transactional
     public void handleUpdate(Update update) {
@@ -91,20 +91,18 @@ public class TelegramUpdateHandler {
         }
     }
 
-
     private void createCollection() {
         var text = collectionService.createCollection(getMessage().getText(), getUser()).map(
             collection -> textProvider.get("create.collection.created", collection.getName()))
-            .orElse(textProvider.get("collection.limit_reached"));
+            .orElse(textProvider.get("collection.name_exists"));
 
         commonHandler.setMainMenu();
         messageService.sendMessage(text);
     }
 
     private void handleStandBy(Update update, TelegramUser user) {
-        buttonHandler.handleButton(update, user);
+        replyKeyboardButtonHandler.handleReplyButton(update, user);
     }
-
 
     private TelegramUser welcomeOrGetUser(Update update) {
         Chat chat;

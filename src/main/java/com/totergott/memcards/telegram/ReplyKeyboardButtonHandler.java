@@ -5,6 +5,8 @@ import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
 
+import com.totergott.memcards.card.CardService;
+import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.handler.CreateEditCardScreenHandler;
 import com.totergott.memcards.telegram.callback.handler.GetCardHandler;
@@ -22,6 +24,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboa
 @Slf4j
 public class ReplyKeyboardButtonHandler {
 
+    private final CardService cardService;
+    private final CollectionService collectionService;
     @Value("${app.version}")
     private String version;
 
@@ -33,7 +37,7 @@ public class ReplyKeyboardButtonHandler {
     private final GetCardHandler getCardHandler;
     private final ScheduleCallbackHandler scheduleHandler;
 
-    public void handleButton(Update update, TelegramUser user) {
+    public void handleReplyButton(Update update, TelegramUser user) {
         var text = update.getMessage().getText();
         var key = textProvider.resolveCode(text);
         if (key == null) {
@@ -78,13 +82,18 @@ public class ReplyKeyboardButtonHandler {
     }
 
     private void createCollection() {
-        getUser().setState(COLLECTION_CREATION);
-        messageService.sendMessage(textProvider.get("emoji.create"));
-        var text = textProvider.get("create.collection.name_prompt");
-        messageService.sendMessage(
-            text,
-            ForceReplyKeyboard.builder().forceReply(true).inputFieldPlaceholder(text).build()
-        );
-        messageService.deleteMessagesExceptLast(2);
+        if (collectionService.isLimitReached(getUser().getId())) {
+            commonHandler.setMainMenu();
+            messageService.sendMessage(textProvider.get("collection.limit_reached"));
+        } else {
+            getUser().setState(COLLECTION_CREATION);
+            messageService.sendMessage(textProvider.get("emoji.create"));
+            var text = textProvider.get("create.collection.name_prompt");
+            messageService.sendMessage(
+                text,
+                ForceReplyKeyboard.builder().forceReply(true).inputFieldPlaceholder(text).build()
+            );
+            messageService.deleteMessagesExceptLast(2);
+        }
     }
 }
