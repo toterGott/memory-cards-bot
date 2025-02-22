@@ -34,8 +34,14 @@ services:
     restart: always
     networks:
       - tg_bot_network
+    command:
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run)($|/)"
+    volumes:
+      - /:/host:ro
     ports:
       - "127.0.0.1:9100:9100"
+    environment:
+      - NODE_EXPORTER_TEXTFILE_DIR=/host
 
   grafana:
     image: grafana/grafana:latest
