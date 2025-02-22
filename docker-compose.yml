@@ -37,6 +37,16 @@ services:
     ports:
       - "127.0.0.1:9100:9100"
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: always
+    networks:
+      - tg_bot_network
+    volumes:
+      - ~/grafana:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
 
 networks:
   tg_bot_network:
