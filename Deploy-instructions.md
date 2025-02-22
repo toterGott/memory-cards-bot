@@ -1,6 +1,7 @@
 ```shell
 docker network create tg_bot_network
 ```
+dock
 
 ```shell
 docker run -d \
