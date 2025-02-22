@@ -42,14 +42,14 @@ public class CardSenderScheduler {
                     if (lastInteraction.isAfter(safeLag)) {
                         var postpone = now().plus(POSTPONE_AMOUNT, POSTPONE_UNIT);
                         user.getPayload().getSchedule().setNextRun(postpone);
-                        log.debug("Card sent is postponed for user {}", user.getUsername());
+                        log.info("Card sent is postponed for user {}", user.getUsername());
                         return;
                     }
                     sendCard(card, user);
                     user.getPayload().setLastInteractionTimestamp(now());
                     log.debug("Card sent by schedule to user {}", user.getUsername());
                 },
-                () -> log.debug("No cards to learn found for user {}", user.getUsername())
+                () -> log.info("No cards to learn found for user {}", user.getUsername())
             ),
             () -> log.debug("No user with schedule found")
         );
