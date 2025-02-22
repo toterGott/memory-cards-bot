@@ -12,7 +12,7 @@ docker run -d \
   --network tg_bot_network \
   -v ~/postgresql_data:/var/lib/postgresql/data \
   -p 127.0.0.1:5432:5432 \
-  postgres:latest
+  postgres:17.3
 ```
 
 ## Build and run the container locally

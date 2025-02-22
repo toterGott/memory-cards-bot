@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:17.3
     container_name: postgres_container
     restart: always
     environment:
@@ -15,18 +15,6 @@ services:
       - ~/postgresql_data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
-
-  memory-cards:
-    build: .
-    container_name: memory-cards
-    restart: always
-    depends_on:
-      - postgres
-    networks:
-      - tg_bot_network
-    environment:
-      BOT_TOKEN: "" # Укажите токен бота
-    command: ["java", "-jar", "/app.jar"]
 
 networks:
   tg_bot_network:
