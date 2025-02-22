@@ -35,7 +35,7 @@ services:
     networks:
       - tg_bot_network
     command:
-      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run)($|/)"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run)($$|/)"
     volumes:
       - /:/host:ro
     ports:
