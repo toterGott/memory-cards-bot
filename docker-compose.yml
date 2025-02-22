@@ -16,6 +16,29 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    pid: host
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - tg_bot_network
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: always
+#    pid: host
+    networks:
+      - tg_bot_network
+    ports:
+      - "9100:9100"
+
+
 networks:
   tg_bot_network:
     external: true
