@@ -1,7 +1,7 @@
 ```shell
 docker network create tg_bot_network
 ```
-dock
+Docker run Postgresql
 
 ```shell
 docker run -d \
@@ -28,4 +28,19 @@ docker run -d \
   --network tg_bot_network \
   -e BOT_TOKEN= \
   memory-cards:latest
+```
+
+## Prometheus 
+```shell
+ssh -L 9090:localhost:9090 ubuntu@bot-server
+```
+
+## Grafana
+```shell
+ssh -L 3000:localhost:3000 ubuntu@bot-server
+```
+
+## Node exporter
+```shell
+ssh -L 9100:localhost:9100 ubuntu@bot-server
 ```

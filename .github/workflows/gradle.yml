@@ -16,7 +16,7 @@ on:
 jobs:
 
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
 
@@ -37,6 +37,15 @@ jobs:
     - name: Build Dockerfile
       run: docker build --no-cache -t memory-cards:latest .
 
+    - name: Save Docker image
+      run: docker save memory-cards:latest -o memory-cards.tar
+
+    - name: Upload Docker image
+      uses: actions/upload-artifact@v4
+      with:
+        name: memory-cards-image
+        path: memory-cards.tar
+
   run:
     needs: build
     runs-on: self-hosted
@@ -44,6 +53,14 @@ jobs:
       contents: read
 
     steps:
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: memory-cards-image
+
+      - name: Load Docker image
+        run: docker load -i memory-cards.tar
+
       - name: Stop and remove existing memory-cards container
         run: |
           echo "Stopping and removing existing memory-cards container (if exists)..."
