@@ -3,6 +3,7 @@ package com.totergott.memcards.card;
 import com.totergott.memcards.collection.CardCollection;
 import com.totergott.memcards.common.PageableEntity;
 import com.totergott.memcards.user.TelegramUser;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
@@ -31,7 +32,9 @@ public class Card implements PageableEntity {
     @Id
     @GeneratedValue
     private UUID id;
+    @Column(columnDefinition = "text")
     private String question;
+    @Column(columnDefinition = "text") // todo add liquibase
     private String answer;
     private Instant appearTime;
     @ManyToOne

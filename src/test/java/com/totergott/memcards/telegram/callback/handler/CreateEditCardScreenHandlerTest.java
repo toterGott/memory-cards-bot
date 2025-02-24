@@ -1,6 +1,7 @@
 package com.totergott.memcards.telegram.callback.handler;
 
 import static com.totergott.memcards.TestUtils.DEFAULT_LOCALE;
+import static com.totergott.memcards.TestUtils.generateRandomString;
 import static com.totergott.memcards.TestUtils.getCallbackUpdate;
 import static com.totergott.memcards.TestUtils.getCommandUpdate;
 import static com.totergott.memcards.TestUtils.getMessageUpdate;
@@ -41,7 +42,8 @@ class CreateEditCardScreenHandlerTest extends BaseTest {
     @Autowired
     private CardRepository cardRepository;
 
-    public static final String NEW_CARD_QUESTION = "New card question";
+    private static final String NEW_CARD_QUESTION = "New card question";
+    private static final String NEW_CARD_ANSWER = generateRandomString(256);
 
     @Test
     void whenCardJustCreated_thenCollectionChosen_thenLastChosenIdIsSet() throws TelegramApiException {
@@ -105,7 +107,7 @@ class CreateEditCardScreenHandlerTest extends BaseTest {
         var inputQuestion = getMessageUpdate(NEW_CARD_QUESTION);
         telegramUpdateConsumer.consume(inputQuestion);
         clearInvocations(telegramClient);
-        var inputAnswer = getMessageUpdate("New card answer");
+        var inputAnswer = getMessageUpdate(NEW_CARD_ANSWER);
         telegramUpdateConsumer.consume(inputAnswer);
         var responseCaptor = ArgumentCaptor.forClass(SendMessage.class);
         verify(telegramClient, times(3)).execute(responseCaptor.capture());
