@@ -6,19 +6,11 @@
     </http>
     <format>
       <label>
-        <pattern>app=memory-cards-bot,level=%level</pattern>
+        <pattern>app=memory-cards-bot,level=%level,class:%logger{36},thread:%thread,requestId:%X{X-Request-ID}"</pattern>
         <readMarkers>true</readMarkers>
       </label>
       <message>
-        <pattern>
-          {
-          "level":"%level",
-          "class":"%logger{36}",
-          "thread":"%thread",
-          "message": "%message",
-          "requestId": "%X{X-Request-ID}"
-          }
-        </pattern>
+        <pattern>%message"</pattern>
       </message>
     </format>
   </appender>
