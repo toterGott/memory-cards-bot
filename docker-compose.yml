@@ -57,6 +57,15 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
 
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: loki
+    ports:
+      - "127.0.0.1:3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+
 networks:
   tg_bot_network:
     external: true
