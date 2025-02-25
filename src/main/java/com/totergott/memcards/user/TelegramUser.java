@@ -56,8 +56,8 @@ public class TelegramUser {
     @Data
     @NoArgsConstructor
     public static class Payload {
-        UUID defaultCollection;
-        // todo Disable collection reset to default after some time
+        UUID defaultCollection; // todo raname, add Id
+        UUID tutorialCollectionId;
         UUID lastChosenCollectionId;
         Schedule schedule;
         List<Integer> chatMessages = new ArrayList<>();

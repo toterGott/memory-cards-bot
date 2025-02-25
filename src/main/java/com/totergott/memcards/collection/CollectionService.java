@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.totergott.memcards.card.Card;
 import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.i18n.TextProvider;
+import com.totergott.memcards.user.AvailableLocale;
 import com.totergott.memcards.user.TelegramUser;
 import java.io.InputStream;
 import java.time.Instant;
@@ -68,18 +69,19 @@ public class CollectionService {
         repository.deleteByIdQuery(collectionId);
     }
 
-    public void initTutorialCollection(TelegramUser user) {
+    public void initTutorialCollection(TelegramUser user, AvailableLocale collectionLanguage) {
         try (InputStream inputStream = getClass().getClassLoader()
-            .getResourceAsStream("default-collections/how-to.en.json")) {
+            .getResourceAsStream("default-collections/how-to.%s.json".formatted(collectionLanguage.getTag()))) {
             var map = objectMapper.readValue(
                 inputStream, new TypeReference<Map<String, String>>() {
                 }
             );
 
-            var howToCollection = new CardCollection();
-            howToCollection.setName(textProvider.getMessage("tutorial_collection_name", user.getLanguage()));
-            howToCollection.setOwner(user);
-            howToCollection = repository.save(howToCollection);
+            var tutorialCollection = new CardCollection();
+            tutorialCollection.setName(textProvider.getMessage("tutorial_collection_name", collectionLanguage));
+            tutorialCollection.setOwner(user);
+            tutorialCollection = repository.save(tutorialCollection);
+            user.getPayload().setTutorialCollectionId(tutorialCollection.getId());
 
             var cards = new ArrayList<Card>();
             int appearDelay = 0;
@@ -90,7 +92,7 @@ public class CollectionService {
                 card.setQuestion(question);
                 card.setAnswer(answer);
                 card.setOwner(user);
-                card.setCollection(howToCollection);
+                card.setCollection(tutorialCollection);
                 card.setAppearTime(Instant.now().plus(appearDelay++, ChronoUnit.MILLIS));
                 cards.add(card);
             }

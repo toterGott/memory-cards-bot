@@ -43,7 +43,7 @@ public class SettingsCallbackHandler implements CallbackHandler {
 
     private void changeLanguage(SettingsCallback settingsCallback, TelegramUser user, Integer messageId) {
         var newLanguage = AvailableLocale.valueOf(settingsCallback.getData());
-        changeCollectionNames(user, user.getLanguage(), newLanguage);
+        changeDefaultCollectionsLanguage(user, newLanguage);
         user.setLanguage(newLanguage);
         var text = textProvider.getMessage("settings.language.updated", newLanguage, newLanguage.getReadableName());
         var keyboard = keyboardProvider.getMainMenu(user);
@@ -52,18 +52,17 @@ public class SettingsCallbackHandler implements CallbackHandler {
         client.deleteMessage(user.getChatId(), messageId);
     }
 
-    private void changeCollectionNames(TelegramUser user, AvailableLocale oldLanguage, AvailableLocale newLanguage) {
-        var collections = user.getCollections();
-        collections.stream().filter(it -> it.getName().equals(textProvider.getMessage(
-            "default_collection_name", oldLanguage))).findFirst().ifPresent(defaultCollection -> {
+    private void changeDefaultCollectionsLanguage(TelegramUser user, AvailableLocale newLanguage) {
+        collectionService.getById(user.getPayload().getDefaultCollection()).ifPresent(defaultCollection -> {
             defaultCollection.setName(textProvider.getMessage(
                 "default_collection_name", newLanguage));
         });
-        collections.stream().filter(it -> it.getName().equals(textProvider.getMessage(
-            "tutorial_collection_name", oldLanguage))).findFirst().ifPresent(tutorialCollection -> {
-            tutorialCollection.setName(textProvider.getMessage(
-                "tutorial_collection_name", newLanguage));
-        });
+
+        collectionService.getById(user.getPayload().getTutorialCollectionId()).ifPresent(
+            tutorialCollection -> {
+                collectionService.deleteById(tutorialCollection.getId());
+                collectionService.initTutorialCollection(user, newLanguage);
+            });
     }
 
     private void languageSettings(TelegramUser user, Integer messageId) {

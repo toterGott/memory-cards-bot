@@ -61,7 +61,7 @@ class CardSenderSchedulerTest extends BaseTest {
         user.getPayload().setSchedule(schedule);
         user.getPayload().setLastInteractionTimestamp(lastInteraction);
         userService.save(user);
-        collectionService.initTutorialCollection(user);
+        collectionService.initTutorialCollection(user, user.getLanguage());
 
         cardSenderScheduler.schedule();
 

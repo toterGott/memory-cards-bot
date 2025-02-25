@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface CardCollectionRepository extends JpaRepository<CardCollection, UUID> {
 
@@ -26,5 +27,5 @@ public interface CardCollectionRepository extends JpaRepository<CardCollection, 
             delete from collection where id = :id
         """)
     @Modifying
-    void deleteByIdQuery(UUID id);
+    void deleteByIdQuery(@Param("id") UUID id);
 }

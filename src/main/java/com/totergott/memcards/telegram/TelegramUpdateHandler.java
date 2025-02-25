@@ -123,7 +123,7 @@ public class TelegramUpdateHandler {
         var newUser = userService.createUser(chat, languageCode);
 
         collectionService.initDefaultCollection(newUser);
-        collectionService.initTutorialCollection(newUser);
+        collectionService.initTutorialCollection(newUser, newUser.getLanguage());
         return newUser;
     }
 }
