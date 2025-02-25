@@ -58,11 +58,15 @@ public class SettingsCallbackHandler implements CallbackHandler {
                 "default_collection_name", newLanguage));
         });
 
-        collectionService.getById(user.getPayload().getTutorialCollectionId()).ifPresent(
-            tutorialCollection -> {
-                collectionService.deleteById(tutorialCollection.getId());
-                collectionService.initTutorialCollection(user, newLanguage);
-            });
+        // todo test default collection might not be present
+        var tutorialCollectionId = user.getPayload().getTutorialCollectionId();
+        if (tutorialCollectionId != null) {
+            collectionService.getById(user.getPayload().getTutorialCollectionId()).ifPresent(
+                tutorialCollection -> {
+                    collectionService.deleteById(tutorialCollection.getId());
+                    collectionService.initTutorialCollection(user, newLanguage);
+                });
+        }
     }
 
     private void languageSettings(TelegramUser user, Integer messageId) {
