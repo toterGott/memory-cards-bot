@@ -40,6 +40,11 @@ ssh -L 9090:localhost:9090 ubuntu@bot-server
 ssh -L 3000:localhost:3000 ubuntu@bot-server
 ```
 
+## Loki
+```shell
+ssh -L 3100:localhost:3100 ubuntu@bot-server
+```
+
 ## Node exporter
 ```shell
 ssh -L 9100:localhost:9100 ubuntu@bot-server
