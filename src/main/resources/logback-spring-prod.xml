@@ -15,7 +15,7 @@
           "level":"%level",
           "class":"%logger{36}",
           "thread":"%thread",
-          "message": "%jsonMessage",
+          "message": "%message",
           "requestId": "%X{X-Request-ID}",
           "stacktrace": "%ex{full}"
           }
