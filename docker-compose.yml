@@ -23,6 +23,9 @@ services:
     pid: host
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.size=1GB"
     networks:
       - tg_bot_network
     ports:
