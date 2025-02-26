@@ -106,7 +106,18 @@ public class CommonHandler {
         messageService.sendMessage(textProvider.get("emoji.main_menu"));
         var keyboard = keyboardProvider.getMainMenu();
         var text = textProvider.get("main_menu");
+        text = appendScheduleInfo(text);
         messageService.sendMessage(text, keyboard);
         messageService.deleteMessagesExceptLast(2);
+    }
+
+    private String appendScheduleInfo(String text) {
+        var schedule = getUser().getPayload().getSchedule();
+        if (schedule != null) {
+            var diff = getDiff(schedule.getNextRun());
+            return text + "\n" +  textProvider.get("main_menu.schedule_info", diff);
+        } else {
+            return text;
+        }
     }
 }
