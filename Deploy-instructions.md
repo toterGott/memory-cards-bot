@@ -30,14 +30,14 @@ docker run -d \
   memory-cards:latest
 ```
 
-## Prometheus 
-```shell
-ssh -L 9090:localhost:9090 ubuntu@bot-server
-```
-
 ## Grafana
 ```shell
 ssh -L 3000:localhost:3000 ubuntu@bot-server
+```
+
+## Prometheus 
+```shell
+ssh -L 9090:localhost:9090 ubuntu@bot-server
 ```
 
 ## Loki
