@@ -170,7 +170,7 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
         if (user.getPayload().getSchedule() != null) {
             var schedule = user.getPayload().getSchedule();
             var option = schedule.getOption();
-            var nextRun = schedule.getNextRun().plus(option.amount(), option.chronoUnit());
+            var nextRun = Instant.now().plus(option.amount(), option.chronoUnit()); // todo add a test
             schedule.setNextRun(nextRun);
         }
         text = textProvider.get(
