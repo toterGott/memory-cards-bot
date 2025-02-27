@@ -70,6 +70,7 @@ public class ScheduleCallbackHandler implements CallbackHandler {
         } else {
             text = textProvider.get("schedule");
         }
+        text += "\n" + textProvider.get("schedule.info");
 
         messageService.sendMessage(
             textProvider.get("emoji.schedule"),
