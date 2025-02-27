@@ -123,8 +123,11 @@ public class CollectionService {
     }
 
     public boolean isLimitReached(UUID id) {
-        log.error("Collection limit reached for user {}", id);
-        return getCollectionCount(id) >= collectionsLimit;
+        boolean isReached = getCollectionCount(id) >= collectionsLimit;
+        if (isReached) {
+            log.error("Collection limit reached for user {}", id);
+        }
+        return isReached;
     }
 
     private Integer getCollectionCount(UUID id) {
