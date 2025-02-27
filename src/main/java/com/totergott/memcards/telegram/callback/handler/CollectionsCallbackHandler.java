@@ -96,6 +96,9 @@ public class CollectionsCallbackHandler implements CallbackHandler {
             && user.getFocusedOnCollection().getId().equals(collectionId)) {
             user.setFocusedOnCollection(null);
         }
+        if (Objects.equals(user.getPayload().getTutorialCollectionId(), collectionId)) {
+            user.getPayload().setTutorialCollectionId(null);
+        }
         var collectionName = collectionService.findById(collectionId).orElseThrow().getName();
         collectionService.deleteById(collectionId);
 
@@ -107,8 +110,11 @@ public class CollectionsCallbackHandler implements CallbackHandler {
     private void handleSelectCollection(UUID collectionId, String pageNumber, Integer messageId, TelegramUser user) {
         var collection = collectionService.findById(collectionId).orElseThrow();
         var text = textProvider.getMessage("collections.selected", user.getLanguage(), collection.getName());
-        var inlineKeyboard = keyboardProvider.buildCollectionSelectedOptionsKeyboard(user.getLanguage(), collectionId
-            , pageNumber);
+        var inlineKeyboard = keyboardProvider.buildCollectionSelectedOptionsKeyboard(
+            user.getLanguage(),
+            collectionId,
+            pageNumber
+        );
 
         messageService.editMessage(user.getChatId(), messageId, text, inlineKeyboard);
     }

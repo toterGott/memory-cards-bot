@@ -1,8 +1,9 @@
 {
-  "What is happening here?": "You have started studying cards from the standard learning collection. Request an answer and rate this card, then request a new card.",
-  "How does the card rating affect anything?": "Great! You've reached the second card! The better the rating of a card, the later it will appear upon request or on schedule. Consequently, you will see the cards you remember worse more often and those you remember well less frequently.",
-  "What are collections?": "Each card belongs to a collection. For example, this card is part of the standard collection that explains the bot. You can create and delete your own collections.",
-  "What is focusing on a collection?": "If you open the list of collections and click on one, you can focus on studying it. This means you will only see cards from this collection. You can always remove the focus by clicking the corresponding button at the bottom.",
-  "How does the schedule work?": "You can enable automatic card delivery by selecting the message frequency. The next card will be sent within the specified interval only after you answer the previous one.",
-  "Is that all?": "Yes! You have learned about the main features of the bot and can now use it freely! Congratulations! 🥳 Now you can delete the learning collection."
+  "This is a card question. Click the button below to see the answer.": "This is the card answer. Below are buttons to rate your knowledge. The better you rate your knowledge of the card, the later it will be available. Conversely, the worse you remember it, the earlier it will appear in the learning queue. You can click any button.",
+  "What can the bot be used for?": "This method is great for learning foreign words, formulas, rules, and any facts.",
+  "Why this algorithm?": "This approach effectively helps in memorizing and retaining knowledge. https://w.wiki/8YJm",
+  "What are collections?": "Each card belongs to a collection. For example, this card is from the standard introductory collection that explains the bot. You can create and delete collections.",
+  "How to get cards from only one collection?": "When you want to study cards from only one collection, such as foreign words, you can focus on that collection. You can enable focus mode in the main menu.",
+  "How does the schedule work?": "You can enable automatic card delivery by selecting the message frequency. The next card will be sent within the specified interval only after answering the previous one.",
+  "Is that all?": "Yes! You have learned the main functionality of the bot and can now use it freely! 🥳 This collection can be deleted."
 }
