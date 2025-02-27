@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
@@ -73,7 +73,7 @@ public class CollectionService {
         try (InputStream inputStream = getClass().getClassLoader()
             .getResourceAsStream("default-collections/how-to.%s.json".formatted(collectionLanguage.getTag()))) {
             var map = objectMapper.readValue(
-                inputStream, new TypeReference<Map<String, String>>() {
+                inputStream, new TypeReference<LinkedHashMap<String, String>>() {
                 }
             );
 

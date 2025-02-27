@@ -18,6 +18,7 @@ import com.totergott.memcards.user.TelegramUser;
 import com.totergott.memcards.user.TelegramUser.Payload.Schedule;
 import com.totergott.memcards.user.TelegramUser.Payload.SchedulingOption;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -35,14 +36,16 @@ public class ScheduleCallbackHandler implements CallbackHandler {
     private final KeyboardProvider keyboardProvider;
     private final MessageService messageService;
 
-    private static final Map<Integer, SchedulingOption> SCHEDULING_OPTIONS = Map.of(
-        0, new SchedulingOption(MINUTES, 10),
-        1, new SchedulingOption(MINUTES, 30),
-        2, new SchedulingOption(HOURS, 1),
-        3, new SchedulingOption(HOURS, 3),
-        4, new SchedulingOption(HOURS, 6),
-        5, new SchedulingOption(HOURS, 12)
-    );
+    private static final Map<Integer, SchedulingOption> SCHEDULING_OPTIONS = new LinkedHashMap<>();
+
+    static {
+        SCHEDULING_OPTIONS.put(0, new SchedulingOption(MINUTES, 10));
+        SCHEDULING_OPTIONS.put(1, new SchedulingOption(MINUTES, 30));
+        SCHEDULING_OPTIONS.put(2, new SchedulingOption(HOURS, 1));
+        SCHEDULING_OPTIONS.put(3, new SchedulingOption(HOURS, 3));
+        SCHEDULING_OPTIONS.put(4, new SchedulingOption(HOURS, 6));
+        SCHEDULING_OPTIONS.put(5, new SchedulingOption(HOURS, 12));
+    }
 
     private final CommonHandler commonHandler;
 
@@ -103,13 +106,12 @@ public class ScheduleCallbackHandler implements CallbackHandler {
     private InlineKeyboardMarkup buildKeyboard() {
         var keyboardBuilder = new InlineKeyboardBuilder();
 
-        for (int i = 0; i < SCHEDULING_OPTIONS.size(); i++) {
-            var option = SCHEDULING_OPTIONS.get(i);
+        for (var option: SCHEDULING_OPTIONS.entrySet()) {
             var callbackBuilder = ScheduleCallback.builder()
                 .action(ScheduleCallbackAction.SET_TIME)
-                .data(String.valueOf(i));
+                .data(String.valueOf(option.getKey()));
             keyboardBuilder.addButton(
-                option.amount() + " " + option.chronoUnit().name().toLowerCase(),
+                option.getValue().amount() + " " + option.getValue().chronoUnit().name().toLowerCase(),
                 callbackBuilder.build()
             );
         }
