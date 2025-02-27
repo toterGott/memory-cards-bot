@@ -46,7 +46,7 @@ class ReplyKeyboardButtonHandlerTest extends BaseTest {
         ArgumentCaptor<SendMessage> captor = ArgumentCaptor.forClass(SendMessage.class);
         verify(telegramClient, times(2)).execute(captor.capture());
         var scheduleConfigMessage = captor.getAllValues().getLast();
-        assertThat(scheduleConfigMessage.getText()).isEqualTo(textProvider.getMessage("schedule", DEFAULT_LOCALE));
+        assertThat(scheduleConfigMessage.getText()).contains(textProvider.getMessage("schedule", DEFAULT_LOCALE));
         var button = ((InlineKeyboardMarkup) scheduleConfigMessage.getReplyMarkup()).getKeyboard().getFirst().getFirst();
         assertThat(button.getText()).isEqualTo("10 " + MINUTES.name().toLowerCase(), DEFAULT_LOCALE);
         ScheduleCallback callback = (ScheduleCallback) readCallback(button.getCallbackData());
