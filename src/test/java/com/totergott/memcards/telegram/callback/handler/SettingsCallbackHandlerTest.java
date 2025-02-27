@@ -81,7 +81,7 @@ class SettingsCallbackHandlerTest extends BaseTest {
         assertThat(tutorialCollection.getName()).isEqualTo(tutorialCollectionName);
         var cards = cardRepository.findAllByCollectionId(tutorialCollection.getId(), PageRequest.of(0, 100)).getContent();
         var cardQuestions = cards.stream().map(Card::getQuestion).toList();
-        assertThat(cardQuestions).hasSize(6);
+        assertThat(cardQuestions).hasSize(7);
         assertThat(cardQuestions).contains(expectedMessage);
     }
 }
