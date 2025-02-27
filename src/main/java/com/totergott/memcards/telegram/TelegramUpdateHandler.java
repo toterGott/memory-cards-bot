@@ -92,9 +92,10 @@ public class TelegramUpdateHandler {
     }
 
     private void createCollection() {
-        var text = collectionService.createCollection(getMessage().getText(), getUser()).map(
+        var collectionName = getMessage().getText();
+        var text = collectionService.createCollection(collectionName, getUser()).map(
             collection -> textProvider.get("create.collection.created", collection.getName()))
-            .orElse(textProvider.get("collection.name_exists"));
+            .orElse(textProvider.get("collection.name_exists", collectionName));
 
         commonHandler.setMainMenu();
         messageService.sendMessage(text);

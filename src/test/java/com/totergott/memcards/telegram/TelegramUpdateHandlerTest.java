@@ -84,7 +84,7 @@ class TelegramUpdateHandlerTest extends BaseTest {
 
         verify(telegramClient, atLeastOnce()).execute(sendCaptor.capture());
         var lastMessage = sendCaptor.getAllValues().getLast().getText();
-        assertThat(lastMessage).isEqualTo(textProvider.get("collection.name_exists"));
+        assertThat(lastMessage).isEqualTo(textProvider.get("collection.name_exists", NEW_COLLECTION_NAME));
         assertThat(cardCollectionRepository.count()).isEqualTo(3);
     }
 }
