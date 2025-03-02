@@ -61,10 +61,10 @@ public abstract class CardHandler {
                 .data(id)
                 .build();
         if (Boolean.TRUE.equals(card.getArchived())) {
-            archiveText = textProvider.get("extract");
+            archiveText = textProvider.get("emoji.extract") + textProvider.get("extract");
             arcviveCallback.setAction(EXTRACT.name());
         } else {
-            archiveText = textProvider.get("archive");
+            archiveText = textProvider.get("emoji.archive") + textProvider.get("archive");
             arcviveCallback.setAction(ARCHIVE.name());
         }
 
@@ -81,9 +81,9 @@ public abstract class CardHandler {
                 CreateEditCardCallback.builder().action(EDIT_COLLECTION).data(id).build()
             )
             .nextRow()
-            .addButton(textProvider.get("button.ok"), confirmCallback)
-            .nextRow()
             .addButton(archiveText, arcviveCallback)
+            .nextRow()
+            .addButton(textProvider.get("button.ok"), confirmCallback)
             .build();
 
         messageService.sendMessage(cardCreatedText, keyboard);

@@ -10,8 +10,30 @@ import org.springframework.data.repository.query.Param;
 
 public interface CardRepository extends JpaRepository<Card, UUID> {
 
-    Optional<Card> findFirstByOwnerIdAndArchivedIsFalseOrderByAppearTimeAsc(UUID ownerId);
-    Optional<Card> findFirstByOwnerIdAndCollectionIdAndArchivedIsFalseOrderByAppearTimeAsc(UUID ownerId, UUID collectionId);
+    @Query(
+        nativeQuery = true,
+        value = """
+            select * from card
+            where user_id = :ownerId
+                and (archived != true or archived is null)
+            order by appear_time
+            limit 1
+            """
+    )
+    Optional<Card> findFirstByOwnerIdAndArchivedIsFalseOrderByAppearTimeAsc(@Param("ownerId") UUID ownerId);
+
+    @Query(
+        nativeQuery = true,
+        value = """
+            select * from card
+            where user_id = :ownerId
+                and (archived != true or archived is null)
+                and collection_id = :collectionId
+            order by appear_time
+            limit 1
+            """
+    )
+    Optional<Card> findFirstByOwnerIdAndCollectionIdAndArchivedIsFalseOrderByAppearTimeAsc(@Param("ownerId") UUID ownerId, @Param("collectionId") UUID collectionId);
 
     @Query(
         nativeQuery = true,

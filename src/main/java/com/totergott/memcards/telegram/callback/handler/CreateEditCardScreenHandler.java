@@ -67,12 +67,25 @@ public class CreateEditCardScreenHandler extends CardHandler implements Callback
             case CHANGE_PAGE -> changePage(callback.getData());
             case EDIT_QUESTION -> editQuestion(callback.getData());
             case EDIT_ANSWER -> editAnswer(callback.getData());
+            case ARCHIVE -> archive(UUID.fromString(callback.getData()), true);
+            case EXTRACT -> archive(UUID.fromString(callback.getData()), false);
 
             case CONFIRM -> confirmCardCreation();
             case DELETE_DIALOG -> deleteCardDialog(UUID.fromString(callback.getData()));
             case CANCEL_DELETE -> cancelDelete(UUID.fromString(callback.getData()));
             case CONFIRM_DELETE -> confirmDelete(UUID.fromString(callback.getData()));
         }
+    }
+
+    private void archive(UUID uuid, boolean archive) {
+        var card = cardService.getCard(uuid);
+        card.setArchived(archive);
+        messageService.deleteMessagesExceptFirst(1);
+        printCardWithEditButtons(
+            card,
+            CreateEditCardCallback.builder().data(card.getId().toString()).action(CreateEditCardCallbackAction.CONFIRM)
+                .build()
+        );
     }
 
     public void startCreateCardDialog() {
