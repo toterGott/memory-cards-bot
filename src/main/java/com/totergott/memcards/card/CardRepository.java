@@ -10,8 +10,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface CardRepository extends JpaRepository<Card, UUID> {
 
-    Optional<Card> findFirstByOwnerIdAndArchivedIsFalseOrderByAppearTimeAsc(UUID ownerId);
-    Optional<Card> findFirstByOwnerIdAndCollectionIdAndArchivedIsFalseOrderByAppearTimeAsc(UUID ownerId, UUID collectionId);
+    Optional<Card> findFirstByOwnerIdOrderByAppearTimeAsc(UUID ownerId);
+    Optional<Card> findFirstByOwnerIdAndCollectionIdOrderByAppearTimeAsc(UUID ownerId, UUID collectionId);
 
     @Query(
         nativeQuery = true,

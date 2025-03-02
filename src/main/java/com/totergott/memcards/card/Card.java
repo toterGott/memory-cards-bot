@@ -48,7 +48,6 @@ public class Card implements PageableEntity {
     private Instant createdAt;
     @LastModifiedDate
     private Instant updatedAt;
-    private Boolean archived;
 
     @Override
     public String getName() {

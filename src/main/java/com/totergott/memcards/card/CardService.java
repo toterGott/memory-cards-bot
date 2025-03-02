@@ -35,11 +35,11 @@ public class CardService {
     }
 
     public Optional<Card> getCardToLearn(UUID userId) {
-        return repository.findFirstByOwnerIdAndArchivedIsFalseOrderByAppearTimeAsc(userId);
+        return repository.findFirstByOwnerIdOrderByAppearTimeAsc(userId);
     }
 
     public Optional<Card> getCardToLearn(UUID userId, UUID collectionId) {
-        return repository.findFirstByOwnerIdAndCollectionIdAndArchivedIsFalseOrderByAppearTimeAsc(userId, collectionId);
+        return repository.findFirstByOwnerIdAndCollectionIdOrderByAppearTimeAsc(userId, collectionId);
     }
 
     public Optional<Card> findById(UUID uuid) {

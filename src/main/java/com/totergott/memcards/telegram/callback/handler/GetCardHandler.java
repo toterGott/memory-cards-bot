@@ -2,9 +2,7 @@ package com.totergott.memcards.telegram.callback.handler;
 
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction.AFTER_ANSWER_INFO;
-import static com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction.ARCHIVE;
 import static com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction.EDIT;
-import static com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction.EXTRACT;
 import static com.totergott.memcards.telegram.callback.model.GetCardCallback.GetCardCallbackAction.NEXT_CARD;
 import static com.totergott.memcards.user.UserState.QUESTION_SHOWED;
 import static com.totergott.memcards.user.UserState.STAND_BY;
@@ -35,7 +33,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 @Component
 @Slf4j
@@ -75,8 +72,6 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
             case SET_COLLECTION -> setCollection(UUID.fromString(callback.getData()));
             case NEXT_CARD -> nextCard();
             case OK_AFTER_EDIT -> commonHandler.setMainMenu();
-            case ARCHIVE -> archive(UUID.fromString(callback.getData()));
-            case EXTRACT -> extract(UUID.fromString(callback.getData()));
 
             case EDIT -> editCard(callback.getData());
 
@@ -139,7 +134,7 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
         var user = getUser();
         var grade = Integer.parseInt(additionalData);
 
-
+        String text;
         Instant appearTime = Instant.now();
         int chronoUnitsAmount;
         ChronoUnit chronoUnit;
@@ -178,67 +173,33 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
             var nextRun = Instant.now().plus(option.amount(), option.chronoUnit()); // todo add a test
             schedule.setNextRun(nextRun);
         }
-
-        messageService.editCallbackKeyboard(getFinalKeyboard(card));
-    }
-
-    private void archive(UUID uuid) {
-        var card = cardService.findById(uuid).orElseThrow();
-        card.setArchived(true);
-        messageService.editCallbackKeyboard(getFinalKeyboard(card));
-    }
-
-    private void extract(UUID uuid) {
-        var card = cardService.findById(uuid).orElseThrow();
-        card.setArchived(false);
-        messageService.editCallbackKeyboard(getFinalKeyboard(card));
-    }
-
-    private InlineKeyboardMarkup getFinalKeyboard(Card card) {
-        String text = textProvider.get(
+        text = textProvider.get(
             "card_answered",
-            commonHandler.getDiff(card.getAppearTime())
+            Integer.toString(chronoUnitsAmount), chronoUnit.toString().toLowerCase()
         );
 
-        String archiveText;
-        Callback arcvhiveCallback;
-        if (Boolean.TRUE.equals(card.getArchived())) {
-            archiveText = textProvider.get("emoji.extract") + textProvider.get("extract");
-            arcvhiveCallback = GetCardCallback.builder()
-                .action(EXTRACT)
-                .data(card.getId().toString())
-                .build();
-        } else {
-            archiveText = textProvider.get("emoji.archive") + textProvider.get("archive");
-            arcvhiveCallback = GetCardCallback.builder()
-                .action(ARCHIVE)
-                .data(card.getId().toString())
-                .build();
-        }
-
-        return new InlineKeyboardBuilder()
+        var keyboard = new InlineKeyboardBuilder()
             .addButton(text, GetCardCallback.builder().action(AFTER_ANSWER_INFO).data(card.getId().toString()).build())
             .nextRow()
             .addButton(
                 textProvider.get("emoji.edit")
-                + textProvider.get("button.edit"),
+                    + textProvider.get("button.edit"),
                 GetCardCallback.builder()
                     .action(EDIT)
                     .data(card.getId().toString())
                     .build()
             )
             .nextRow()
-            .addButton(archiveText, arcvhiveCallback)
-            .nextRow()
             .addButton(
                 textProvider.get("emoji.card")
-                + textProvider.get("card.get_another"),
+                    + textProvider.get("card.get_another"),
                 GetCardCallback.builder()
                     .action(NEXT_CARD)
                     .data(card.getId().toString())
                     .build()
             )
             .build();
+        messageService.editCallbackKeyboard(keyboard);
     }
 
     private void nextCard() {

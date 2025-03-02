@@ -27,6 +27,7 @@ public class TelegramUpdateHandler {
 
     private final MessageService messageService;
     private final UserService userService;
+    private final KeyboardProvider keyboardProvider;
     private final TextProvider textProvider;
     private final CollectionService collectionService;
     private final TelegramCallbackDelegate callbackHandler;
