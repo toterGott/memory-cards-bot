@@ -1,9 +1,11 @@
 package com.totergott.memcards.telegram.callback.handler;
 
+import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.ARCHIVE;
 import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.DELETE_DIALOG;
 import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.EDIT_ANSWER;
 import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.EDIT_COLLECTION;
 import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.EDIT_QUESTION;
+import static com.totergott.memcards.telegram.callback.model.CreateEditCardCallback.CreateEditCardCallbackAction.EXTRACT;
 
 import com.totergott.memcards.card.Card;
 import com.totergott.memcards.i18n.TextProvider;
@@ -54,6 +56,17 @@ public abstract class CardHandler {
         );
         var id = card.getId().toString();
 
+        String archiveText;
+        Callback arcviveCallback = CreateEditCardCallback.builder()
+                .data(id)
+                .build();
+        if (Boolean.TRUE.equals(card.getArchived())) {
+            archiveText = textProvider.get("extract");
+            arcviveCallback.setAction(EXTRACT.name());
+        } else {
+            archiveText = textProvider.get("archive");
+            arcviveCallback.setAction(ARCHIVE.name());
+        }
 
         var keyboard = new InlineKeyboardBuilder()
             .addButton(
@@ -69,6 +82,8 @@ public abstract class CardHandler {
             )
             .nextRow()
             .addButton(textProvider.get("button.ok"), confirmCallback)
+            .nextRow()
+            .addButton(archiveText, arcviveCallback)
             .build();
 
         messageService.sendMessage(cardCreatedText, keyboard);

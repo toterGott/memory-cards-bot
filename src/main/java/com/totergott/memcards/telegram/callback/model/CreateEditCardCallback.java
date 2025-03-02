@@ -45,6 +45,8 @@ public class CreateEditCardCallback extends Callback {
         DELETE_DIALOG("d"),
         CONFIRM_DELETE("D"),
         CANCEL_DELETE("b"),
+        ARCHIVE("R"),
+        EXTRACT("X"),
         ;
 
         @Getter
