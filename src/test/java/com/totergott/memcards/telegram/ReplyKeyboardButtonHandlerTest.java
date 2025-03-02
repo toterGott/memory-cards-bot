@@ -66,6 +66,7 @@ class ReplyKeyboardButtonHandlerTest extends BaseTest {
         for (var card : cards) {
             card.setArchived(true);
         }
+        cardRepository.saveAll(cards);
 
         telegramUpdateConsumer.consume(getMessageUpdate(textProvider.get("button.get_card")));
 
