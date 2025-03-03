@@ -197,7 +197,7 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
     private InlineKeyboardMarkup getFinalKeyboard(Card card) {
         String text = textProvider.get(
             "card_answered",
-            commonHandler.getDiff(card.getAppearTime())
+            commonHandler.getDiff(card.getAppearTime().plusSeconds(1))
         );
 
         String archiveText;
@@ -227,7 +227,6 @@ public class GetCardHandler extends CardHandler implements CallbackHandler {
                     .data(card.getId().toString())
                     .build()
             )
-            .nextRow()
             .addButton(archiveText, arcvhiveCallback)
             .nextRow()
             .addButton(
