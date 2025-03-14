@@ -42,6 +42,7 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
             where user_id = :ownerId
                     and collection_id = :collectionId
                     and appear_time < now()
+                    and (archived != true or archived is null)
             order by appear_time
             limit 1
             """
@@ -54,6 +55,7 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
             select * from card
                 where user_id = :ownerId
                     and appear_time < now()
+                    and (archived != true or archived is null)
             order by appear_time
             limit 1
             """
