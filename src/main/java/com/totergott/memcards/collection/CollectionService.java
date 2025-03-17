@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -107,6 +108,9 @@ public class CollectionService {
     }
 
     public Optional<CardCollection> createCollection(String collectionName, TelegramUser user) {
+        if (StringUtils.isBlank(collectionName)) {
+            throw new IllegalArgumentException("Collection name cannot be empty");
+        }
         if (getCollectionCount(user.getId()) >= collectionsLimit) {
             log.error("Collection couldn't be created, limit is reached for user {}", user.getId());
             return Optional.empty();
