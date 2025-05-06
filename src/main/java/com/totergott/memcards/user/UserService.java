@@ -78,4 +78,8 @@ public class UserService {
             UserState.EVALUATE_ANSWER.name()
         ));
     }
+
+    public List<TelegramUser> getActiveUsers() {
+        return repository.getActiveUsers(3);
+    }
 }

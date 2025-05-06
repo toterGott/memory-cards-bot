@@ -8,6 +8,7 @@ import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback;
 import com.totergott.memcards.telegram.callback.model.CollectionsCallback.CollectionCallbackAction;
+import com.totergott.memcards.user.UserService;
 import com.totergott.memcards.user.UserState;
 import java.time.Duration;
 import java.time.Instant;
@@ -27,6 +28,7 @@ public class CommonHandler {
     private final MessageService messageService;
     private final CollectionService collectionService;
     private final CardService cardService;
+    private final UserService userService;
 
     public void collectionsScreen() {
         messageService.sendMessage(
@@ -119,5 +121,16 @@ public class CommonHandler {
         } else {
             return text;
         }
+    }
+
+    public void showStats() {
+        var activeUsers = userService.getActiveUsers();
+        StringBuilder sb = new StringBuilder();
+        activeUsers.stream().forEach(u -> {
+            sb.append(u.getUsername());
+            sb.append("\n");
+        });
+        var count = activeUsers.size();
+        messageService.sendMessage(count + "\"" + sb);
     }
 }

@@ -6,4 +6,5 @@ import lombok.experimental.UtilityClass;
 public class Constants {
     public static final String START_COMMAND = "/start";
     public static final String MENU_COMMAND = "/menu";
+    public static final String STATS_COMMAND = "/stats";
 }

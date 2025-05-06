@@ -5,7 +5,6 @@ import static com.totergott.memcards.telegram.TelegramUtils.getMessage;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.COLLECTION_CREATION;
 
-import com.totergott.memcards.card.CardService;
 import com.totergott.memcards.collection.CollectionService;
 import com.totergott.memcards.i18n.TextProvider;
 import com.totergott.memcards.telegram.callback.handler.CreateEditCardScreenHandler;
@@ -24,7 +23,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboa
 @Slf4j
 public class ReplyKeyboardButtonHandler {
 
-    private final CardService cardService;
     private final CollectionService collectionService;
     @Value("${app.version}")
     private String version;

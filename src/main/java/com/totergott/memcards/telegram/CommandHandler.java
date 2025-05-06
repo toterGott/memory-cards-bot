@@ -2,6 +2,7 @@ package com.totergott.memcards.telegram;
 
 import static com.totergott.memcards.telegram.Constants.MENU_COMMAND;
 import static com.totergott.memcards.telegram.Constants.START_COMMAND;
+import static com.totergott.memcards.telegram.Constants.STATS_COMMAND;
 import static com.totergott.memcards.telegram.TelegramUtils.getUpdate;
 import static com.totergott.memcards.telegram.TelegramUtils.getUser;
 import static com.totergott.memcards.user.UserState.STAND_BY;
@@ -32,6 +33,7 @@ public class CommandHandler {
                 messageService.deleteMessagesExceptLast(1);
             }
             case MENU_COMMAND -> commonHandler.setMainMenu();
+            case STATS_COMMAND -> commonHandler.showStats();
             default -> log.warn("Unhandled command: {}", messageEntity.getText());
         }
     }

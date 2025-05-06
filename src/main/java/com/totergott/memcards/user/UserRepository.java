@@ -24,4 +24,17 @@ public interface UserRepository extends JpaRepository<TelegramUser, UUID> {
             """
     )
     Optional<TelegramUser> getScheduledUser(@Param("states") List < String > states);
+
+    @Query(
+        nativeQuery = true,
+        value = """
+            select *
+            from telegram_user
+            where payload -> 'lastInteractionTimestamp' is not null
+                and username is not null
+                and (payload ->> 'lastInteractionTimestamp')::timestamptz > now() - (:days || ' days')::interval
+            order by payload -> 'lastInteractionTimestamp' desc;
+            """
+    )
+    List<TelegramUser> getActiveUsers(Integer days);
 }
